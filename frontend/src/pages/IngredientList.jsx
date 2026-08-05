@@ -6,6 +6,7 @@ import {
   deleteIngredient,
   updateIngredient,
 } from "../api/ingredientApi";
+import { fetchFridgeName, updateFridgeName } from "../api/fridgeApi";
 import "./IngredientList.css";
 
 // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체하기
@@ -28,6 +29,10 @@ export default function IngredientList({ onAddClick }) {
   const [editExpirationDate, setEditExpirationDate] = useState("");
   const [actionError, setActionError] = useState(null);
 
+  const [fridgeName, setFridgeName] = useState("내 냉장고");
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
+
   const loadIngredients = () => {
     setLoading(true);
     fetchMyIngredients(TEMP_USER_ID)
@@ -38,10 +43,37 @@ export default function IngredientList({ onAddClick }) {
 
   useEffect(() => {
     loadIngredients();
+    fetchFridgeName(TEMP_USER_ID)
+      .then(setFridgeName)
+      .catch(() => {}); // 냉장고 이름 로딩 실패는 기본값("내 냉장고")으로 조용히 넘어감
   }, []);
 
   const toggleMenu = (id) => {
     setOpenMenuId((prev) => (prev === id ? null : id));
+  };
+
+  const startEditTitle = () => {
+    setTitleDraft(fridgeName);
+    setIsEditingTitle(true);
+  };
+
+  const cancelEditTitle = () => {
+    setIsEditingTitle(false);
+  };
+
+  const saveTitle = async () => {
+    const trimmed = titleDraft.trim();
+    if (!trimmed) {
+      setActionError("냉장고 이름을 입력해주세요.");
+      return;
+    }
+    try {
+      const saved = await updateFridgeName(TEMP_USER_ID, trimmed);
+      setFridgeName(saved);
+      setIsEditingTitle(false);
+    } catch (err) {
+      setActionError(err.message);
+    }
   };
 
   const handleConsume = async (userIngredientId) => {
@@ -105,7 +137,34 @@ export default function IngredientList({ onAddClick }) {
   return (
     <div className="ingredient-list-container">
       <div className="ingredient-list-header">
-        <h2 className="ingredient-list-title">내 냉장고</h2>
+        {isEditingTitle ? (
+          <div className="fridge-title-edit">
+            <input
+              type="text"
+              className="fridge-title-input"
+              value={titleDraft}
+              maxLength={30}
+              autoFocus
+              onChange={(e) => setTitleDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") saveTitle();
+                if (e.key === "Escape") cancelEditTitle();
+              }}
+            />
+            <button className="fridge-title-save" onClick={saveTitle}>
+              저장
+            </button>
+            <button className="fridge-title-cancel" onClick={cancelEditTitle}>
+              취소
+            </button>
+          </div>
+        ) : (
+          <h2 className="ingredient-list-title" onClick={startEditTitle} title="클릭해서 이름 수정">
+            {fridgeName}
+            <span className="fridge-title-edit-icon">✎</span>
+          </h2>
+        )}
+
         <button className="add-ingredient-button" onClick={onAddClick}>
           + 재료 추가
         </button>
@@ -179,7 +238,7 @@ export default function IngredientList({ onAddClick }) {
                   className="kebab-menu-item"
                   onClick={() => handleDiscard(item.userIngredientId)}
                 >
-                  폐기(상함)
+                  폐기 (상함)
                 </button>
                 <div className="kebab-menu-divider" />
                 <button className="kebab-menu-item" onClick={() => startEdit(item)}>
@@ -190,7 +249,7 @@ export default function IngredientList({ onAddClick }) {
                   className="kebab-menu-item kebab-menu-item-danger"
                   onClick={() => handleDelete(item.userIngredientId)}
                 >
-                  삭제
+                  삭제 (잘못 등록함)
                 </button>
               </div>
             )}
