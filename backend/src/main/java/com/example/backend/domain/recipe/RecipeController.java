@@ -1,7 +1,10 @@
 package com.example.backend.domain.recipe;
 
+import com.example.backend.domain.recipe.dto.RecipeCreateRequest;
+import com.example.backend.domain.recipe.dto.RecipeDetailResponse;
 import com.example.backend.domain.recipe.dto.RecipeRecommendResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,6 +15,20 @@ import java.util.List;
 public class RecipeController {
 
     private final RecipeService recipeService;
+
+    // 레시피 등록 (FR-24)
+    // 재료 목록/조리순서 목록까지 요청 본문 한 번에 받아서 같이 저장
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Long createRecipe(@RequestBody RecipeCreateRequest request) {
+        return recipeService.createRecipe(request);
+    }
+
+    // 레시피 상세조회 (FR-24)
+    @GetMapping("/{recipeId}")
+    public RecipeDetailResponse getRecipeDetail(@PathVariable Long recipeId) {
+        return recipeService.getRecipeDetail(recipeId);
+    }
 
     // TODO: 로그인(JWT) 기능이 만들어지면 userId는 토큰에서 꺼내 쓰도록 바꾸기.
     // 지금은 로그인이 아직 없어서, 테스트하기 편하게 쿼리파라미터로 userId를 임시로 받음.
