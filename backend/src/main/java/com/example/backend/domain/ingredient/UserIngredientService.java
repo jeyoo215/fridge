@@ -16,10 +16,10 @@ public class UserIngredientService {
     private final UserIngredientRepository userIngredientRepository;
     private final IngredientRepository ingredientRepository;
 
-    // 특정 유저의 보유 재료 목록 조회 (유통기한 임박한 순서, 소진하지 않은 것만)
+    // 특정 유저의 보유 재료 목록 조회 (유통기한 임박한 순서)
     public List<UserIngredientResponse> getMyIngredients(Long userId) {
         return userIngredientRepository
-                .findByUserIdAndConsumedFalseOrderByExpirationDateAsc(userId)
+                .findByUserIdAndStatusOrderByExpirationDateAsc(userId, UserIngredient.Status.보유중)
                 .stream()
                 .map(UserIngredientResponse::new)
                 .toList();

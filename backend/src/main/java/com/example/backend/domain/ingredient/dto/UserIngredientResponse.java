@@ -15,7 +15,7 @@ public class UserIngredientResponse {
     private final BigDecimal quantity;
     private final String unit;
     private final LocalDate expirationDate;
-    private final Long dDay; // 유통기한 미입력 시 null (schema.sql상 expiration_date는 NULL 허용)
+    private final long dDay;
 
     public UserIngredientResponse(UserIngredient entity) {
         this.userIngredientId = entity.getUserIngredientId();
@@ -23,8 +23,6 @@ public class UserIngredientResponse {
         this.quantity = entity.getQuantity();
         this.unit = entity.getUnit();
         this.expirationDate = entity.getExpirationDate();
-        this.dDay = entity.getExpirationDate() != null
-                ? ChronoUnit.DAYS.between(LocalDate.now(), entity.getExpirationDate())
-                : null;
+        this.dDay = ChronoUnit.DAYS.between(LocalDate.now(), entity.getExpirationDate());
     }
 }

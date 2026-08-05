@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-// schema.sql의 user_ingredient 테이블과 매칭 (팀 공식 스키마 기준)
+// ERD의 user_ingredient 테이블 (사용자가 실제로 냉장고에 갖고 있는 재료)
 @Entity
 @Table(name = "user_ingredient")
 @Getter
@@ -30,24 +30,21 @@ public class UserIngredient {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal quantity;
 
-    @Column(length = 20)
+    @Column(length = 10)
     private String unit;
 
     @Column(name = "purchase_date")
     private LocalDate purchaseDate;
 
-    @Column(name = "expiration_date")
+    @Column(name = "expiration_date", nullable = false)
     private LocalDate expirationDate;
 
-    // schema.sql 기준: status(enum) 대신 is_consumed(boolean) 사용
-    @Column(name = "is_consumed", nullable = false)
-    private boolean consumed;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(10)")
+    private Status status;
 
-    @Column(name = "created_at", insertable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @Column(name = "updated_at", insertable = false, updatable = false)
-    private LocalDateTime updatedAt;
 
     @Builder
     public UserIngredient(Long userId, Ingredient ingredient, BigDecimal quantity, String unit,
@@ -58,16 +55,25 @@ public class UserIngredient {
         this.unit = unit;
         this.purchaseDate = purchaseDate;
         this.expirationDate = expirationDate;
-        this.consumed = false;
+        this.status = Status.보유중;
+        this.createdAt = LocalDateTime.now();
     }
 
-    // --- 상태 변경 메서드 ---
-    public void markConsumed() {
-        this.consumed = true;
+    // --- 상태 변경 메서드 (소진/폐기 처리) ---
+    public void consume() {
+        this.status = Status.소진;
+    }
+
+    public void discard() {
+        this.status = Status.폐기;
     }
 
     public void updateQuantityAndExpiration(BigDecimal quantity, LocalDate expirationDate) {
         this.quantity = quantity;
         this.expirationDate = expirationDate;
+    }
+
+    public enum Status {
+        보유중, 소진, 폐기
     }
 }

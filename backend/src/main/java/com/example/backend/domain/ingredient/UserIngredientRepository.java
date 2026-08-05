@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface UserIngredientRepository extends JpaRepository<UserIngredient, Long> {
 
-    // 아직 소진하지 않은(consumed=false) 재료를, 유통기한 임박한 순서로 조회
-    List<UserIngredient> findByUserIdAndConsumedFalseOrderByExpirationDateAsc(Long userId);
+    // 특정 유저가 보유한 재료를, 유통기한 임박한 순서로 조회
+    List<UserIngredient> findByUserIdAndStatusOrderByExpirationDateAsc(Long userId, UserIngredient.Status status);
 }
