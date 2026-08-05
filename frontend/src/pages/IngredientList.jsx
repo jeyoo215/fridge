@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   fetchMyIngredients,
   consumeIngredient,
+  discardIngredient,
   deleteIngredient,
   updateIngredient,
 } from "../api/ingredientApi";
@@ -47,6 +48,16 @@ export default function IngredientList({ onAddClick }) {
     setOpenMenuId(null);
     try {
       await consumeIngredient(TEMP_USER_ID, userIngredientId);
+      setIngredients((prev) => prev.filter((item) => item.userIngredientId !== userIngredientId));
+    } catch (err) {
+      setActionError(err.message);
+    }
+  };
+
+  const handleDiscard = async (userIngredientId) => {
+    setOpenMenuId(null);
+    try {
+      await discardIngredient(TEMP_USER_ID, userIngredientId);
       setIngredients((prev) => prev.filter((item) => item.userIngredientId !== userIngredientId));
     } catch (err) {
       setActionError(err.message);
@@ -116,10 +127,10 @@ export default function IngredientList({ onAddClick }) {
               <input
                 type="number"
                 min="0"
-                step="0.1"
+                step="1"
                 className="edit-input edit-input-quantity"
                 value={editQuantity}
-                onChange={(e) => setEditQuantity(e.target.value)}
+                onChange={(e) => setEditQuantity(e.target.value.replace(/[^0-9]/g, ""))}
               />
               <input
                 type="date"
@@ -162,11 +173,19 @@ export default function IngredientList({ onAddClick }) {
                   className="kebab-menu-item"
                   onClick={() => handleConsume(item.userIngredientId)}
                 >
-                  소진 처리
+                  사용 완료
                 </button>
+                <button
+                  className="kebab-menu-item"
+                  onClick={() => handleDiscard(item.userIngredientId)}
+                >
+                  폐기(상함)
+                </button>
+                <div className="kebab-menu-divider" />
                 <button className="kebab-menu-item" onClick={() => startEdit(item)}>
                   수정
                 </button>
+                <div className="kebab-menu-divider" />
                 <button
                   className="kebab-menu-item kebab-menu-item-danger"
                   onClick={() => handleDelete(item.userIngredientId)}

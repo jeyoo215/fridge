@@ -15,7 +15,7 @@ public class IngredientController {
 
     // 예: GET /api/v1/ingredients?keyword=양
     @GetMapping
-    public List<IngredientSearchResponse> search(@RequestParam String keyword) {
+    public List<IngredientSearchResponse> search(@RequestParam("keyword") String keyword) {
         return ingredientService.search(keyword);
     }
 }
