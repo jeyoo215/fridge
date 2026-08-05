@@ -42,4 +42,36 @@ public class UserIngredientService {
 
         return userIngredientRepository.save(userIngredient).getUserIngredientId();
     }
+
+    // 재료 소진 처리 ("요리에 다 썼어요")
+    @Transactional
+    public void consume(Long userId, Long userIngredientId) {
+        UserIngredient userIngredient = findOwnedUserIngredient(userId, userIngredientId);
+        userIngredient.consume();
+    }
+
+    // 재료 폐기 처리 ("상해서 버렸어요")
+    @Transactional
+    public void discard(Long userId, Long userIngredientId) {
+        UserIngredient userIngredient = findOwnedUserIngredient(userId, userIngredientId);
+        userIngredient.discard();
+    }
+
+    // 재료 목록에서 완전히 삭제 (잘못 등록한 경우 등)
+    @Transactional
+    public void delete(Long userId, Long userIngredientId) {
+        UserIngredient userIngredient = findOwnedUserIngredient(userId, userIngredientId);
+        userIngredientRepository.delete(userIngredient);
+    }
+
+    // 본인 소유의 재료가 맞는지 확인 후 반환 (다른 사람 재료를 못 건드리게 방지)
+    private UserIngredient findOwnedUserIngredient(Long userId, Long userIngredientId) {
+        UserIngredient userIngredient = userIngredientRepository.findById(userIngredientId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 재료입니다. id=" + userIngredientId));
+
+        if (!userIngredient.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("본인의 재료만 수정/삭제할 수 있습니다.");
+        }
+        return userIngredient;
+    }
 }

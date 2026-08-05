@@ -103,3 +103,13 @@
 .kebab-menu-item-danger {
   color: #d92d20;
 }
+
+.kebab-menu-item:disabled {
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+.ingredient-action-error {
+  color: #d92d20;
+  padding: 8px 0;
+}
