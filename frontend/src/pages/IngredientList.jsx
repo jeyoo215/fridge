@@ -238,7 +238,7 @@ export default function IngredientList({ onAddClick }) {
                   className="kebab-menu-item"
                   onClick={() => handleDiscard(item.userIngredientId)}
                 >
-                  폐기 (상함)
+                  폐기(상함)
                 </button>
                 <div className="kebab-menu-divider" />
                 <button className="kebab-menu-item" onClick={() => startEdit(item)}>
@@ -249,7 +249,7 @@ export default function IngredientList({ onAddClick }) {
                   className="kebab-menu-item kebab-menu-item-danger"
                   onClick={() => handleDelete(item.userIngredientId)}
                 >
-                  삭제 (잘못 등록함)
+                  삭제
                 </button>
               </div>
             )}
