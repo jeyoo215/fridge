@@ -33,6 +33,21 @@ export async function registerIngredient(userId, payload) {
   return response.json();
 }
 
+// 재료 수정 (수량/유통기한)
+export async function updateIngredient(userId, userIngredientId, payload) {
+  const response = await fetch(
+    `${BASE_URL}/users/me/ingredients/${userIngredientId}?userId=${userId}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }
+  );
+  if (!response.ok) {
+    throw new Error("재료 수정에 실패했습니다.");
+  }
+}
+
 // 재료 소진 처리
 export async function consumeIngredient(userId, userIngredientId) {
   const response = await fetch(

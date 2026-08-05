@@ -113,3 +113,39 @@
   color: #d92d20;
   padding: 8px 0;
 }
+
+.ingredient-row-editing {
+  gap: 6px;
+  background: #f0f4ff;
+}
+
+.edit-input {
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.edit-input-quantity {
+  width: 50px;
+}
+
+.edit-input-date {
+  width: 130px;
+}
+
+.edit-save-button,
+.edit-cancel-button {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background: white;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.edit-save-button {
+  background: #333;
+  color: white;
+  border: none;
+}

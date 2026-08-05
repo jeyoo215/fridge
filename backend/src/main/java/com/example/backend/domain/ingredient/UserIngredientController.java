@@ -2,6 +2,7 @@ package com.example.backend.domain.ingredient;
 
 import com.example.backend.domain.ingredient.dto.UserIngredientRegisterRequest;
 import com.example.backend.domain.ingredient.dto.UserIngredientResponse;
+import com.example.backend.domain.ingredient.dto.UserIngredientUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,14 @@ public class UserIngredientController {
                                        @Valid @RequestBody UserIngredientRegisterRequest request) {
         Long userIngredientId = userIngredientService.register(userId, request);
         return Map.of("userIngredientId", userIngredientId);
+    }
+
+    // 재료 수정 (수량/유통기한)
+    // 예: PATCH /api/v1/users/me/ingredients/1?userId=1
+    @PatchMapping("/{userIngredientId}")
+    public void update(@RequestParam Long userId, @PathVariable Long userIngredientId,
+                        @Valid @RequestBody UserIngredientUpdateRequest request) {
+        userIngredientService.update(userId, userIngredientId, request);
     }
 
     // 소진 처리

@@ -2,6 +2,7 @@ package com.example.backend.domain.ingredient;
 
 import com.example.backend.domain.ingredient.dto.UserIngredientRegisterRequest;
 import com.example.backend.domain.ingredient.dto.UserIngredientResponse;
+import com.example.backend.domain.ingredient.dto.UserIngredientUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,13 @@ public class UserIngredientService {
                 .build();
 
         return userIngredientRepository.save(userIngredient).getUserIngredientId();
+    }
+
+    // 재료 수정 (수량/유통기한 변경)
+    @Transactional
+    public void update(Long userId, Long userIngredientId, UserIngredientUpdateRequest request) {
+        UserIngredient userIngredient = findOwnedUserIngredient(userId, userIngredientId);
+        userIngredient.updateQuantityAndExpiration(request.quantity(), request.expirationDate());
     }
 
     // 재료 소진 처리 ("요리에 다 썼어요")

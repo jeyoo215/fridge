@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { fetchMyIngredients, consumeIngredient, deleteIngredient } from "../api/ingredientApi";
+import {
+  fetchMyIngredients,
+  consumeIngredient,
+  deleteIngredient,
+  updateIngredient,
+} from "../api/ingredientApi";
 import "./IngredientList.css";
 
 // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체하기
@@ -16,8 +21,11 @@ export default function IngredientList({ onAddClick }) {
   const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [openMenuId, setOpenMenuId] = useState(null); // 지금 "..." 메뉴가 열려있는 항목 id
-  const [actionError, setActionError] = useState(null); // 소진/삭제 중 에러 메시지
+  const [openMenuId, setOpenMenuId] = useState(null); // "..." 메뉴가 열려있는 항목 id
+  const [editingId, setEditingId] = useState(null);   // 지금 수정 중인 항목 id
+  const [editQuantity, setEditQuantity] = useState("");
+  const [editExpirationDate, setEditExpirationDate] = useState("");
+  const [actionError, setActionError] = useState(null);
 
   const loadIngredients = () => {
     setLoading(true);
@@ -39,7 +47,6 @@ export default function IngredientList({ onAddClick }) {
     setOpenMenuId(null);
     try {
       await consumeIngredient(TEMP_USER_ID, userIngredientId);
-      // 서버에 다시 안 물어보고, 화면에서 바로 그 항목만 지움 (소진된 재료는 목록에 다시 안 나오니까)
       setIngredients((prev) => prev.filter((item) => item.userIngredientId !== userIngredientId));
     } catch (err) {
       setActionError(err.message);
@@ -52,6 +59,30 @@ export default function IngredientList({ onAddClick }) {
     try {
       await deleteIngredient(TEMP_USER_ID, userIngredientId);
       setIngredients((prev) => prev.filter((item) => item.userIngredientId !== userIngredientId));
+    } catch (err) {
+      setActionError(err.message);
+    }
+  };
+
+  const startEdit = (item) => {
+    setOpenMenuId(null);
+    setEditingId(item.userIngredientId);
+    setEditQuantity(item.quantity);
+    setEditExpirationDate(item.expirationDate);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const saveEdit = async (userIngredientId) => {
+    try {
+      await updateIngredient(TEMP_USER_ID, userIngredientId, {
+        quantity: Number(editQuantity),
+        expirationDate: editExpirationDate,
+      });
+      setEditingId(null);
+      loadIngredients(); // 유통기한 바뀌면 D-day/정렬 순서도 바뀌니 목록 새로 조회
     } catch (err) {
       setActionError(err.message);
     }
@@ -75,47 +106,78 @@ export default function IngredientList({ onAddClick }) {
         <p className="ingredient-status">등록된 재료가 없어요. 재료를 추가해보세요!</p>
       )}
 
-      {ingredients.map((item) => (
-        <div
-          key={item.userIngredientId}
-          className={`ingredient-row ${getDDayStyle(item.dDay)}`}
-        >
-          <span className="ingredient-name">
-            {item.ingredientName}
-            {item.dDay !== null && item.dDay !== undefined &&
-              ` · D${item.dDay >= 0 ? `-${item.dDay}` : `+${Math.abs(item.dDay)}`}`}
-          </span>
+      {ingredients.map((item) => {
+        const isEditing = editingId === item.userIngredientId;
 
-          <button
-            className="kebab-button"
-            onClick={() => toggleMenu(item.userIngredientId)}
-            aria-label="더보기 메뉴"
-          >
-            ⋯
-          </button>
-
-          {openMenuId === item.userIngredientId && (
-            <div className="kebab-menu">
-              <button
-                className="kebab-menu-item"
-                onClick={() => handleConsume(item.userIngredientId)}
-              >
-                소진 처리
+        if (isEditing) {
+          return (
+            <div key={item.userIngredientId} className="ingredient-row ingredient-row-editing">
+              <span className="ingredient-name">{item.ingredientName}</span>
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                className="edit-input edit-input-quantity"
+                value={editQuantity}
+                onChange={(e) => setEditQuantity(e.target.value)}
+              />
+              <input
+                type="date"
+                className="edit-input edit-input-date"
+                value={editExpirationDate}
+                onChange={(e) => setEditExpirationDate(e.target.value)}
+              />
+              <button className="edit-save-button" onClick={() => saveEdit(item.userIngredientId)}>
+                저장
               </button>
-              {/* TODO: 수정 기능은 다음에 구현 (수량/유통기한 변경 폼 필요) */}
-              <button className="kebab-menu-item" disabled>
-                수정
-              </button>
-              <button
-                className="kebab-menu-item kebab-menu-item-danger"
-                onClick={() => handleDelete(item.userIngredientId)}
-              >
-                삭제
+              <button className="edit-cancel-button" onClick={cancelEdit}>
+                취소
               </button>
             </div>
-          )}
-        </div>
-      ))}
+          );
+        }
+
+        return (
+          <div
+            key={item.userIngredientId}
+            className={`ingredient-row ${getDDayStyle(item.dDay)}`}
+          >
+            <span className="ingredient-name">
+              {item.ingredientName}
+              {item.dDay !== null && item.dDay !== undefined &&
+                ` · D${item.dDay >= 0 ? `-${item.dDay}` : `+${Math.abs(item.dDay)}`}`}
+            </span>
+
+            <button
+              className="kebab-button"
+              onClick={() => toggleMenu(item.userIngredientId)}
+              aria-label="더보기 메뉴"
+            >
+              ⋯
+            </button>
+
+            {openMenuId === item.userIngredientId && (
+              <div className="kebab-menu">
+                <button
+                  className="kebab-menu-item"
+                  onClick={() => handleConsume(item.userIngredientId)}
+                >
+                  소진 처리
+                </button>
+                <button className="kebab-menu-item" onClick={() => startEdit(item)}>
+                  수정
+                </button>
+                <button
+                  className="kebab-menu-item kebab-menu-item-danger"
+                  onClick={() => handleDelete(item.userIngredientId)}
+                >
+                  삭제
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
