@@ -44,6 +44,7 @@ out/
 application-local.yml
 application-secret.yml
 src/main/resources/application-prod.yml
+google-vision-key.json
 
 # ===== 빌드 결과물 =====
 target/
