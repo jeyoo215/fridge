@@ -1,0 +1,56 @@
+# ==========================================
+# 1. OS & IDE (운영체제 및 에디터 설정 파일)
+# ==========================================
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+target/
+
+# ==========================================
+# 2. Node / Frontend (React + Vite)
+# ==========================================
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+frontend/.env.local
+frontend/.env.*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# ==========================================
+# 3. Java / Backend (Spring Boot & Gradle)
+# ==========================================
+backend/.gradle/
+backend/build/
+backend/out/
+backend/bin/
+backend/.settings/
+backend/.classpath
+backend/.project
+
+# ==========================================
+# 4. Environment & DB Security (환경변수 및 설정)
+# ==========================================
+*.env
+*.env.local
+*.pem
+*.key
+application-local.yml
+application-secret.yml
+application-secret.properties
+src/main/resources/application-prod.yml
+
+# ==========================================
+# 5. Logs & Temporary Files (로그 및 임시 파일)
+# ==========================================
+*.log
+*.tmp
