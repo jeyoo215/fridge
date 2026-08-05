@@ -6,12 +6,13 @@ import "./IngredientList.css";
 const TEMP_USER_ID = 1;
 
 function getDDayStyle(dDay) {
+  if (dDay === null || dDay === undefined) return "dday-normal";
   if (dDay <= 1) return "dday-danger";   // 유통기한 D-1 이하: 빨강
   if (dDay <= 3) return "dday-warning";  // D-3 이하: 주황
   return "dday-normal";                  // 그 외: 기본
 }
 
-export default function IngredientList() {
+export default function IngredientList({ onAddClick }) {
   const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,7 +34,12 @@ export default function IngredientList() {
 
   return (
     <div className="ingredient-list-container">
-      <h2 className="ingredient-list-title">내 냉장고</h2>
+      <div className="ingredient-list-header">
+        <h2 className="ingredient-list-title">내 냉장고</h2>
+        <button className="add-ingredient-button" onClick={onAddClick}>
+          + 재료 추가
+        </button>
+      </div>
 
       {ingredients.length === 0 && (
         <p className="ingredient-status">등록된 재료가 없어요. 재료를 추가해보세요!</p>
@@ -45,7 +51,9 @@ export default function IngredientList() {
           className={`ingredient-row ${getDDayStyle(item.dDay)}`}
         >
           <span className="ingredient-name">
-            {item.ingredientName} · D{item.dDay >= 0 ? `-${item.dDay}` : `+${Math.abs(item.dDay)}`}
+            {item.ingredientName}
+            {item.dDay !== null && item.dDay !== undefined &&
+              ` · D${item.dDay >= 0 ? `-${item.dDay}` : `+${Math.abs(item.dDay)}`}`}
           </span>
 
           <button
