@@ -100,10 +100,10 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
           <input
             type="number"
             min="0"
-            step="0.1"
+            step="1"
             placeholder="수량"
             value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
+            onChange={(e) => setQuantity(e.target.value.replace(/[^0-9]/g, ""))}
           />
         </div>
         <div className="ingredient-form-field">
