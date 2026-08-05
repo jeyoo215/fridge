@@ -151,7 +151,7 @@ CREATE TABLE ingredient (
     CONSTRAINT fk_ingredient_category FOREIGN KEY (category_id) REFERENCES ingredient_category(category_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE user_allergy_ingredient (
+CREATE TABLE user_alergy_ingredient (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id         BIGINT NOT NULL,
     ingredient_id   BIGINT NOT NULL,
