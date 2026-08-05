@@ -24,7 +24,8 @@ public class RecipeService {
     // 2. 그 재료들과 겹치는 레시피를 매칭 개수 많은 순으로 조회
     public List<RecipeRecommendResponse> recommendRecipes(Long userId) {
         List<Long> ingredientIds = userIngredientRepository
-                .findByUserIdAndStatusOrderByExpirationDateAsc(userId, UserIngredient.Status.보유중).stream()
+                .findByUserIdAndStatusOrderByExpirationDateAsc(userId, UserIngredient.Status.보유중)
+                .stream()
                 .map(userIngredient -> userIngredient.getIngredient().getIngredientId())
                 .toList();
 
