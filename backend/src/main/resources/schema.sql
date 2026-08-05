@@ -141,12 +141,13 @@ CREATE TABLE user_tool (
 -- =========================================================
 
 CREATE TABLE ingredient (
-    ingredient_id   BIGINT AUTO_INCREMENT PRIMARY KEY,
-    category_id     BIGINT NOT NULL,
-    ingredient_name VARCHAR(100) NOT NULL,
-    default_unit    VARCHAR(20) NULL,                 -- g, ml, 개 등
-    is_freezable    BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ingredient_id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    category_id             BIGINT NULL,                       -- 페어1 엔티티가 @JoinColumn(nullable 기본값=true)라 NULL 허용
+    ingredient_name         VARCHAR(50) NOT NULL,
+    default_shelf_life_days INT NULL,
+    storage_method          VARCHAR(20) NULL,                  -- Enum(STRING) 저장: '냉장', '냉동', '실온'
+    is_seasoning            BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at              DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_ingredient_category FOREIGN KEY (category_id) REFERENCES ingredient_category(category_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
