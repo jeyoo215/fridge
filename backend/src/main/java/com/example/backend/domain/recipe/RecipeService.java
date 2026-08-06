@@ -122,19 +122,20 @@ public class RecipeService {
                 .toList();
 
         Set<Long> ownedToolIds = userToolRepository.findByUserId(userId).stream()
-        .map(userTool -> userTool.getTool().getToolId())
-        .collect(Collectors.toSet());
+                .map(userTool -> userTool.getTool().getToolId())
+                .collect(Collectors.toSet());
 
         return recipeRepository.findAllById(recipeIds).stream()
-                .filter(recipe -> hasAllRequiredTools(recipe, ownedToolIds))
                 .map(recipe -> {
-                long matchCount = matchCountByRecipeId.get(recipe.getRecipeId());
-                int expiryPriorityScore = calculateExpiryPriorityScore(recipe, dDayByIngredientId);
-                return new RecipeRecommendResponse(recipe, matchCount, expiryPriorityScore);
+                        long matchCount = matchCountByRecipeId.get(recipe.getRecipeId());
+                        int expiryPriorityScore = calculateExpiryPriorityScore(recipe, dDayByIngredientId);
+                        boolean hasAllTools = hasAllRequiredTools(recipe, ownedToolIds);
+                        return new RecipeRecommendResponse(recipe, matchCount, expiryPriorityScore, hasAllTools);
                 })
                 .sorted(
                         Comparator
                                 .comparingInt(RecipeRecommendResponse::getExpiryPriorityScore).reversed()
+                                .thenComparing(Comparator.comparing(RecipeRecommendResponse::isHasAllTools).reversed())
                                 .thenComparing(Comparator.comparingLong(RecipeRecommendResponse::getMatchCount).reversed())
                 )
                 .toList();

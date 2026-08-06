@@ -14,8 +14,9 @@ public class RecipeRecommendResponse {
     private final long matchCount;
     private final int totalIngredientCount;
     private final int expiryPriorityScore; // 유통기한 임박 재료 활용도 점수 (FR-21)
+    private final boolean hasAllTools; // 필요 조리도구를 전부 보유하고 있는지 (FR-22)
 
-    public RecipeRecommendResponse(Recipe entity, long matchCount, int expiryPriorityScore) {
+    public RecipeRecommendResponse(Recipe entity, long matchCount, int expiryPriorityScore, boolean hasAllTools) {
         this.recipeId = entity.getRecipeId();
         this.recipeName = entity.getRecipeName();
         this.imageUrl = entity.getImageUrl();
@@ -24,5 +25,6 @@ public class RecipeRecommendResponse {
         this.matchCount = matchCount;
         this.totalIngredientCount = entity.getRecipeIngredients().size();
         this.expiryPriorityScore = expiryPriorityScore;
+        this.hasAllTools = hasAllTools;
     }
 }
