@@ -1,6 +1,7 @@
 -- 개발 중 서버를 재시작해도 중복 저장되지 않도록, 매번 지우고 다시 넣음 (개발 전용, 운영에서는 사용 금지)
 DELETE FROM cooking_step;
 DELETE FROM recipe_ingredient;
+DELETE FROM recipe_tool;
 DELETE FROM recipe;
 DELETE FROM recipe_category;
 DELETE FROM user_ingredient;
@@ -57,3 +58,11 @@ INSERT INTO cooking_step (step_id, recipe_id, step_order, description) VALUES
   (1, 1, 1, '두부를 도톰하게 썰어 소금간을 한다.'),
   (2, 1, 2, '계란을 풀어 두부에 옷을 입힌다.'),
   (3, 1, 3, '팬에 기름을 두르고 노릇하게 부친다.');
+
+-- 레시피별 필요 조리도구 (cooking_tool 마스터 테이블 없어서 tool_id는 임시 숫자만 사용)
+INSERT INTO recipe_tool (id, recipe_id, tool_id) VALUES
+  (1, 1, 1),
+  (2, 1, 2),
+  (3, 2, 1),
+  (4, 3, 1),
+  (5, 3, 3);

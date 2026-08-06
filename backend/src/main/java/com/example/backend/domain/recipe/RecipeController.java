@@ -1,5 +1,6 @@
 package com.example.backend.domain.recipe;
 
+import com.example.backend.domain.recipe.dto.RecipeCategoryResponse;
 import com.example.backend.domain.recipe.dto.RecipeCreateRequest;
 import com.example.backend.domain.recipe.dto.RecipeDetailResponse;
 import com.example.backend.domain.recipe.dto.RecipeRecommendResponse;
@@ -37,4 +38,11 @@ public class RecipeController {
     public List<RecipeRecommendResponse> recommendRecipes(@RequestParam Long userId) {
         return recipeService.recommendRecipes(userId);
     }
+
+    // 레시피 카테고리 목록 조회 (등록 화면 드롭다운용)
+    @GetMapping("/categories")
+    public List<RecipeCategoryResponse> getCategories() {
+        return recipeService.getCategories();
+    }
+
 }
