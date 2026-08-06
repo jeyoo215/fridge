@@ -4,10 +4,65 @@
   padding: 16px;
 }
 
+.ingredient-list-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
 .ingredient-list-title {
   font-size: 18px;
   font-weight: 600;
-  margin-bottom: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fridge-title-edit-icon {
+  font-size: 13px;
+  color: #999;
+}
+
+.fridge-title-edit {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.fridge-title-input {
+  font-size: 16px;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.fridge-title-save,
+.fridge-title-cancel {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background: white;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.fridge-title-save {
+  background: #333;
+  color: white;
+  border: none;
+}
+
+.add-ingredient-button {
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: white;
+  font-size: 13px;
+  cursor: pointer;
 }
 
 .ingredient-status {
@@ -63,9 +118,14 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  width: 120px;
+  width: 160px;
   overflow: hidden;
   z-index: 10;
+}
+
+.kebab-menu-divider {
+  height: 1px;
+  background: #eee;
 }
 
 .kebab-menu-item {
@@ -87,4 +147,50 @@
 
 .kebab-menu-item-danger {
   color: #d92d20;
+}
+
+.kebab-menu-item:disabled {
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+.ingredient-action-error {
+  color: #d92d20;
+  padding: 8px 0;
+}
+
+.ingredient-row-editing {
+  gap: 6px;
+  background: #f0f4ff;
+}
+
+.edit-input {
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.edit-input-quantity {
+  width: 50px;
+}
+
+.edit-input-date {
+  width: 130px;
+}
+
+.edit-save-button,
+.edit-cancel-button {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background: white;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.edit-save-button {
+  background: #333;
+  color: white;
+  border: none;
 }
