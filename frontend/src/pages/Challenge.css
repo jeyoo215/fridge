@@ -1,55 +1,88 @@
 .challenge-container {
   max-width: 420px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 32px 20px 60px;
   text-align: center;
 }
 
 .challenge-title {
-  font-size: 20px;
+  font-family: var(--font-display);
+  font-size: 22px;
   font-weight: 700;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  color: var(--color-text);
+}
+
+.challenge-status-loading {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 40px 0;
+  font-size: 14px;
 }
 
 .challenge-start,
 .challenge-status {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 24px 20px;
+}
+
+.challenge-start label {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .challenge-start input {
   width: 60px;
-  margin-left: 8px;
-  padding: 4px 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  text-align: center;
 }
 
-button {
-  padding: 10px;
+.challenge-container button {
+  padding: 11px 20px;
+  border-radius: 999px;
   border: none;
-  border-radius: 8px;
-  background: #333;
-  color: #fff;
+  background: var(--color-basil);
+  color: white;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.challenge-container button:hover {
+  background: var(--color-basil-dark);
+  transform: translateY(-1px);
 }
 
 .challenge-badge {
-  padding: 8px;
+  padding: 10px;
   border-radius: 8px;
-  background: #f2f2f2;
+  background: var(--color-bg);
+  font-size: 14px;
+  color: var(--color-text-muted);
 }
 
-.status-성공 { color: #2e7d32; font-weight: 700; }
-.status-실패 { color: #c62828; font-weight: 700; }
-.status-진행중 { color: #666; }
+.status-성공 { color: var(--color-basil-dark); font-weight: 700; }
+.status-실패 { color: var(--color-tomato); font-weight: 700; }
+.status-진행중 { color: var(--color-text-muted); }
 
 .challenge-error {
-  color: #c62828;
+  color: var(--color-danger-text);
+  background: var(--color-tomato-bg);
+  border-radius: 8px;
+  padding: 10px 12px;
   font-size: 13px;
-}
-
-.challenge-status-loading {
-  text-align: center;
-  color: #888;
-  padding: 40px 0;
 }
