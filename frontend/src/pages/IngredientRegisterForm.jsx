@@ -71,6 +71,9 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
     <form className="ingredient-form" onSubmit={handleSubmit}>
       <h2 className="ingredient-form-title">재료 추가</h2>
 
+      {/* 카메라 인식은 다른 팀원(feature/visionAPICamera)이 실제 Vision API로 작업 중이라
+          여기선 수동 입력만 담당함. 나중에 그 브랜치가 merge되면 여기에 카메라 버튼을 연결하면 됨. */}
+
       <div className="ingredient-form-field">
         <label>재료명</label>
         <input

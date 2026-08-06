@@ -1,4 +1,5 @@
-const BASE_URL = "http://localhost:8080/api/v1";
+// PC에서 열면 localhost, 핸드폰 등 다른 기기에서 열면 그 기기가 접속한 주소(PC의 IP)를 그대로 사용
+const BASE_URL = `http://${window.location.hostname}:8080/api/v1`;
 
 // 내 냉장고 재료 목록 조회
 // TODO: 로그인 기능 만들어지면 userId 파라미터 대신 JWT 토큰으로 대체
