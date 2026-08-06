@@ -1,0 +1,28 @@
+name: Check File Deletions
+
+on:
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  check-deletions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Check for deleted files or large deletions
+        run: |
+          # 1. 삭제된 파일 개수 확인
+          DELETED_FILES=$(git diff --name-only --diff-filter=D origin/${{ github.base_ref }}...HEAD | wc -l)
+          
+          # 2. 삭제된 파일이 있으면 머지 실패 처리
+          if [ $DELETED_FILES -gt 0 ]; then
+            echo "❌ [ALERT] 삭제된 파일이 $DELETED_FILES개 존재합니다! 확인 후 다시 올리세요."
+            git diff --name-only --diff-filter=D origin/${{ github.base_ref }}...HEAD
+            exit 1
+          fi
+
+          echo "✅ 파일 삭제 감지 안 됨. 안전합니다!"
