@@ -20,7 +20,6 @@ public class UserIngredient {
     private Long userIngredientId;
 
     // TODO: 회원(인증) 기능이 만들어지면 User 엔티티에 대한 @ManyToOne으로 교체하기.
-    // 지금은 회원 기능이 아직 없어서 임시로 userId(Long)만 저장해둠.
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
@@ -41,7 +40,7 @@ public class UserIngredient {
     private LocalDate expirationDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "VARCHAR(10)")
     private Status status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
