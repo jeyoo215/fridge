@@ -11,7 +11,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class IngredientController {
 
-    private final ingredientService ingredientService;
+    private final IngredientService ingredientService;
 
     // 예: GET /api/v1/ingredients?keyword=양
     @GetMapping
