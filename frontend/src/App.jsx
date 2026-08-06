@@ -20,7 +20,7 @@ function App() {
       />
     );
   }
-
+  
   return <IngredientList key={refreshKey} onAddClick={() => setView("register")} />;
 }
 
