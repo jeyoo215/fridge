@@ -11,3 +11,14 @@ export async function fetchRecommendedRecipes(userId) {
 
   return response.json();
 }
+
+// 레시피 상세 조회 (FR-24)
+export async function fetchRecipeDetail(recipeId) {
+  const response = await fetch(`${BASE_URL}/recipes/${recipeId}`);
+
+  if (!response.ok) {
+    throw new Error("레시피 상세 정보를 불러오지 못했습니다.");
+  }
+
+  return response.json();
+}

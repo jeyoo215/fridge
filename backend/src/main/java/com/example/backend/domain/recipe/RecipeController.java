@@ -44,5 +44,4 @@ public class RecipeController {
     public List<RecipeCategoryResponse> getCategories() {
         return recipeService.getCategories();
     }
-
 }

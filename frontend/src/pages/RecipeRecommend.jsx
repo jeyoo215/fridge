@@ -5,7 +5,7 @@ import "./RecipeRecommend.css";
 // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체하기
 const TEMP_USER_ID = 1;
 
-export default function RecipeRecommend() {
+export default function RecipeRecommend({ onSelectRecipe }) {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -29,7 +29,12 @@ export default function RecipeRecommend() {
       )}
 
       {recipes.map((recipe) => (
-        <div key={recipe.recipeId} className="recipe-card">
+        <div
+          key={recipe.recipeId}
+          className="recipe-card"
+          onClick={() => onSelectRecipe?.(recipe.recipeId)}
+          style={{ cursor: onSelectRecipe ? "pointer" : "default" }}
+        >
           <div className="recipe-card-info">
             <div className="recipe-name-row">
               <span className="recipe-name">{recipe.recipeName}</span>

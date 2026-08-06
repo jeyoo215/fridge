@@ -20,8 +20,37 @@ function App() {
       />
     );
   }
-
+  
   return <IngredientList key={refreshKey} onAddClick={() => setView("register")} />;
 }
 
 export default App;
+
+
+/*
+
+// 레시피 화면 확인 하는 경우 다음 이용
+// Recommend
+
+import RecipeRecommend from "./pages/RecipeRecommend";
+import "./App.css";
+
+function App() {
+  return <RecipeRecommend />;
+}
+
+export default App;
+
+
+// Detail
+
+import RecipeDetail from "./pages/RecipeDetail";
+import "./App.css";
+
+function App() {
+  return <RecipeDetail recipeId={1} />;
+}
+
+export default App;
+
+*/
