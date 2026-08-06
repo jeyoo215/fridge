@@ -96,6 +96,51 @@
   border-radius: 999px;
 }
 
+.recognized-candidate-checkbox {
+  gap: 10px;
+  cursor: pointer;
+}
+
+.recognized-candidate-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-basil);
+  cursor: pointer;
+}
+
+.recognized-candidate-name {
+  flex: 1;
+  text-align: left;
+}
+
+.recognized-bulk-date {
+  margin-top: 10px;
+}
+
+.bulk-register-button {
+  width: 100%;
+  margin-top: 8px;
+  padding: 11px;
+  border-radius: 10px;
+  border: none;
+  background: var(--color-basil);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.bulk-register-button:hover:not(:disabled) {
+  background: var(--color-basil-dark);
+}
+
+.bulk-register-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .ingredient-form-divider {
   text-align: center;
   font-size: 12px;
