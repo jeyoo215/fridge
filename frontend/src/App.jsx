@@ -53,4 +53,16 @@ function App() {
 
 export default App;
 
+
+// ShoppingList
+
+import ShoppingList from "./pages/ShoppingList";
+import "./App.css";
+
+function App() {
+  return <ShoppingList recipeId={1} />;
+}
+
+export default App;
+
 */
