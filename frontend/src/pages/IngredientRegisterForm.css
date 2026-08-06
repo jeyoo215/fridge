@@ -1,0 +1,104 @@
+.ingredient-form {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.ingredient-form-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.ingredient-form-field {
+  position: relative;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ingredient-form-field label {
+  font-size: 12px;
+  color: #666;
+}
+
+.ingredient-form-field input {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.ingredient-form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.ingredient-form-row .ingredient-form-field {
+  flex: 1;
+}
+
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-top: 4px;
+  max-height: 160px;
+  overflow-y: auto;
+  z-index: 10;
+  list-style: none;
+  padding: 4px 0;
+}
+
+.autocomplete-list li {
+  padding: 8px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.autocomplete-list li:hover {
+  background: #f5f5f5;
+}
+
+.autocomplete-category {
+  color: #999;
+  font-size: 12px;
+}
+
+.ingredient-form-error {
+  color: #d92d20;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.ingredient-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ingredient-form-actions button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.ingredient-form-actions button.primary {
+  background: #333;
+  color: white;
+  border: none;
+}
+
+.ingredient-form-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
