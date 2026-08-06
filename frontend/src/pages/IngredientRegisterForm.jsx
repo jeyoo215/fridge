@@ -171,7 +171,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
         onClick={handleCameraClick}
         disabled={recognizing}
       >
-        {recognizing ? "인식 중…" : "📷 카메라로 인식 (여러 개 한번에 가능)"}
+        {recognizing ? "인식 중…" : "📷 카메라로 인식"}
       </button>
 
       {recognizeError && <p className="ingredient-form-error">{recognizeError}</p>}
@@ -264,7 +264,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
       </div>
 
       <div className="ingredient-form-field">
-        <label>유통기한</label>
+        <label>소비기한</label>
         <input
           type="date"
           value={expirationDate}
