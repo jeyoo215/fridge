@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.CurrentTimestamp;
 
 // ERD의 recipe 테이블 (레시피 마스터: 이름, 조리시간, 난이도 등 기본 정보)
 @Entity
@@ -37,7 +37,7 @@ public class Recipe {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
-    @CreationTimestamp
+    @CurrentTimestamp
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
