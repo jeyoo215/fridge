@@ -1,5 +1,6 @@
 package com.example.backend.domain.recipe;
 
+import com.example.backend.domain.recipe.dto.RecipeDetailResponse;
 import com.example.backend.domain.recipe.dto.RecipeRecommendResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -19,5 +20,11 @@ public class RecipeController {
     @GetMapping("/recommend")
     public List<RecipeRecommendResponse> recommendRecipes(@RequestParam Long userId) {
         return recipeService.recommendRecipes(userId);
+    }
+
+    // 예: GET /api/v1/recipes/1
+    @GetMapping("/{recipeId}")
+    public RecipeDetailResponse getRecipeDetail(@PathVariable Long recipeId) {
+        return recipeService.getRecipeDetail(recipeId);
     }
 }

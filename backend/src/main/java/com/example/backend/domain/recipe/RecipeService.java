@@ -2,7 +2,9 @@ package com.example.backend.domain.recipe;
 
 import com.example.backend.domain.ingredient.UserIngredient;
 import com.example.backend.domain.ingredient.UserIngredientRepository;
+import com.example.backend.domain.recipe.dto.RecipeDetailResponse;
 import com.example.backend.domain.recipe.dto.RecipeRecommendResponse;
+import com.example.backend.domain.recipe.dto.RecipeDetailResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,5 +87,12 @@ public class RecipeService {
                     return 0;
                 })
                 .sum();
+    }
+
+    // 레시피 상세 조회 (FR-24)
+    public RecipeDetailResponse getRecipeDetail(Long recipeId) {
+        Recipe recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 레시피입니다. recipeId=" + recipeId));
+        return new RecipeDetailResponse(recipe);
     }
 }
