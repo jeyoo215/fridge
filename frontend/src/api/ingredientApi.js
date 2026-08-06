@@ -21,6 +21,45 @@ export async function searchIngredients(keyword) {
   return response.json();
 }
 
+// 카메라로 찍은 재료 사진 인식 요청 (오인식 방지를 위해 등록은 별도로 확정)
+// 가연님(feature/visionAPICamera)이 만든 실제 Vision API 연동 엔드포인트를 그대로 호출함
+export async function recognizeIngredientImage(userId, file) {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await fetch(`${BASE_URL}/users/me/ingredients/recognize?userId=${userId}`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!response.ok) {
+    throw new Error("이미지 인식에 실패했습니다.");
+  }
+  return response.json();
+}
+
+// 재료 카테고리 전체 목록 (새 재료 등록용 드롭다운)
+export async function fetchIngredientCategories() {
+  const response = await fetch(`${BASE_URL}/ingredients/categories`);
+  if (!response.ok) {
+    throw new Error("카테고리 목록을 불러오지 못했습니다.");
+  }
+  return response.json();
+}
+
+// 재료 마스터에 없는 재료를 새로 등록 (등록된 재료 정보를 반환)
+export async function createIngredient(payload) {
+  const response = await fetch(`${BASE_URL}/ingredients`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.message || "새 재료 등록에 실패했습니다.");
+  }
+  return response.json();
+}
+
 // 재료 수동 등록
 export async function registerIngredient(userId, payload) {
   const response = await fetch(`${BASE_URL}/users/me/ingredients?userId=${userId}`, {
