@@ -31,7 +31,12 @@ export default function RecipeRecommend() {
       {recipes.map((recipe) => (
         <div key={recipe.recipeId} className="recipe-card">
           <div className="recipe-card-info">
-            <span className="recipe-name">{recipe.recipeName}</span>
+            <div className="recipe-name-row">
+              <span className="recipe-name">{recipe.recipeName}</span>
+              {recipe.expiryPriorityScore > 0 && (
+                <span className="recipe-expiry-badge">🔥 유통기한 임박 재료 활용</span>
+              )}
+            </div>
             <span className="recipe-match">
               보유 재료 {recipe.matchCount}/{recipe.totalIngredientCount}개 일치
             </span>
