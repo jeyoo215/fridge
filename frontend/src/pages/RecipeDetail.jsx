@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchRecipeDetail } from "../api/recipeApi";
+import RecipeReviewSection from "../component/RecipeReviewSection"; // 1. 후기 섹션 컴포넌트 import 추가
 import "./RecipeDetail.css";
 
 // props로 recipeId, 뒤로가기용 onBack 콜백을 받음
@@ -57,6 +58,9 @@ export default function RecipeDetail({ recipeId, onBack }) {
           ))}
         </ol>
       </section>
+
+      {/* 2. 조리 순서 아래(상세 화면 최하단)에 후기 섹션 추가 */}
+      <RecipeReviewSection recipeId={recipe.recipeId} />
     </div>
   );
 }

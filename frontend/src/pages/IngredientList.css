@@ -1,84 +1,123 @@
-@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
 
 /* ---------- Design tokens ---------- */
-.ingredient-list-container {
-  --color-bg: #F6F8F4;
+.page {
+  --color-bg: #F3F5EF;
   --color-surface: #FFFFFF;
   --color-border: #E4E7DF;
-  --color-text: #2B2B26;
-  --color-text-muted: #767A6E;
+  --color-text: #1F211B;
+  --color-text-muted: #40433A;
 
   --color-basil: #4C7A5E;
   --color-basil-dark: #3A5F49;
+  --color-basil-bg: #EAF1E7;
   --color-tomato: #E4572E;
   --color-tomato-bg: #FCEBE5;
   --color-amber: #C97B1E;
   --color-amber-bg: #FBF0DD;
   --color-danger-text: #B23A1A;
 
-  --font-display: 'Gowun Dodum', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Inter', 'Gowun Dodum', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* 전체 폰트를 고운바탕으로 통일 (자연스러운 붓글씨 느낌) */
+  --font-display: 'Gowun Batang', 'Noto Sans KR', serif;
+  --font-body: 'Gowun Batang', 'Noto Sans KR', serif;
 
   --radius: 12px;
   --shadow-card: 0 1px 2px rgba(43, 43, 38, 0.04), 0 1px 8px rgba(43, 43, 38, 0.04);
-  --shadow-menu: 0 4px 16px rgba(43, 43, 38, 0.12);
+  --shadow-menu: 0 8px 24px rgba(43, 43, 38, 0.14);
 
-  max-width: 420px;
-  margin: 24px auto;
-  padding: 20px;
+  min-height: 100%;
   background: var(--color-bg);
-  border-radius: 20px;
   font-family: var(--font-body);
+  font-weight: 700;
   color: var(--color-text);
+  text-align: left;
 }
 
-/* ---------- Header ---------- */
-.ingredient-list-header {
+/* ---------- 상단 네비게이션 ---------- */
+.site-nav {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.site-nav-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 14px 24px;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.site-logo {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-basil-dark);
+}
+
+/* ---------- 페이지 본문 ---------- */
+.page-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 28px 24px 60px;
+}
+
+.page-header {
+  margin-bottom: 28px;
+}
+
+.page-header-top {
+  display: flex;
   align-items: flex-start;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
   margin-bottom: 20px;
 }
 
-.ingredient-list-title {
+.page-title {
   font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 700;
   letter-spacing: -0.01em;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
   transition: color 0.15s ease;
+  margin: 0;
 }
 
-.ingredient-list-title:hover {
+.page-title:hover {
   color: var(--color-basil-dark);
 }
 
-.ingredient-list-title:hover .fridge-title-edit-icon {
+.page-title:hover .fridge-title-edit-icon {
   opacity: 1;
 }
 
 .fridge-title-edit-icon {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--color-text-muted);
   opacity: 0;
   transition: opacity 0.15s ease;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 6px 0 0;
 }
 
 .fridge-title-edit {
   display: flex;
   gap: 6px;
   align-items: center;
-  width: 100%;
 }
 
 .fridge-title-input {
-  flex: 1;
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 20px;
   padding: 6px 10px;
   border: 1.5px solid var(--color-basil);
   border-radius: 8px;
@@ -93,7 +132,7 @@
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -108,21 +147,21 @@
 .fridge-title-cancel:hover { background: var(--color-bg); }
 
 .add-ingredient-button {
-  align-self: flex-start;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 9px 16px;
+  padding: 11px 20px;
   border-radius: 999px;
   border: none;
   background: var(--color-basil);
   color: white;
   font-family: var(--font-body);
-  font-size: 13.5px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(76, 122, 94, 0.25);
   transition: background 0.15s ease, transform 0.1s ease;
+  flex-shrink: 0;
 }
 
 .add-ingredient-button:hover {
@@ -131,15 +170,204 @@
 }
 
 .add-ingredient-plus {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1;
 }
 
-/* ---------- Status / empty states ---------- */
+/* ---------- 통계 카드 ---------- */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 420px;
+}
+
+.stat-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.stat-card-warning .stat-value {
+  color: var(--color-tomato);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* ---------- 알림 종 ---------- */
+.alert-bell-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.alert-bell-button {
+  position: relative;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  width: 34px;
+  height: 34px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.alert-bell-button:hover {
+  background: var(--color-basil-bg);
+}
+
+.alert-bell-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--color-tomato);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  line-height: 1;
+}
+
+.alert-panel {
+  position: absolute;
+  top: 42px;
+  right: 0;
+  width: 260px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow-menu);
+  padding: 12px;
+  z-index: 30;
+}
+
+.alert-panel-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin: 0 0 8px;
+  padding: 0 2px;
+}
+
+.alert-panel-empty {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  padding: 8px 2px;
+  margin: 0;
+}
+
+.alert-panel-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 2px;
+  font-size: 13px;
+}
+
+.alert-panel-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.alert-dot-danger { background: var(--color-tomato); }
+.alert-dot-warning { background: var(--color-amber); }
+.alert-dot-normal { background: var(--color-basil); }
+
+.alert-panel-text {
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+/* ---------- 검색 + 보기 전환 툴바 ---------- */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 180px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: var(--color-surface);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.search-input:focus {
+  border-color: var(--color-basil);
+}
+
+.view-toggle {
+  display: flex;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 3px;
+  flex-shrink: 0;
+}
+
+.view-toggle-button {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.view-toggle-button.active {
+  background: var(--color-basil);
+  color: white;
+}
+
+.view-toggle-button:not(.active):hover {
+  background: var(--color-bg);
+}
+
+/* ---------- 상태 / 빈 상태 ---------- */
 .ingredient-status {
   color: var(--color-text-muted);
   text-align: center;
-  padding: 32px 0;
+  padding: 60px 0;
   font-size: 14px;
 }
 
@@ -148,25 +376,29 @@
   background: var(--color-tomato-bg);
   border-radius: 8px;
   padding: 10px 12px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   font-size: 13px;
+  max-width: 900px;
 }
 
 .empty-state {
   text-align: center;
-  padding: 48px 16px;
+  padding: 60px 16px;
   color: var(--color-text-muted);
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
 }
 
 .empty-state-icon {
-  font-size: 36px;
+  font-size: 40px;
   margin-bottom: 12px;
 }
 
 .empty-state-title {
   font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   color: var(--color-text);
   margin-bottom: 4px;
 }
@@ -175,56 +407,62 @@
   font-size: 13px;
 }
 
-/* ---------- Ingredient cards ---------- */
-.ingredient-card-list {
+/* ---------- 카테고리 패널 ---------- */
+.category-list {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 24px;
 }
 
-.category-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.category-panel {
+  background: var(--color-surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  padding: 18px 20px 20px;
 }
 
-.category-section-header {
+.category-panel-header {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 0 2px;
+  margin-bottom: 14px;
 }
 
 .category-icon {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .category-name {
   font-family: var(--font-display);
-  font-size: 14.5px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--color-basil-dark);
 }
 
 .category-count {
   font-size: 12px;
   color: var(--color-text-muted);
-  background: var(--color-surface);
+  background: var(--color-bg);
   border-radius: 999px;
   padding: 1px 8px;
   margin-left: 2px;
 }
 
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+/* ---------- 재료 카드 (그리드 타일) ---------- */
 .ingredient-card {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 14px 12px 16px;
-  background: var(--color-surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
+  gap: 8px;
+  padding: 12px 12px 12px 16px;
+  background: var(--color-bg);
+  border-radius: 10px;
 }
 
 .freshness-bar {
@@ -233,6 +471,7 @@
   top: 0;
   bottom: 0;
   width: 4px;
+  border-radius: 10px 0 0 10px;
   background: var(--color-border);
 }
 
@@ -240,23 +479,40 @@
 .freshness-danger .freshness-bar { background: var(--color-tomato); }
 .freshness-normal .freshness-bar { background: var(--color-basil); }
 
-.ingredient-name {
+.ingredient-card-main {
   flex: 1;
-  font-size: 14.5px;
-  font-weight: 500;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ingredient-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ingredient-purchase-date {
+  font-size: 11px;
+  color: var(--color-text-muted);
 }
 
 .dday-badge {
   font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 3px 9px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 8px;
   border-radius: 999px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .dday-badge-normal {
-  background: #EEF2EC;
+  background: var(--color-basil-bg);
   color: var(--color-basil-dark);
 }
 
@@ -270,9 +526,10 @@
   color: var(--color-tomato);
 }
 
-/* ---------- Kebab menu ---------- */
+/* ---------- 케밥 메뉴 ---------- */
 .kebab-wrapper {
   position: relative;
+  flex-shrink: 0;
 }
 
 .kebab-button {
@@ -281,26 +538,26 @@
   font-size: 18px;
   cursor: pointer;
   color: var(--color-text-muted);
-  padding: 4px 6px;
+  padding: 2px 6px;
   border-radius: 6px;
   transition: background 0.15s ease;
 }
 
 .kebab-button:hover {
-  background: var(--color-bg);
+  background: var(--color-surface);
   color: var(--color-text);
 }
 
 .kebab-menu {
   position: absolute;
-  top: 32px;
+  top: 30px;
   right: 0;
   background: var(--color-surface);
   border-radius: 10px;
   box-shadow: var(--shadow-menu);
   width: 168px;
   overflow: hidden;
-  z-index: 10;
+  z-index: 20;
 }
 
 .kebab-menu-divider {
@@ -325,11 +582,6 @@
   background: var(--color-bg);
 }
 
-.kebab-menu-item:disabled {
-  color: #C6C9BE;
-  cursor: not-allowed;
-}
-
 .kebab-menu-item-danger {
   color: var(--color-tomato);
 }
@@ -338,10 +590,11 @@
   background: var(--color-tomato-bg);
 }
 
-/* ---------- Inline edit mode ---------- */
+/* ---------- 인라인 수정 모드 ---------- */
 .ingredient-card-editing {
+  grid-column: 1 / -1;
   flex-wrap: wrap;
-  background: #F0F4EE;
+  background: var(--color-basil-bg);
   border: 1px solid var(--color-basil);
 }
 
@@ -375,7 +628,7 @@
   border: 1px solid var(--color-border);
   background: white;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -388,10 +641,10 @@
 .edit-save-button:hover { background: var(--color-basil-dark); }
 .edit-cancel-button:hover { background: var(--color-bg); }
 
-/* ---------- Accessibility ---------- */
+/* ---------- 접근성 ---------- */
 @media (prefers-reduced-motion: reduce) {
   .add-ingredient-button,
-  .ingredient-list-title,
+  .page-title,
   .fridge-title-edit-icon {
     transition: none;
   }
@@ -401,4 +654,20 @@ button:focus-visible,
 input:focus-visible {
   outline: 2px solid var(--color-basil);
   outline-offset: 2px;
+}
+
+/* ---------- 반응형 (모바일) ---------- */
+@media (max-width: 640px) {
+  .page-header-top {
+    flex-direction: column;
+  }
+
+  .add-ingredient-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stats-row {
+    max-width: none;
+  }
 }

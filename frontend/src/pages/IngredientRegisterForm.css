@@ -1,18 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
 
 .ingredient-form {
   --color-bg: #F6F8F4;
   --color-surface: #FFFFFF;
   --color-border: #E4E7DF;
-  --color-text: #2B2B26;
-  --color-text-muted: #767A6E;
+  --color-text: #1F211B;
+  --color-text-muted: #40433A;
   --color-basil: #4C7A5E;
   --color-basil-dark: #3A5F49;
   --color-tomato: #E4572E;
   --color-tomato-bg: #FCEBE5;
   --color-danger-text: #B23A1A;
-  --font-display: 'Gowun Dodum', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Inter', 'Gowun Dodum', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Gowun Batang', 'Noto Sans KR', serif;
+  --font-body: 'Gowun Batang', 'Noto Sans KR', serif;
 
   max-width: 400px;
   margin: 24px auto;
@@ -20,13 +20,14 @@
   background: var(--color-bg);
   border-radius: 20px;
   font-family: var(--font-body);
+  font-weight: 700;
   color: var(--color-text);
 }
 
 .ingredient-form-title {
   font-family: var(--font-display);
   font-size: 22px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.01em;
   margin-bottom: 20px;
 }
@@ -39,7 +40,7 @@
   background: #EEF3EC;
   color: var(--color-basil-dark);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   font-family: var(--font-body);
   cursor: pointer;
   transition: background 0.15s ease;
@@ -89,11 +90,126 @@
 
 .recognized-candidate-score {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-basil-dark);
   background: #EEF3EC;
   padding: 2px 8px;
   border-radius: 999px;
+}
+
+.recognized-candidate-checkbox {
+  gap: 10px;
+  cursor: pointer;
+}
+
+.recognized-candidate-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-basil);
+  cursor: pointer;
+}
+
+.recognized-candidate-name {
+  flex: 1;
+  text-align: left;
+}
+
+.recognized-bulk-date {
+  margin-top: 10px;
+}
+
+.bulk-register-button {
+  width: 100%;
+  margin-top: 8px;
+  padding: 11px;
+  border-radius: 10px;
+  border: none;
+  background: var(--color-basil);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.bulk-register-button:hover:not(:disabled) {
+  background: var(--color-basil-dark);
+}
+
+.bulk-register-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.no-search-result {
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: var(--color-bg);
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.no-search-result p {
+  margin: 0 0 6px;
+  color: var(--color-text-muted);
+}
+
+.new-ingredient-link {
+  background: none;
+  border: none;
+  color: var(--color-basil-dark);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.new-ingredient-panel {
+  margin-top: 8px;
+  padding: 12px;
+  background: var(--color-bg);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.new-ingredient-panel label {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.new-ingredient-panel select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  font-size: 13px;
+  font-family: var(--font-body);
+  background: var(--color-surface);
+}
+
+.new-ingredient-confirm-button {
+  padding: 9px;
+  border-radius: 8px;
+  border: none;
+  background: var(--color-basil);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.new-ingredient-confirm-button:hover:not(:disabled) {
+  background: var(--color-basil-dark);
+}
+
+.new-ingredient-confirm-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .ingredient-form-divider {
@@ -127,7 +243,7 @@
 
 .ingredient-form-field label {
   font-size: 12.5px;
-  font-weight: 500;
+  font-weight: 700;
   color: var(--color-text-muted);
 }
 
@@ -216,7 +332,7 @@
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 700;
   font-family: var(--font-body);
   cursor: pointer;
   transition: background 0.15s ease, transform 0.1s ease;

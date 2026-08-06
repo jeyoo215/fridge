@@ -53,4 +53,28 @@ function App() {
 
 export default App;
 
+
+// ShoppingList
+
+import ShoppingList from "./pages/ShoppingList";
+import "./App.css";
+
+function App() {
+  return <ShoppingList recipeId={1} />;
+}
+
+export default App;
+
+
+// Challenge.jsx
+
+import Challenge from "./pages/Challenge";
+import "./App.css";
+
+function App() {
+  return <Challenge />;
+}
+
+export default App;
+
 */
