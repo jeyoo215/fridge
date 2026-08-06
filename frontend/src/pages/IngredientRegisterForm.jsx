@@ -4,12 +4,17 @@ import "./IngredientRegisterForm.css";
 
 const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
 
+function todayDateString() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default function IngredientRegisterForm({ onRegistered, onCancel }) {
   const [keyword, setKeyword] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [selectedIngredient, setSelectedIngredient] = useState(null); // { ingredientId, ingredientName }
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("");
+  const [purchaseDate, setPurchaseDate] = useState(todayDateString); // 기본값: 오늘
   const [expirationDate, setExpirationDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -101,7 +106,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
       return;
     }
     if (!bulkExpirationDate) {
-      setRecognizeError("유통기한을 입력해주세요.");
+      setRecognizeError("소비기한을 입력해주세요.");
       return;
     }
 
@@ -113,6 +118,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
           ingredientId: candidate.ingredientId,
           quantity: 1,
           unit: "개",
+          purchaseDate: todayDateString(),
           expirationDate: bulkExpirationDate,
         });
       }
@@ -131,7 +137,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
       return;
     }
     if (!quantity || !expirationDate) {
-      setError("수량과 유통기한을 입력해주세요.");
+      setError("수량과 소비기한을 입력해주세요.");
       return;
     }
 
@@ -142,6 +148,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
         ingredientId: selectedIngredient.ingredientId,
         quantity: Number(quantity),
         unit,
+        purchaseDate,
         expirationDate,
       });
       onRegistered?.();
@@ -195,7 +202,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
           ))}
 
           <div className="ingredient-form-field recognized-bulk-date">
-            <label>유통기한 (선택한 재료 전체 공통 적용, 나중에 개별 수정 가능)</label>
+            <label>소비기한 (선택한 재료 전체 공통 적용, 나중에 개별 수정 가능)</label>
             <input
               type="date"
               value={bulkExpirationDate}
@@ -261,6 +268,15 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
             onChange={(e) => setUnit(e.target.value)}
           />
         </div>
+      </div>
+
+      <div className="ingredient-form-field">
+        <label>구매일</label>
+        <input
+          type="date"
+          value={purchaseDate}
+          onChange={(e) => setPurchaseDate(e.target.value)}
+        />
       </div>
 
       <div className="ingredient-form-field">

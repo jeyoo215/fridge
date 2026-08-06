@@ -329,14 +329,14 @@ export default function IngredientList({ onAddClick }) {
         <div className="site-nav-inner">
           <span className="site-logo">🥬 냉장고 파먹기</span>
           <div className="alert-bell-wrapper">
-            <button className="alert-bell-button" onClick={toggleAlerts} aria-label="유통기한 임박 알림">
+            <button className="alert-bell-button" onClick={toggleAlerts} aria-label="소비기한 임박 알림">
               🔔
               {unseenAlertCount > 0 && <span className="alert-bell-badge">{unseenAlertCount}</span>}
             </button>
 
             {showAlerts && (
               <div className="alert-panel">
-                <p className="alert-panel-title">유통기한 임박 알림</p>
+                <p className="alert-panel-title">소비기한 임박 알림</p>
                 {alertIngredients.length === 0 ? (
                   <p className="alert-panel-empty">임박한 재료가 없어요 👍</p>
                 ) : (
@@ -344,7 +344,7 @@ export default function IngredientList({ onAddClick }) {
                     <div key={item.userIngredientId} className="alert-panel-item">
                       <span className={`alert-panel-dot alert-dot-${getFreshness(item.dDay)}`} />
                       <span className="alert-panel-text">
-                        {item.ingredientName} 유통기한{" "}
+                        {item.ingredientName} 소비기한{" "}
                         {item.dDay < 0
                           ? `${Math.abs(item.dDay)}일 지났어요`
                           : item.dDay === 0
@@ -443,7 +443,7 @@ export default function IngredientList({ onAddClick }) {
           <div className="empty-state">
             <div className="empty-state-icon" aria-hidden="true">🥬</div>
             <p className="empty-state-title">냉장고가 비어있어요</p>
-            <p className="empty-state-subtitle">재료를 추가하고 유통기한을 관리해보세요.</p>
+            <p className="empty-state-subtitle">재료를 추가하고 소비기한을 관리해보세요.</p>
           </div>
         )}
 
