@@ -142,6 +142,76 @@
   cursor: not-allowed;
 }
 
+.no-search-result {
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: var(--color-bg);
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.no-search-result p {
+  margin: 0 0 6px;
+  color: var(--color-text-muted);
+}
+
+.new-ingredient-link {
+  background: none;
+  border: none;
+  color: var(--color-basil-dark);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.new-ingredient-panel {
+  margin-top: 8px;
+  padding: 12px;
+  background: var(--color-bg);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.new-ingredient-panel label {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.new-ingredient-panel select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  font-size: 13px;
+  font-family: var(--font-body);
+  background: var(--color-surface);
+}
+
+.new-ingredient-confirm-button {
+  padding: 9px;
+  border-radius: 8px;
+  border: none;
+  background: var(--color-basil);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.new-ingredient-confirm-button:hover:not(:disabled) {
+  background: var(--color-basil-dark);
+}
+
+.new-ingredient-confirm-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .ingredient-form-divider {
   text-align: center;
   font-size: 12px;
