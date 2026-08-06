@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   searchIngredients,
   registerIngredient,
@@ -14,7 +15,7 @@ function todayDateString() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export default function IngredientRegisterForm({ onRegistered, onCancel }) {
+export default function IngredientRegisterForm() {
   const [keyword, setKeyword] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [searchDone, setSearchDone] = useState(false); // 검색을 한 번이라도 시도했는지 (결과 없음 안내 표시용)
@@ -42,6 +43,8 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
   const [checkedIds, setCheckedIds] = useState(new Set());
   const [bulkExpirationDate, setBulkExpirationDate] = useState("");
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
+
+  const navigate = useNavigate();
 
   // 새 재료 등록 시 고를 카테고리 목록은 화면 뜨자마자 미리 불러둠
   useEffect(() => {
@@ -173,7 +176,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
           expirationDate: bulkExpirationDate,
         });
       }
-      onRegistered?.();
+      navigate("/");
     } catch (err) {
       setRecognizeError(`일부 재료 등록에 실패했어요: ${err.message}`);
     } finally {
@@ -202,7 +205,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
         purchaseDate,
         expirationDate,
       });
-      onRegistered?.();
+      navigate("/");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -381,7 +384,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
       {error && <p className="ingredient-form-error">{error}</p>}
 
       <div className="ingredient-form-actions">
-        <button type="button" onClick={onCancel} disabled={submitting}>
+        <button type="button" onClick={() => navigate(-1)} disabled={submitting}>
           취소
         </button>
         <button type="submit" className="primary" disabled={submitting}>

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { fetchRecipeDetail } from "../api/recipeApi";
-import RecipeReviewSection from "../component/RecipeReviewSection"; // 1. 후기 섹션 컴포넌트 import 추가
+import RecipeReviewSection from "../component/RecipeReviewSection";
 import "./RecipeDetail.css";
 
-// props로 recipeId, 뒤로가기용 onBack 콜백을 받음
-// TODO: react-router 붙으면 useParams로 recipeId 받고, onBack은 navigate(-1)로 교체
-export default function RecipeDetail({ recipeId, onBack }) {
+export default function RecipeDetail() {
+  const { recipeId } = useParams();
+  const navigate = useNavigate();
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,11 +24,9 @@ export default function RecipeDetail({ recipeId, onBack }) {
 
   return (
     <div className="recipe-detail-container">
-      {onBack && (
-        <button className="recipe-detail-back" onClick={onBack}>
-          ← 목록으로
-        </button>
-      )}
+      <button className="recipe-detail-back" onClick={() => navigate(-1)}>
+        ← 목록으로
+      </button>
 
       <h2 className="recipe-detail-title">{recipe.recipeName}</h2>
       <div className="recipe-detail-meta">
@@ -35,6 +34,10 @@ export default function RecipeDetail({ recipeId, onBack }) {
         <span>· {recipe.difficulty}</span>
         <span>· {recipe.categoryName}</span>
       </div>
+
+      <Link to={`/recipes/${recipeId}/shopping-list`} className="recipe-detail-shopping-link">
+        🛒 부족한 재료 장보기 리스트 보기
+      </Link>
 
       <section className="recipe-detail-section">
         <h3>재료</h3>
@@ -59,7 +62,6 @@ export default function RecipeDetail({ recipeId, onBack }) {
         </ol>
       </section>
 
-      {/* 2. 조리 순서 아래(상세 화면 최하단)에 후기 섹션 추가 */}
       <RecipeReviewSection recipeId={recipe.recipeId} />
     </div>
   );

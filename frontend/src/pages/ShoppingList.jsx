@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { fetchShoppingList } from "../api/shoppingListApi";
 import "./ShoppingList.css";
 
 const TEMP_USER_ID = 1;
 
-// props로 recipeId, 뒤로가기용 onBack 콜백을 받음
-export default function ShoppingList({ recipeId, onBack }) {
+export default function ShoppingList() {
+  const { recipeId } = useParams();
+  const navigate = useNavigate();
   const [list, setList] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,11 +25,9 @@ export default function ShoppingList({ recipeId, onBack }) {
 
   return (
     <div className="shopping-list-container">
-      {onBack && (
-        <button className="shopping-list-back" onClick={onBack}>
-          ← 뒤로
-        </button>
-      )}
+      <button className="shopping-list-back" onClick={() => navigate(-1)}>
+        ← 뒤로
+      </button>
 
       <h2 className="shopping-list-title">{list.recipeName} 장보기 리스트</h2>
 

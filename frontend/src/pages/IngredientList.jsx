@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   fetchMyIngredients,
   consumeIngredient,
@@ -70,7 +71,7 @@ function groupByCategory(ingredients) {
   return Array.from(groups.entries());
 }
 
-export default function IngredientList({ onAddClick }) {
+export default function IngredientList() {
   const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -89,6 +90,8 @@ export default function IngredientList({ onAddClick }) {
 
   const [searchKeyword, setSearchKeyword] = useState("");
   const [viewMode, setViewMode] = useState("category"); // "category" | "urgent"
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     saveSeenAlertIds(seenAlertIds);
@@ -391,7 +394,7 @@ export default function IngredientList({ onAddClick }) {
               <p className="page-subtitle">오늘 냉장고 상태를 확인해보세요.</p>
             </div>
 
-            <button className="add-ingredient-button" onClick={onAddClick}>
+            <button className="add-ingredient-button" onClick={() => navigate("/ingredients/new")}>
               <span className="add-ingredient-plus">+</span> 재료 추가
             </button>
           </div>

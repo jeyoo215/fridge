@@ -61,4 +61,11 @@ public class ChallengeService {
 
         return new ChallengeResponse(challenge);
     }
+
+    // 현재 진행중인 챌린지 조회 (새로고침/재접속 시 상태 복원용)
+    public ChallengeResponse getActiveChallenge(Long userId) {
+        Challenge challenge = challengeRepository.findByUserIdAndStatus(userId, Challenge.Status.진행중)
+                .orElseThrow(() -> new EntityNotFoundException("진행중인 챌린지가 없습니다."));
+        return new ChallengeResponse(challenge);
+    }
 }
