@@ -1,47 +1,79 @@
 .recipe-detail-container {
   max-width: 480px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 24px 20px 60px;
 }
 
 .recipe-detail-status {
   text-align: center;
-  color: #888;
-  padding: 24px 0;
+  color: var(--color-text-muted);
+  padding: 40px 0;
+  font-size: 14px;
 }
 
 .recipe-detail-back {
   background: none;
   border: none;
-  color: #666;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
   font-size: 14px;
+  font-weight: 700;
   padding: 0;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   cursor: pointer;
 }
 
+.recipe-detail-back:hover {
+  color: var(--color-basil-dark);
+}
+
 .recipe-detail-title {
-  font-size: 22px;
+  font-family: var(--font-display);
+  font-size: 24px;
   font-weight: 700;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  color: var(--color-text);
 }
 
 .recipe-detail-meta {
   font-size: 13px;
-  color: #999;
+  color: var(--color-text-muted);
   display: flex;
   gap: 6px;
+  margin-bottom: 16px;
+}
+
+.recipe-detail-shopping-link {
+  display: inline-block;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--color-basil-bg);
+  color: var(--color-basil-dark);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
   margin-bottom: 20px;
 }
 
+.recipe-detail-shopping-link:hover {
+  background: var(--color-basil);
+  color: white;
+}
+
 .recipe-detail-section {
-  margin-bottom: 24px;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 18px 20px;
+  margin-bottom: 16px;
 }
 
 .recipe-detail-section h3 {
+  font-family: var(--font-display);
   font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 10px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--color-basil-dark);
 }
 
 .recipe-detail-ingredient-list {
@@ -54,12 +86,16 @@
   display: flex;
   justify-content: space-between;
   padding: 8px 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border);
   font-size: 14px;
 }
 
+.recipe-detail-ingredient-list li:last-child {
+  border-bottom: none;
+}
+
 .recipe-detail-ingredient-amount {
-  color: #999;
+  color: var(--color-text-muted);
 }
 
 .recipe-detail-step-list {
@@ -71,4 +107,5 @@
   font-size: 14px;
   line-height: 1.6;
   margin-bottom: 10px;
+  color: var(--color-text);
 }

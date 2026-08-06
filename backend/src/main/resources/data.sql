@@ -1,14 +1,15 @@
 -- 개발 중 서버를 재시작해도 중복 저장되지 않도록, 매번 지우고 다시 넣음 (개발 전용, 운영에서는 사용 금지)
-DELETE FROM cooking_step;
+DELETE FROM recipe_review;
 DELETE FROM recipe_ingredient;
-DELETE FROM recipe;
-DELETE FROM recipe_category;
+DELETE FROM cooking_step;
 DELETE FROM user_ingredient;
+DELETE FROM recipe;
 DELETE FROM ingredient;
 DELETE FROM ingredient_category;
 DELETE FROM user_tool;
 DELETE FROM cooking_tool;
 DELETE FROM user_allergy_ingredient;
+DELETE FROM recipe_category;
 DELETE FROM user;
 
 -- 프론트/다른 더미 데이터가 공통으로 참조하는 임시 유저(user_id=1). 회원가입 기능은 아직 없음.
