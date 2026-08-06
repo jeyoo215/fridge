@@ -1,9 +1,14 @@
 package com.example.backend.domain.recipe;
 
+import com.example.backend.domain.user.CookingTool;
+import com.example.backend.domain.user.CookingToolRepository;
+import com.example.backend.domain.user.UserToolRepository;
+
 import com.example.backend.domain.ingredient.Ingredient;
 import com.example.backend.domain.ingredient.IngredientRepository;
 import com.example.backend.domain.ingredient.UserIngredient;
 import com.example.backend.domain.ingredient.UserIngredientRepository;
+
 import com.example.backend.domain.recipe.dto.RecipeCreateRequest;
 import com.example.backend.domain.recipe.dto.RecipeDetailResponse;
 import com.example.backend.domain.recipe.dto.RecipeRecommendResponse;
@@ -17,6 +22,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -33,6 +39,8 @@ public class RecipeService {
     private final RecipeCategoryRepository recipeCategoryRepository; // 📌 새로 생성한 Repository 주입
     private final IngredientRepository ingredientRepository;
     private final UserIngredientRepository userIngredientRepository;
+    private final CookingToolRepository cookingToolRepository;
+    private final UserToolRepository userToolRepository;
 
     // 레시피 등록 (FR-24)
     @Transactional
@@ -69,9 +77,11 @@ public class RecipeService {
 
         // 조리도구 연결
         for (Long toolId : request.toolIds()) {
+            CookingTool tool = cookingToolRepository.findById(toolId)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 조리도구입니다. id=" + toolId));
             recipe.addRecipeTool(RecipeTool.builder()
-                    .toolId(toolId)
-                    .build());
+                .tool(tool)
+                .build());
         }
 
         return recipeRepository.save(recipe).getRecipeId();
@@ -111,11 +121,16 @@ public class RecipeService {
                 .map(RecipeRepository.RecipeMatchResult::getRecipeId)
                 .toList();
 
+        Set<Long> ownedToolIds = userToolRepository.findByUserId(userId).stream()
+        .map(userTool -> userTool.getTool().getToolId())
+        .collect(Collectors.toSet());
+
         return recipeRepository.findAllById(recipeIds).stream()
+                .filter(recipe -> hasAllRequiredTools(recipe, ownedToolIds))
                 .map(recipe -> {
-                    long matchCount = matchCountByRecipeId.get(recipe.getRecipeId());
-                    int expiryPriorityScore = calculateExpiryPriorityScore(recipe, dDayByIngredientId);
-                    return new RecipeRecommendResponse(recipe, matchCount, expiryPriorityScore);
+                long matchCount = matchCountByRecipeId.get(recipe.getRecipeId());
+                int expiryPriorityScore = calculateExpiryPriorityScore(recipe, dDayByIngredientId);
+                return new RecipeRecommendResponse(recipe, matchCount, expiryPriorityScore);
                 })
                 .sorted(
                         Comparator
@@ -136,6 +151,13 @@ public class RecipeService {
                     return 0;
                 })
                 .sum();
+    }
+
+    // 레시피가 요구하는 조리도구를 사용자가 전부 보유하고 있는지 확인 (필요 도구 없는 레시피는 항상 통과) (FR-22)
+    private boolean hasAllRequiredTools(Recipe recipe, Set<Long> ownedToolIds) {
+        return recipe.getRecipeTools().stream()
+                .map(recipeTool -> recipeTool.getTool().getToolId())
+                .allMatch(ownedToolIds::contains);
     }
 
     // 레시피 상세 조회 (FR-24)

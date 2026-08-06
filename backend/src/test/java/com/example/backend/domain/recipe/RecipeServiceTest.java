@@ -5,6 +5,9 @@ import com.example.backend.domain.ingredient.IngredientRepository;
 import com.example.backend.domain.ingredient.UserIngredient;
 import com.example.backend.domain.ingredient.UserIngredientRepository;
 import com.example.backend.domain.recipe.dto.RecipeRecommendResponse;
+import com.example.backend.domain.user.CookingToolRepository;
+import com.example.backend.domain.user.UserToolRepository;
+
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,6 +31,8 @@ class RecipeServiceTest {
     @Mock private RecipeCategoryRepository recipeCategoryRepository;
     @Mock private IngredientRepository ingredientRepository;
     @Mock private UserIngredientRepository userIngredientRepository;
+    @Mock private CookingToolRepository cookingToolRepository;
+    @Mock private UserToolRepository userToolRepository; 
 
     @InjectMocks
     private RecipeService recipeService;

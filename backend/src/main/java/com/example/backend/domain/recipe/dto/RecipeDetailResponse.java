@@ -42,7 +42,7 @@ public class RecipeDetailResponse {
                 .toList();
 
         this.toolIds = entity.getRecipeTools().stream()
-                .map(com.example.backend.domain.recipe.RecipeTool::getToolId)
+                .map(recipeTool -> recipeTool.getTool().getToolId())
                 .toList();
     }
 
