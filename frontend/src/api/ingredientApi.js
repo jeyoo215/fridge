@@ -1,4 +1,5 @@
-const BASE_URL = "http://localhost:8080/api/v1";
+// PC에서 열면 localhost, 핸드폰 등 다른 기기에서 열면 그 기기가 접속한 주소(PC의 IP)를 그대로 사용
+const BASE_URL = `http://${window.location.hostname}:8080/api/v1`;
 
 // 내 냉장고 재료 목록 조회
 // TODO: 로그인 기능 만들어지면 userId 파라미터 대신 JWT 토큰으로 대체
@@ -16,6 +17,21 @@ export async function searchIngredients(keyword) {
   const response = await fetch(`${BASE_URL}/ingredients?keyword=${encodeURIComponent(keyword)}`);
   if (!response.ok) {
     throw new Error("재료 검색에 실패했습니다.");
+  }
+  return response.json();
+}
+
+// 카메라로 찍은 재료 사진 인식 요청 (오인식 방지를 위해 등록은 별도로 확정)
+export async function recognizeIngredientImage(userId, file) {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await fetch(`${BASE_URL}/users/me/ingredients/recognize?userId=${userId}`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!response.ok) {
+    throw new Error("이미지 인식에 실패했습니다.");
   }
   return response.json();
 }

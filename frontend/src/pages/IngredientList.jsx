@@ -12,19 +12,45 @@ import "./IngredientList.css";
 // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체하기
 const TEMP_USER_ID = 1;
 
-function getDDayStyle(dDay) {
-  if (dDay === null || dDay === undefined) return "dday-normal";
-  if (dDay <= 1) return "dday-danger";   // 유통기한 D-1 이하: 빨강
-  if (dDay <= 3) return "dday-warning";  // D-3 이하: 주황
-  return "dday-normal";                  // 그 외: 기본
+function getFreshness(dDay) {
+  if (dDay === null || dDay === undefined) return "normal";
+  if (dDay <= 1) return "danger";
+  if (dDay <= 3) return "warning";
+  return "normal";
+}
+
+function formatDDay(dDay) {
+  if (dDay === null || dDay === undefined) return null;
+  return dDay >= 0 ? `D-${dDay}` : `D+${Math.abs(dDay)}`;
+}
+
+const CATEGORY_ICONS = {
+  채소: "🥬",
+  육류: "🥩",
+  수산물: "🐟",
+  유제품: "🥛",
+  콩가공품: "🧊",
+  알류: "🥚",
+  기타: "🧺",
+};
+
+// 카테고리별로 묶기 (백엔드에서 이미 유통기한순 정렬해서 내려주니, 그 순서를 그대로 유지)
+function groupByCategory(ingredients) {
+  const groups = new Map();
+  for (const item of ingredients) {
+    const key = item.categoryName || "기타";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  }
+  return Array.from(groups.entries());
 }
 
 export default function IngredientList({ onAddClick }) {
   const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [openMenuId, setOpenMenuId] = useState(null); // "..." 메뉴가 열려있는 항목 id
-  const [editingId, setEditingId] = useState(null);   // 지금 수정 중인 항목 id
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
   const [editQuantity, setEditQuantity] = useState("");
   const [editExpirationDate, setEditExpirationDate] = useState("");
   const [actionError, setActionError] = useState(null);
@@ -45,7 +71,7 @@ export default function IngredientList({ onAddClick }) {
     loadIngredients();
     fetchFridgeName(TEMP_USER_ID)
       .then(setFridgeName)
-      .catch(() => {}); // 냉장고 이름 로딩 실패는 기본값("내 냉장고")으로 조용히 넘어감
+      .catch(() => {});
   }, []);
 
   const toggleMenu = (id) => {
@@ -57,9 +83,7 @@ export default function IngredientList({ onAddClick }) {
     setIsEditingTitle(true);
   };
 
-  const cancelEditTitle = () => {
-    setIsEditingTitle(false);
-  };
+  const cancelEditTitle = () => setIsEditingTitle(false);
 
   const saveTitle = async () => {
     const trimmed = titleDraft.trim();
@@ -114,9 +138,7 @@ export default function IngredientList({ onAddClick }) {
     setEditExpirationDate(item.expirationDate);
   };
 
-  const cancelEdit = () => {
-    setEditingId(null);
-  };
+  const cancelEdit = () => setEditingId(null);
 
   const saveEdit = async (userIngredientId) => {
     try {
@@ -125,14 +147,26 @@ export default function IngredientList({ onAddClick }) {
         expirationDate: editExpirationDate,
       });
       setEditingId(null);
-      loadIngredients(); // 유통기한 바뀌면 D-day/정렬 순서도 바뀌니 목록 새로 조회
+      loadIngredients();
     } catch (err) {
       setActionError(err.message);
     }
   };
 
-  if (loading) return <p className="ingredient-status">불러오는 중...</p>;
-  if (error) return <p className="ingredient-status">{error}</p>;
+  if (loading) {
+    return (
+      <div className="ingredient-list-container">
+        <p className="ingredient-status">불러오는 중…</p>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="ingredient-list-container">
+        <p className="ingredient-status ingredient-action-error">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="ingredient-list-container">
@@ -151,12 +185,8 @@ export default function IngredientList({ onAddClick }) {
                 if (e.key === "Escape") cancelEditTitle();
               }}
             />
-            <button className="fridge-title-save" onClick={saveTitle}>
-              저장
-            </button>
-            <button className="fridge-title-cancel" onClick={cancelEditTitle}>
-              취소
-            </button>
+            <button className="fridge-title-save" onClick={saveTitle}>저장</button>
+            <button className="fridge-title-cancel" onClick={cancelEditTitle}>취소</button>
           </div>
         ) : (
           <h2 className="ingredient-list-title" onClick={startEditTitle} title="클릭해서 이름 수정">
@@ -166,96 +196,111 @@ export default function IngredientList({ onAddClick }) {
         )}
 
         <button className="add-ingredient-button" onClick={onAddClick}>
-          + 재료 추가
+          <span className="add-ingredient-plus">+</span> 재료 추가
         </button>
       </div>
 
       {actionError && <p className="ingredient-status ingredient-action-error">{actionError}</p>}
 
       {ingredients.length === 0 && (
-        <p className="ingredient-status">등록된 재료가 없어요. 재료를 추가해보세요!</p>
+        <div className="empty-state">
+          <div className="empty-state-icon" aria-hidden="true">🥬</div>
+          <p className="empty-state-title">냉장고가 비어있어요</p>
+          <p className="empty-state-subtitle">재료를 추가하고 유통기한을 관리해보세요.</p>
+        </div>
       )}
 
-      {ingredients.map((item) => {
-        const isEditing = editingId === item.userIngredientId;
-
-        if (isEditing) {
-          return (
-            <div key={item.userIngredientId} className="ingredient-row ingredient-row-editing">
-              <span className="ingredient-name">{item.ingredientName}</span>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                className="edit-input edit-input-quantity"
-                value={editQuantity}
-                onChange={(e) => setEditQuantity(e.target.value.replace(/[^0-9]/g, ""))}
-              />
-              <input
-                type="date"
-                className="edit-input edit-input-date"
-                value={editExpirationDate}
-                onChange={(e) => setEditExpirationDate(e.target.value)}
-              />
-              <button className="edit-save-button" onClick={() => saveEdit(item.userIngredientId)}>
-                저장
-              </button>
-              <button className="edit-cancel-button" onClick={cancelEdit}>
-                취소
-              </button>
+      <div className="ingredient-card-list">
+        {groupByCategory(ingredients).map(([categoryName, items]) => (
+          <div key={categoryName} className="category-section">
+            <div className="category-section-header">
+              <span className="category-icon" aria-hidden="true">
+                {CATEGORY_ICONS[categoryName] || CATEGORY_ICONS["기타"]}
+              </span>
+              <span className="category-name">{categoryName}</span>
+              <span className="category-count">{items.length}</span>
             </div>
-          );
-        }
 
-        return (
-          <div
-            key={item.userIngredientId}
-            className={`ingredient-row ${getDDayStyle(item.dDay)}`}
-          >
-            <span className="ingredient-name">
-              {item.ingredientName}
-              {item.dDay !== null && item.dDay !== undefined &&
-                ` · D${item.dDay >= 0 ? `-${item.dDay}` : `+${Math.abs(item.dDay)}`}`}
-            </span>
+            {items.map((item) => {
+              const isEditing = editingId === item.userIngredientId;
+              const freshness = getFreshness(item.dDay);
+              const dDayLabel = formatDDay(item.dDay);
 
-            <button
-              className="kebab-button"
-              onClick={() => toggleMenu(item.userIngredientId)}
-              aria-label="더보기 메뉴"
-            >
-              ⋯
-            </button>
+              if (isEditing) {
+                return (
+                  <div key={item.userIngredientId} className="ingredient-card ingredient-card-editing">
+                    <span className="ingredient-name">{item.ingredientName}</span>
+                    <div className="edit-fields">
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        className="edit-input edit-input-quantity"
+                        value={editQuantity}
+                        onChange={(e) => setEditQuantity(e.target.value.replace(/[^0-9]/g, ""))}
+                      />
+                      <input
+                        type="date"
+                        className="edit-input edit-input-date"
+                        value={editExpirationDate}
+                        onChange={(e) => setEditExpirationDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="edit-actions">
+                      <button className="edit-save-button" onClick={() => saveEdit(item.userIngredientId)}>
+                        저장
+                      </button>
+                      <button className="edit-cancel-button" onClick={cancelEdit}>취소</button>
+                    </div>
+                  </div>
+                );
+              }
 
-            {openMenuId === item.userIngredientId && (
-              <div className="kebab-menu">
-                <button
-                  className="kebab-menu-item"
-                  onClick={() => handleConsume(item.userIngredientId)}
-                >
-                  사용 완료
-                </button>
-                <button
-                  className="kebab-menu-item"
-                  onClick={() => handleDiscard(item.userIngredientId)}
-                >
-                  폐기(상함)
-                </button>
-                <div className="kebab-menu-divider" />
-                <button className="kebab-menu-item" onClick={() => startEdit(item)}>
-                  수정
-                </button>
-                <div className="kebab-menu-divider" />
-                <button
-                  className="kebab-menu-item kebab-menu-item-danger"
-                  onClick={() => handleDelete(item.userIngredientId)}
-                >
-                  삭제
-                </button>
-              </div>
-            )}
+              return (
+                <div key={item.userIngredientId} className={`ingredient-card freshness-${freshness}`}>
+                  <span className="freshness-bar" aria-hidden="true" />
+
+                  <span className="ingredient-name">{item.ingredientName}</span>
+
+                  {dDayLabel && <span className={`dday-badge dday-badge-${freshness}`}>{dDayLabel}</span>}
+
+                  <div className="kebab-wrapper">
+                    <button
+                      className="kebab-button"
+                      onClick={() => toggleMenu(item.userIngredientId)}
+                      aria-label="더보기 메뉴"
+                    >
+                      ⋯
+                    </button>
+
+                    {openMenuId === item.userIngredientId && (
+                      <div className="kebab-menu">
+                        <button className="kebab-menu-item" onClick={() => handleConsume(item.userIngredientId)}>
+                          사용 완료
+                        </button>
+                        <button className="kebab-menu-item" onClick={() => handleDiscard(item.userIngredientId)}>
+                          폐기 (상함)
+                        </button>
+                        <div className="kebab-menu-divider" />
+                        <button className="kebab-menu-item" onClick={() => startEdit(item)}>
+                          수정
+                        </button>
+                        <div className="kebab-menu-divider" />
+                        <button
+                          className="kebab-menu-item kebab-menu-item-danger"
+                          onClick={() => handleDelete(item.userIngredientId)}
+                        >
+                          삭제 (잘못 등록함)
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 }
