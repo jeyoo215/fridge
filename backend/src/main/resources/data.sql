@@ -1,4 +1,3 @@
--- 개발 중 서버를 재시작해도 중복 저장되지 않도록, 매번 지우고 다시 넣음 (개발 전용, 운영에서는 사용 금지)
 DELETE FROM cooking_step;
 DELETE FROM recipe_ingredient;
 DELETE FROM recipe_tool;

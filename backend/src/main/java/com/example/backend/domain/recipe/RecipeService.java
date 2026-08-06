@@ -31,7 +31,7 @@ public class RecipeService {
     private static final int EXPIRY_WEIGHT_D3 = 2; // D-3 이하
 
     private final RecipeRepository recipeRepository;
-    private final RecipeCategoryRepository recipeCategoryRepository; // 📌 새로 생성한 Repository 주입
+    private final RecipeCategoryRepository recipeCategoryRepository;
     private final IngredientRepository ingredientRepository;
     private final UserIngredientRepository userIngredientRepository;
 
@@ -96,7 +96,7 @@ public class RecipeService {
                 .collect(Collectors.toMap(
                         userIngredient -> userIngredient.getIngredient().getIngredientId(),
                         userIngredient -> ChronoUnit.DAYS.between(LocalDate.now(), userIngredient.getExpirationDate()),
-                        (existing, duplicate) -> existing
+                        (existing, duplicate) -> existing // 혹시 같은 재료 여러 개 보유 시 첫 값 사용
                 ));
 
         List<RecipeRepository.RecipeMatchResult> matchResults =
@@ -117,6 +117,7 @@ public class RecipeService {
                     long matchCount = matchCountByRecipeId.get(recipe.getRecipeId());
                     int expiryPriorityScore = calculateExpiryPriorityScore(recipe, dDayByIngredientId);
                     return new RecipeRecommendResponse(recipe, matchCount, expiryPriorityScore);
+                    // 유통기한 가중치 우선, 그 다음 매칭 개수 순으로 정렬
                 })
                 .sorted(
                         Comparator
