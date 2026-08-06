@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { searchIngredients, registerIngredient } from "../api/ingredientApi";
+import { useEffect, useRef, useState } from "react";
+import { searchIngredients, registerIngredient, recognizeIngredientImage } from "../api/ingredientApi";
 import "./IngredientRegisterForm.css";
 
 const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
@@ -13,6 +13,12 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
   const [expirationDate, setExpirationDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+
+  // 카메라 인식 관련 상태
+  const fileInputRef = useRef(null);
+  const [recognizing, setRecognizing] = useState(false);
+  const [recognizedCandidates, setRecognizedCandidates] = useState([]);
+  const [recognizeError, setRecognizeError] = useState(null);
 
   // 검색어 입력하고 300ms 있다가 검색 (매 글자마다 요청 보내지 않도록)
   useEffect(() => {
@@ -30,12 +36,40 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
     setSelectedIngredient(ingredient);
     setKeyword(ingredient.ingredientName);
     setSearchResults([]);
+    setRecognizedCandidates([]); // 후보 목록에서 골랐으면 그 목록은 닫아버림
 
     // 재료 기본 보관 가능일수를 알면, 유통기한을 자동으로 미리 채워줌 (사용자가 수정 가능)
     if (ingredient.defaultShelfLifeDays) {
       const d = new Date();
       d.setDate(d.getDate() + ingredient.defaultShelfLifeDays);
       setExpirationDate(d.toISOString().slice(0, 10));
+    }
+  };
+
+  const handleCameraClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageSelected = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // 같은 파일 다시 선택해도 onChange 다시 발생하도록 초기화
+    if (!file) return;
+
+    setRecognizing(true);
+    setRecognizeError(null);
+    setRecognizedCandidates([]);
+    setSelectedIngredient(null);
+    try {
+      const candidates = await recognizeIngredientImage(TEMP_USER_ID, file);
+      if (candidates.length === 0) {
+        setRecognizeError("재료를 인식하지 못했어요. 직접 입력해주세요.");
+      } else {
+        setRecognizedCandidates(candidates);
+      }
+    } catch (err) {
+      setRecognizeError(err.message);
+    } finally {
+      setRecognizing(false);
     }
   };
 
@@ -71,6 +105,48 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
     <form className="ingredient-form" onSubmit={handleSubmit}>
       <h2 className="ingredient-form-title">재료 추가</h2>
 
+      {/* ---------- 카메라 인식 ---------- */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        style={{ display: "none" }}
+        onChange={handleImageSelected}
+      />
+      <button
+        type="button"
+        className="camera-button"
+        onClick={handleCameraClick}
+        disabled={recognizing}
+      >
+        {recognizing ? "인식 중…" : "📷 카메라로 인식"}
+      </button>
+
+      {recognizeError && <p className="ingredient-form-error">{recognizeError}</p>}
+
+      {recognizedCandidates.length > 0 && (
+        <div className="recognized-candidates">
+          <p className="recognized-candidates-label">이 중에 맞는 게 있나요?</p>
+          {recognizedCandidates.map((c) => (
+            <button
+              type="button"
+              key={c.ingredientId}
+              className="recognized-candidate-item"
+              onClick={() =>
+                handleSelectIngredient({ ingredientId: c.ingredientId, ingredientName: c.ingredientName })
+              }
+            >
+              <span>{c.ingredientName}</span>
+              <span className="recognized-candidate-score">{Math.round(c.confidenceScore * 100)}%</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <p className="ingredient-form-divider">또는 직접 입력</p>
+
+      {/* ---------- 수동 입력 ---------- */}
       <div className="ingredient-form-field">
         <label>재료명</label>
         <input
