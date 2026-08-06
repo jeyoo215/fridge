@@ -44,6 +44,9 @@ export default function RecipeRecommend() {
               {recipe.expiryPriorityScore > 0 && (
                 <span className="recipe-expiry-badge">🔥 유통기한 임박 재료 활용</span>
               )}
+              {!recipe.hasAllTools && (
+                <span className="recipe-tool-badge">🔧 도구 부족</span>
+              )}
             </div>
             <span className="recipe-match">
               보유 재료 {recipe.matchCount}/{recipe.totalIngredientCount}개 일치
