@@ -67,11 +67,4 @@ public class UserIngredientController {
                         @PathVariable("userIngredientId") Long userIngredientId) {
         userIngredientService.delete(userId, userIngredientId);
     }
-
-    // 존재하지 않는 재료를 건드리거나, 본인 소유가 아닌 재료를 건드리려 할 때 400으로 명확히 응답
-    @ExceptionHandler(IllegalArgumentException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleIllegalArgument(IllegalArgumentException e) {
-        return Map.of("message", e.getMessage());
-    }
 }
