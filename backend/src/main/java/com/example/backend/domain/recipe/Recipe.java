@@ -47,6 +47,9 @@ public class Recipe {
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CookingStep> cookingSteps = new ArrayList<>();
 
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecipeTool> recipeTools = new ArrayList<>();
+
     @Builder
     public Recipe(RecipeCategory category, String recipeName, Integer cookingTimeMinutes,
                   String difficulty, String imageUrl) {
@@ -57,7 +60,7 @@ public class Recipe {
         this.imageUrl = imageUrl;
     }
 
-    // 연관관계 편의 메서드: 재료/조리단계 추가 시 양방향 동기화
+    // 연관관계 편의 메서드: 재료/조리단계/조리도구 추가 시 양방향 동기화
     public void addRecipeIngredient(RecipeIngredient recipeIngredient) {
         recipeIngredients.add(recipeIngredient);
         recipeIngredient.setRecipe(this);
@@ -66,5 +69,10 @@ public class Recipe {
     public void addCookingStep(CookingStep cookingStep) {
         cookingSteps.add(cookingStep);
         cookingStep.setRecipe(this);
+    }
+
+    public void addRecipeTool(RecipeTool recipeTool) {
+        recipeTools.add(recipeTool);
+        recipeTool.setRecipe(this);
     }
 }

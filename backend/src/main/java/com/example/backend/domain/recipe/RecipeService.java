@@ -65,6 +65,13 @@ public class RecipeService {
                     .build());
         }
 
+        // 조리도구 연결
+        for (Long toolId : request.toolIds()) {
+            recipe.addRecipeTool(RecipeTool.builder()
+                    .toolId(toolId)
+                    .build());
+        }
+
         return recipeRepository.save(recipe).getRecipeId();
     }
 
