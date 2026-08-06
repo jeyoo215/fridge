@@ -2,10 +2,12 @@ package com.example.backend.domain.ingredient;
 
 import com.example.backend.domain.ingredient.dto.RecognizedIngredientResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/users/me/ingredients")
@@ -21,5 +23,13 @@ public class ImageRecognitionController {
     public List<RecognizedIngredientResponse> recognize(@RequestParam("userId") Long userId,
                                                           @RequestParam("image") MultipartFile image) {
         return imageRecognitionService.recognize(userId, image);
+    }
+
+    // Vision API 자체가 실패한 경우(인증 오류, 쿼터 초과, 이미지 형식 문제 등).
+    // 우리 요청이 잘못된 게 아니라 외부 서비스 쪽 문제라 400이 아닌 502로 구분한다.
+    @ExceptionHandler(IllegalStateException.class)
+    @ResponseStatus(HttpStatus.BAD_GATEWAY)
+    public Map<String, String> handleVisionFailure(IllegalStateException e) {
+        return Map.of("message", e.getMessage());
     }
 }
