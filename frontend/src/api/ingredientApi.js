@@ -37,6 +37,29 @@ export async function recognizeIngredientImage(userId, file) {
   return response.json();
 }
 
+// 재료 카테고리 전체 목록 (새 재료 등록용 드롭다운)
+export async function fetchIngredientCategories() {
+  const response = await fetch(`${BASE_URL}/ingredients/categories`);
+  if (!response.ok) {
+    throw new Error("카테고리 목록을 불러오지 못했습니다.");
+  }
+  return response.json();
+}
+
+// 재료 마스터에 없는 재료를 새로 등록 (등록된 재료 정보를 반환)
+export async function createIngredient(payload) {
+  const response = await fetch(`${BASE_URL}/ingredients`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.message || "새 재료 등록에 실패했습니다.");
+  }
+  return response.json();
+}
+
 // 재료 수동 등록
 export async function registerIngredient(userId, payload) {
   const response = await fetch(`${BASE_URL}/users/me/ingredients?userId=${userId}`, {

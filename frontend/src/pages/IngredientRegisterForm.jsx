@@ -1,18 +1,36 @@
 import { useEffect, useRef, useState } from "react";
-import { searchIngredients, registerIngredient, recognizeIngredientImage } from "../api/ingredientApi";
+import {
+  searchIngredients,
+  registerIngredient,
+  recognizeIngredientImage,
+  fetchIngredientCategories,
+  createIngredient,
+} from "../api/ingredientApi";
 import "./IngredientRegisterForm.css";
 
 const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
 
+function todayDateString() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default function IngredientRegisterForm({ onRegistered, onCancel }) {
   const [keyword, setKeyword] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [searchDone, setSearchDone] = useState(false); // 검색을 한 번이라도 시도했는지 (결과 없음 안내 표시용)
   const [selectedIngredient, setSelectedIngredient] = useState(null); // { ingredientId, ingredientName }
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("");
+  const [purchaseDate, setPurchaseDate] = useState(todayDateString); // 기본값: 오늘
   const [expirationDate, setExpirationDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+
+  // 새 재료 등록(재료 마스터에 없는 경우) 관련 상태
+  const [categories, setCategories] = useState([]);
+  const [showNewIngredientForm, setShowNewIngredientForm] = useState(false);
+  const [newIngredientCategoryId, setNewIngredientCategoryId] = useState("");
+  const [creatingIngredient, setCreatingIngredient] = useState(false);
 
   // 카메라 인식 관련 상태
   const fileInputRef = useRef(null);
@@ -25,14 +43,29 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
   const [bulkExpirationDate, setBulkExpirationDate] = useState("");
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
 
+  // 새 재료 등록 시 고를 카테고리 목록은 화면 뜨자마자 미리 불러둠
+  useEffect(() => {
+    fetchIngredientCategories().then(setCategories).catch(() => {});
+  }, []);
+
   // 검색어 입력하고 300ms 있다가 검색 (매 글자마다 요청 보내지 않도록)
   useEffect(() => {
     if (selectedIngredient || !keyword) {
       setSearchResults([]);
+      setSearchDone(false);
+      setShowNewIngredientForm(false);
       return;
     }
     const timer = setTimeout(() => {
-      searchIngredients(keyword).then(setSearchResults).catch(() => setSearchResults([]));
+      searchIngredients(keyword)
+        .then((results) => {
+          setSearchResults(results);
+          setSearchDone(true);
+        })
+        .catch(() => {
+          setSearchResults([]);
+          setSearchDone(true);
+        });
     }, 300);
     return () => clearTimeout(timer);
   }, [keyword, selectedIngredient]);
@@ -41,6 +74,8 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
     setSelectedIngredient(ingredient);
     setKeyword(ingredient.ingredientName);
     setSearchResults([]);
+    setSearchDone(false);
+    setShowNewIngredientForm(false);
     setRecognizedCandidates([]);
     setCheckedIds(new Set());
 
@@ -48,6 +83,27 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
       const d = new Date();
       d.setDate(d.getDate() + ingredient.defaultShelfLifeDays);
       setExpirationDate(d.toISOString().slice(0, 10));
+    }
+  };
+
+  const handleCreateNewIngredient = async () => {
+    if (!newIngredientCategoryId) {
+      setError("카테고리를 선택해주세요.");
+      return;
+    }
+    setCreatingIngredient(true);
+    setError(null);
+    try {
+      const created = await createIngredient({
+        ingredientName: keyword.trim(),
+        categoryId: Number(newIngredientCategoryId),
+      });
+      // 새로 만든 재료를 바로 선택된 상태로 이어감 (수량/구매일/소비기한 입력만 남음)
+      handleSelectIngredient(created);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCreatingIngredient(false);
     }
   };
 
@@ -101,7 +157,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
       return;
     }
     if (!bulkExpirationDate) {
-      setRecognizeError("유통기한을 입력해주세요.");
+      setRecognizeError("소비기한을 입력해주세요.");
       return;
     }
 
@@ -113,6 +169,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
           ingredientId: candidate.ingredientId,
           quantity: 1,
           unit: "개",
+          purchaseDate: todayDateString(),
           expirationDate: bulkExpirationDate,
         });
       }
@@ -131,7 +188,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
       return;
     }
     if (!quantity || !expirationDate) {
-      setError("수량과 유통기한을 입력해주세요.");
+      setError("수량과 소비기한을 입력해주세요.");
       return;
     }
 
@@ -142,6 +199,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
         ingredientId: selectedIngredient.ingredientId,
         quantity: Number(quantity),
         unit,
+        purchaseDate,
         expirationDate,
       });
       onRegistered?.();
@@ -171,7 +229,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
         onClick={handleCameraClick}
         disabled={recognizing}
       >
-        {recognizing ? "인식 중…" : "📷 카메라로 인식"}
+        {recognizing ? "인식 중…" : "📷 카메라로 인식 (여러 개 한번에 가능)"}
       </button>
 
       {recognizeError && <p className="ingredient-form-error">{recognizeError}</p>}
@@ -195,7 +253,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
           ))}
 
           <div className="ingredient-form-field recognized-bulk-date">
-            <label>유통기한 (선택한 재료 전체 공통 적용, 나중에 개별 수정 가능)</label>
+            <label>소비기한 (선택한 재료 전체 공통 적용, 나중에 개별 수정 가능)</label>
             <input
               type="date"
               value={bulkExpirationDate}
@@ -226,6 +284,7 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
           onChange={(e) => {
             setKeyword(e.target.value);
             setSelectedIngredient(null);
+            setShowNewIngredientForm(false);
           }}
         />
         {searchResults.length > 0 && (
@@ -237,6 +296,44 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
               </li>
             ))}
           </ul>
+        )}
+
+        {searchDone && searchResults.length === 0 && keyword.trim() && !showNewIngredientForm && (
+          <div className="no-search-result">
+            <p>"{keyword.trim()}" 재료가 목록에 없어요.</p>
+            <button
+              type="button"
+              className="new-ingredient-link"
+              onClick={() => setShowNewIngredientForm(true)}
+            >
+              + 새 재료로 등록하기
+            </button>
+          </div>
+        )}
+
+        {showNewIngredientForm && (
+          <div className="new-ingredient-panel">
+            <label>카테고리 선택</label>
+            <select
+              value={newIngredientCategoryId}
+              onChange={(e) => setNewIngredientCategoryId(e.target.value)}
+            >
+              <option value="">카테고리를 선택하세요</option>
+              {categories.map((c) => (
+                <option key={c.categoryId} value={c.categoryId}>
+                  {c.categoryName}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="new-ingredient-confirm-button"
+              onClick={handleCreateNewIngredient}
+              disabled={creatingIngredient}
+            >
+              {creatingIngredient ? "등록 중…" : `"${keyword.trim()}" 새 재료로 만들기`}
+            </button>
+          </div>
         )}
       </div>
 
@@ -261,6 +358,15 @@ export default function IngredientRegisterForm({ onRegistered, onCancel }) {
             onChange={(e) => setUnit(e.target.value)}
           />
         </div>
+      </div>
+
+      <div className="ingredient-form-field">
+        <label>구매일</label>
+        <input
+          type="date"
+          value={purchaseDate}
+          onChange={(e) => setPurchaseDate(e.target.value)}
+        />
       </div>
 
       <div className="ingredient-form-field">

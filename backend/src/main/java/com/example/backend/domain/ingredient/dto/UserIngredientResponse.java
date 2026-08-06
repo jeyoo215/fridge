@@ -15,6 +15,7 @@ public class UserIngredientResponse {
     private final String categoryName; // 카테고리별 그룹핑용 (없으면 "기타"로 처리)
     private final BigDecimal quantity;
     private final String unit;
+    private final LocalDate purchaseDate;
     private final LocalDate expirationDate;
     private final long dDay;
 
@@ -26,6 +27,7 @@ public class UserIngredientResponse {
                 : "기타";
         this.quantity = entity.getQuantity();
         this.unit = entity.getUnit();
+        this.purchaseDate = entity.getPurchaseDate();
         this.expirationDate = entity.getExpirationDate();
         this.dDay = ChronoUnit.DAYS.between(LocalDate.now(), entity.getExpirationDate());
     }
