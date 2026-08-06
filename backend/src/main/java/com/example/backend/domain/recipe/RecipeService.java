@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -16,22 +18,33 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class RecipeService {
 
+    // 유통기한 가중치 기준 (나중에 팀 논의로 숫자만 바꾸면 됨 -> FR-21)
+    private static final int EXPIRY_WEIGHT_D1 = 3; // D-1 이하
+    private static final int EXPIRY_WEIGHT_D3 = 2; // D-3 이하
+
     private final RecipeRepository recipeRepository;
     private final UserIngredientRepository userIngredientRepository;
 
-    // 보유 재료 기반 레시피 추천 (FR-20)
-    // 1. 유저가 보유한 재료 id 목록을 뽑고
-    // 2. 그 재료들과 겹치는 레시피를 매칭 개수 많은 순으로 조회
+    // 보유 재료 기반 레시피 추천 (FR-20 + FR-21 유통기한 가중치)
     public List<RecipeRecommendResponse> recommendRecipes(Long userId) {
-        List<Long> ingredientIds = userIngredientRepository
-                .findByUserIdAndStatusOrderByExpirationDateAsc(userId, UserIngredient.Status.보유중)
-                .stream()
+        List<UserIngredient> myIngredients = userIngredientRepository
+                .findByUserIdAndStatusOrderByExpirationDateAsc(userId, UserIngredient.Status.보유중);
+
+        List<Long> ingredientIds = myIngredients.stream()
                 .map(userIngredient -> userIngredient.getIngredient().getIngredientId())
                 .toList();
 
         if (ingredientIds.isEmpty()) {
             return List.of();
         }
+
+        // 재료 id -> 유통기한까지 남은 일수(dDay) 매핑 (가중치 계산용)
+        Map<Long, Long> dDayByIngredientId = myIngredients.stream()
+                .collect(Collectors.toMap(
+                        userIngredient -> userIngredient.getIngredient().getIngredientId(),
+                        userIngredient -> ChronoUnit.DAYS.between(LocalDate.now(), userIngredient.getExpirationDate()),
+                        (existing, duplicate) -> existing // 혹시 같은 재료 여러 개 보유 시 첫 값 사용
+                ));
 
         List<RecipeRepository.RecipeMatchResult> matchResults =
                 recipeRepository.findRecipesByMatchingIngredients(ingredientIds);
@@ -47,11 +60,30 @@ public class RecipeService {
                 .toList();
 
         return recipeRepository.findAllById(recipeIds).stream()
-                .map(recipe -> new RecipeRecommendResponse(
-                        recipe,
-                        matchCountByRecipeId.get(recipe.getRecipeId())
-                ))
-                .sorted((a, b) -> Long.compare(b.getMatchCount(), a.getMatchCount()))
+                .map(recipe -> {
+                    long matchCount = matchCountByRecipeId.get(recipe.getRecipeId());
+                    int expiryPriorityScore = calculateExpiryPriorityScore(recipe, dDayByIngredientId);
+                    return new RecipeRecommendResponse(recipe, matchCount, expiryPriorityScore);
+                })
+                // 유통기한 가중치 우선, 그 다음 매칭 개수 순으로 정렬
+                .sorted(
+                        java.util.Comparator
+                                .comparingInt(RecipeRecommendResponse::getExpiryPriorityScore).reversed()
+                                .thenComparing(java.util.Comparator.comparingLong(RecipeRecommendResponse::getMatchCount).reversed())
+                )
                 .toList();
+    }
+
+    // 레시피가 사용하는 재료 중, 보유 재료와 겹치는 것들의 유통기한 가중치 합산
+    private int calculateExpiryPriorityScore(Recipe recipe, Map<Long, Long> dDayByIngredientId) {
+        return recipe.getRecipeIngredients().stream()
+                .mapToInt(recipeIngredient -> {
+                    Long dDay = dDayByIngredientId.get(recipeIngredient.getIngredient().getIngredientId());
+                    if (dDay == null) return 0; // 보유하지 않은 재료면 가중치 없음
+                    if (dDay <= 1) return EXPIRY_WEIGHT_D1;
+                    if (dDay <= 3) return EXPIRY_WEIGHT_D3;
+                    return 0;
+                })
+                .sum();
     }
 }
