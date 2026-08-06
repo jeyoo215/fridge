@@ -21,21 +21,6 @@ export async function searchIngredients(keyword) {
   return response.json();
 }
 
-// 카메라로 찍은 재료 사진 인식 요청 (오인식 방지를 위해 등록은 별도로 확정)
-export async function recognizeIngredientImage(userId, file) {
-  const formData = new FormData();
-  formData.append("image", file);
-
-  const response = await fetch(`${BASE_URL}/users/me/ingredients/recognize?userId=${userId}`, {
-    method: "POST",
-    body: formData,
-  });
-  if (!response.ok) {
-    throw new Error("이미지 인식에 실패했습니다.");
-  }
-  return response.json();
-}
-
 // 재료 수동 등록
 export async function registerIngredient(userId, payload) {
   const response = await fetch(`${BASE_URL}/users/me/ingredients?userId=${userId}`, {
