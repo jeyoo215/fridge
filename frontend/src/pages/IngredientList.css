@@ -177,9 +177,9 @@
 /* ---------- 통계 카드 ---------- */
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  max-width: 420px;
+  max-width: 560px;
 }
 
 .stat-card {
@@ -200,7 +200,19 @@
 }
 
 .stat-card-warning .stat-value {
+  color: var(--color-amber);
+}
+
+.stat-card-danger {
+  background: var(--color-tomato-bg);
+}
+
+.stat-card-danger .stat-value {
   color: var(--color-tomato);
+}
+
+.stat-card-good .stat-value {
+  color: var(--color-basil);
 }
 
 .stat-label {
@@ -621,7 +633,20 @@
 
 .edit-fields {
   display: flex;
-  gap: 6px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.edit-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.edit-field-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
 }
 
 .edit-input {
@@ -633,7 +658,7 @@
   background: white;
 }
 
-.edit-input-quantity { width: 50px; }
+.edit-input-quantity { width: 60px; }
 .edit-input-date { width: 130px; }
 
 .edit-actions {
@@ -690,5 +715,6 @@ input:focus-visible {
 
   .stats-row {
     max-width: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

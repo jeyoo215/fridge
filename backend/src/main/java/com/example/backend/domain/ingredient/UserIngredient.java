@@ -68,8 +68,9 @@ public class UserIngredient {
         this.status = Status.폐기;
     }
 
-    public void updateQuantityAndExpiration(BigDecimal quantity, LocalDate expirationDate) {
+    public void updateQuantityAndExpiration(BigDecimal quantity, LocalDate purchaseDate, LocalDate expirationDate) {
         this.quantity = quantity;
+        this.purchaseDate = purchaseDate;
         this.expirationDate = expirationDate;
     }
 

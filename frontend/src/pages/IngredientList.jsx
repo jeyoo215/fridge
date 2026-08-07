@@ -79,6 +79,7 @@ export default function IngredientList() {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editQuantity, setEditQuantity] = useState("");
+  const [editPurchaseDate, setEditPurchaseDate] = useState("");
   const [editExpirationDate, setEditExpirationDate] = useState("");
   const [actionError, setActionError] = useState(null);
 
@@ -182,6 +183,7 @@ export default function IngredientList() {
     setOpenMenuId(null);
     setEditingId(item.userIngredientId);
     setEditQuantity(item.quantity);
+    setEditPurchaseDate(item.purchaseDate || "");
     setEditExpirationDate(item.expirationDate);
   };
 
@@ -191,6 +193,7 @@ export default function IngredientList() {
     try {
       await updateIngredient(TEMP_USER_ID, userIngredientId, {
         quantity: Number(editQuantity),
+        purchaseDate: editPurchaseDate || null,
         expirationDate: editExpirationDate,
       });
       setEditingId(null);
@@ -212,20 +215,35 @@ export default function IngredientList() {
         <div key={item.userIngredientId} className="ingredient-card ingredient-card-editing">
           <span className="ingredient-name">{item.ingredientName}</span>
           <div className="edit-fields">
-            <input
-              type="number"
-              min="0"
-              step="1"
-              className="edit-input edit-input-quantity"
-              value={editQuantity}
-              onChange={(e) => setEditQuantity(e.target.value.replace(/[^0-9]/g, ""))}
-            />
-            <input
-              type="date"
-              className="edit-input edit-input-date"
-              value={editExpirationDate}
-              onChange={(e) => setEditExpirationDate(e.target.value)}
-            />
+            <label className="edit-field-group">
+              <span className="edit-field-label">수량</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                className="edit-input edit-input-quantity"
+                value={editQuantity}
+                onChange={(e) => setEditQuantity(e.target.value.replace(/[^0-9]/g, ""))}
+              />
+            </label>
+            <label className="edit-field-group">
+              <span className="edit-field-label">구매일</span>
+              <input
+                type="date"
+                className="edit-input edit-input-date"
+                value={editPurchaseDate}
+                onChange={(e) => setEditPurchaseDate(e.target.value)}
+              />
+            </label>
+            <label className="edit-field-group">
+              <span className="edit-field-label">소비기한</span>
+              <input
+                type="date"
+                className="edit-input edit-input-date"
+                value={editExpirationDate}
+                onChange={(e) => setEditExpirationDate(e.target.value)}
+              />
+            </label>
           </div>
           <div className="edit-actions">
             <button className="edit-save-button" onClick={() => saveEdit(item.userIngredientId)}>
@@ -320,6 +338,9 @@ export default function IngredientList() {
   };
 
   const categoryCount = new Set(ingredients.map((i) => i.categoryName || "기타")).size;
+  const expiredCount = ingredients.filter(
+    (item) => item.dDay !== null && item.dDay !== undefined && item.dDay < 0
+  ).length;
 
   // 검색어로 필터링 (재료명 부분 일치, 대소문자 무시)
   const trimmedKeyword = searchKeyword.trim().toLowerCase();
@@ -416,6 +437,10 @@ export default function IngredientList() {
             <div className="stat-card stat-card-warning">
               <span className="stat-value">{alertIngredients.length}</span>
               <span className="stat-label">임박 재료</span>
+            </div>
+            <div className={`stat-card ${expiredCount > 0 ? "stat-card-danger" : "stat-card-good"}`}>
+              <span className="stat-value">{expiredCount}</span>
+              <span className="stat-label">지난 재료</span>
             </div>
             <div className="stat-card">
               <span className="stat-value">{categoryCount}</span>

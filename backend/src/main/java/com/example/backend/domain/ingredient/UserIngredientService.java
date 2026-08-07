@@ -48,7 +48,7 @@ public class UserIngredientService {
     @Transactional
     public void update(Long userId, Long userIngredientId, UserIngredientUpdateRequest request) {
         UserIngredient userIngredient = findOwnedUserIngredient(userId, userIngredientId);
-        userIngredient.updateQuantityAndExpiration(request.quantity(), request.expirationDate());
+        userIngredient.updateQuantityAndExpiration(request.quantity(), request.purchaseDate(), request.expirationDate());
     }
 
     // 재료 소진 처리 ("요리에 다 썼어요")
