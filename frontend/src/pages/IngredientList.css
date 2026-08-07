@@ -113,6 +113,7 @@
   display: flex;
   gap: 6px;
   align-items: center;
+  width: 100%;
 }
 
 .fridge-title-input {
@@ -123,6 +124,9 @@
   border-radius: 8px;
   background: var(--color-surface);
   outline: none;
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .fridge-title-save,
@@ -135,6 +139,7 @@
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .fridge-title-save {
@@ -724,6 +729,15 @@ input:focus-visible {
   .stats-row {
     max-width: none;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* iOS Safari는 input 글자 크기가 16px보다 작으면 탭할 때 화면을 자동으로 확대해버림 → 그거 방지 */
+  .page input {
+    font-size: 16px !important;
+  }
+
+  .fridge-title-edit {
+    flex-wrap: wrap;
   }
 }
 
