@@ -48,3 +48,12 @@ export async function fetchMyScraps(userId) {
   }
   return response.json();
 }
+
+// 인기 레시피 목록 (좋아요순 또는 리뷰순)
+export async function fetchPopularRecipes(sortBy = "likes") {
+  const response = await fetch(`${BASE_URL}/recipes/popular?sortBy=${sortBy}`);
+  if (!response.ok) {
+    throw new Error("인기 레시피를 불러오지 못했습니다.");
+  }
+  return response.json();
+}

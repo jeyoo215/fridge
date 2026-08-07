@@ -10,6 +10,9 @@ export default function Nav() {
       <NavLink to="/recipes" className={({ isActive }) => `app-nav-link${isActive ? " active" : ""}`}>
         🍳 레시피
       </NavLink>
+      <NavLink to="/recipes/popular" className={({ isActive }) => `app-nav-link${isActive ? " active" : ""}`}>
+        🔥 인기 레시피
+      </NavLink>
       <NavLink to="/challenge" className={({ isActive }) => `app-nav-link${isActive ? " active" : ""}`}>
         🏆 챌린지
       </NavLink>
