@@ -72,6 +72,7 @@ function groupByCategory(ingredients) {
 }
 
 export default function IngredientList() {
+  const navigate = useNavigate();
   const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -90,8 +91,16 @@ export default function IngredientList() {
 
   const [searchKeyword, setSearchKeyword] = useState("");
   const [viewMode, setViewMode] = useState("category"); // "category" | "urgent"
+  const [collapsedCategories, setCollapsedCategories] = useState(new Set()); // 접힌 카테고리 이름 모음
 
-  const navigate = useNavigate();
+  const toggleCategoryCollapse = (categoryName) => {
+    setCollapsedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryName)) next.delete(categoryName);
+      else next.add(categoryName);
+      return next;
+    });
+  };
 
   useEffect(() => {
     saveSeenAlertIds(seenAlertIds);
@@ -466,18 +475,31 @@ export default function IngredientList() {
         {/* ---------- 카테고리별 뷰 ---------- */}
         {viewMode === "category" && filteredIngredients.length > 0 && (
           <div className="category-list">
-            {groupByCategory(filteredIngredients).map(([categoryName, items]) => (
-              <section key={categoryName} className="category-panel">
-                <div className="category-panel-header">
-                  <span className="category-icon" aria-hidden="true">
-                    {CATEGORY_ICONS[categoryName] || CATEGORY_ICONS["기타"]}
-                  </span>
-                  <span className="category-name">{categoryName}</span>
-                  <span className="category-count">{items.length}</span>
-                </div>
-                <div className="category-grid">{items.map(renderCard)}</div>
-              </section>
-            ))}
+            {groupByCategory(filteredIngredients).map(([categoryName, items]) => {
+              const isCollapsed = collapsedCategories.has(categoryName);
+              return (
+                <section key={categoryName} className="category-panel">
+                  <button
+                    type="button"
+                    className="category-panel-header category-panel-header-button"
+                    onClick={() => toggleCategoryCollapse(categoryName)}
+                    aria-expanded={!isCollapsed}
+                  >
+                    <span className="category-icon" aria-hidden="true">
+                      {CATEGORY_ICONS[categoryName] || CATEGORY_ICONS["기타"]}
+                    </span>
+                    <span className="category-name">{categoryName}</span>
+                    <span className="category-count">{items.length}</span>
+                    <span className={`category-collapse-arrow ${isCollapsed ? "collapsed" : ""}`} aria-hidden="true">
+                      ▾
+                    </span>
+                  </button>
+                  {!isCollapsed && (
+                    <div className="category-grid">{items.map(renderCard)}</div>
+                  )}
+                </section>
+              );
+            })}
           </div>
         )}
       </div>

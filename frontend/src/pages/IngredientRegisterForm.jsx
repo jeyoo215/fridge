@@ -16,6 +16,7 @@ function todayDateString() {
 }
 
 export default function IngredientRegisterForm() {
+  const navigate = useNavigate();
   const [keyword, setKeyword] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [searchDone, setSearchDone] = useState(false); // 검색을 한 번이라도 시도했는지 (결과 없음 안내 표시용)
@@ -43,8 +44,6 @@ export default function IngredientRegisterForm() {
   const [checkedIds, setCheckedIds] = useState(new Set());
   const [bulkExpirationDate, setBulkExpirationDate] = useState("");
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
-
-  const navigate = useNavigate();
 
   // 새 재료 등록 시 고를 카테고리 목록은 화면 뜨자마자 미리 불러둠
   useEffect(() => {
@@ -384,7 +383,7 @@ export default function IngredientRegisterForm() {
       {error && <p className="ingredient-form-error">{error}</p>}
 
       <div className="ingredient-form-actions">
-        <button type="button" onClick={() => navigate(-1)} disabled={submitting}>
+        <button type="button" onClick={() => navigate("/")} disabled={submitting}>
           취소
         </button>
         <button type="submit" className="primary" disabled={submitting}>
