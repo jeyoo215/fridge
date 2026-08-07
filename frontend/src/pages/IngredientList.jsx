@@ -4,6 +4,7 @@ import {
   fetchMyIngredients,
   consumeIngredient,
   discardIngredient,
+  restoreIngredient,
   deleteIngredient,
   updateIngredient,
 } from "../api/ingredientApi";
@@ -79,8 +80,10 @@ export default function IngredientList() {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editQuantity, setEditQuantity] = useState("");
+  const [editPurchaseDate, setEditPurchaseDate] = useState("");
   const [editExpirationDate, setEditExpirationDate] = useState("");
   const [actionError, setActionError] = useState(null);
+  const [undoToast, setUndoToast] = useState(null); // { userIngredientId, ingredientName, actionLabel }
 
   const [fridgeName, setFridgeName] = useState("내 냉장고");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -149,9 +152,11 @@ export default function IngredientList() {
 
   const handleConsume = async (userIngredientId) => {
     setOpenMenuId(null);
+    const target = ingredients.find((item) => item.userIngredientId === userIngredientId);
     try {
       await consumeIngredient(TEMP_USER_ID, userIngredientId);
       setIngredients((prev) => prev.filter((item) => item.userIngredientId !== userIngredientId));
+      showUndoToast(userIngredientId, target?.ingredientName, "사용 완료");
     } catch (err) {
       setActionError(err.message);
     }
@@ -159,9 +164,30 @@ export default function IngredientList() {
 
   const handleDiscard = async (userIngredientId) => {
     setOpenMenuId(null);
+    const target = ingredients.find((item) => item.userIngredientId === userIngredientId);
     try {
       await discardIngredient(TEMP_USER_ID, userIngredientId);
       setIngredients((prev) => prev.filter((item) => item.userIngredientId !== userIngredientId));
+      showUndoToast(userIngredientId, target?.ingredientName, "폐기");
+    } catch (err) {
+      setActionError(err.message);
+    }
+  };
+
+  // 사용완료/폐기 처리 후 5초간 "되돌리기" 토스트를 띄움
+  const showUndoToast = (userIngredientId, ingredientName, actionLabel) => {
+    setUndoToast({ userIngredientId, ingredientName, actionLabel });
+    window.clearTimeout(showUndoToast._timer);
+    showUndoToast._timer = window.setTimeout(() => setUndoToast(null), 5000);
+  };
+
+  const handleUndo = async () => {
+    if (!undoToast) return;
+    const { userIngredientId } = undoToast;
+    setUndoToast(null);
+    try {
+      await restoreIngredient(TEMP_USER_ID, userIngredientId);
+      loadIngredients(); // 다시 "보유중"으로 돌아왔으니 목록 새로 불러옴
     } catch (err) {
       setActionError(err.message);
     }
@@ -182,6 +208,7 @@ export default function IngredientList() {
     setOpenMenuId(null);
     setEditingId(item.userIngredientId);
     setEditQuantity(item.quantity);
+    setEditPurchaseDate(item.purchaseDate || "");
     setEditExpirationDate(item.expirationDate);
   };
 
@@ -191,6 +218,7 @@ export default function IngredientList() {
     try {
       await updateIngredient(TEMP_USER_ID, userIngredientId, {
         quantity: Number(editQuantity),
+        purchaseDate: editPurchaseDate || null,
         expirationDate: editExpirationDate,
       });
       setEditingId(null);
@@ -212,20 +240,35 @@ export default function IngredientList() {
         <div key={item.userIngredientId} className="ingredient-card ingredient-card-editing">
           <span className="ingredient-name">{item.ingredientName}</span>
           <div className="edit-fields">
-            <input
-              type="number"
-              min="0"
-              step="1"
-              className="edit-input edit-input-quantity"
-              value={editQuantity}
-              onChange={(e) => setEditQuantity(e.target.value.replace(/[^0-9]/g, ""))}
-            />
-            <input
-              type="date"
-              className="edit-input edit-input-date"
-              value={editExpirationDate}
-              onChange={(e) => setEditExpirationDate(e.target.value)}
-            />
+            <label className="edit-field-group">
+              <span className="edit-field-label">수량</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                className="edit-input edit-input-quantity"
+                value={editQuantity}
+                onChange={(e) => setEditQuantity(e.target.value.replace(/[^0-9]/g, ""))}
+              />
+            </label>
+            <label className="edit-field-group">
+              <span className="edit-field-label">구매일</span>
+              <input
+                type="date"
+                className="edit-input edit-input-date"
+                value={editPurchaseDate}
+                onChange={(e) => setEditPurchaseDate(e.target.value)}
+              />
+            </label>
+            <label className="edit-field-group">
+              <span className="edit-field-label">소비기한</span>
+              <input
+                type="date"
+                className="edit-input edit-input-date"
+                value={editExpirationDate}
+                onChange={(e) => setEditExpirationDate(e.target.value)}
+              />
+            </label>
           </div>
           <div className="edit-actions">
             <button className="edit-save-button" onClick={() => saveEdit(item.userIngredientId)}>
@@ -298,10 +341,17 @@ export default function IngredientList() {
     );
   }
 
-  const alertIngredients = ingredients.filter(
-    (item) => item.dDay !== null && item.dDay !== undefined && item.dDay <= 3
+  // 임박: 아직 안 지났지만 곧 지나는 것 (0~3일 남음)
+  const upcomingIngredients = ingredients.filter(
+    (item) => item.dDay !== null && item.dDay !== undefined && item.dDay >= 0 && item.dDay <= 3
   );
-  const unseenAlertCount = alertIngredients.filter(
+  // 지난 것: 이미 소비기한이 지난 것 (마이너스)
+  const expiredIngredients = ingredients.filter(
+    (item) => item.dDay !== null && item.dDay !== undefined && item.dDay < 0
+  );
+  // 알림 종 배지/읽음 처리는 "임박 + 지난 것" 둘 다 대상 (둘 다 관심이 필요하니까)
+  const attentionIngredients = [...expiredIngredients, ...upcomingIngredients];
+  const unseenAlertCount = attentionIngredients.filter(
     (item) => !seenAlertIds.has(item.userIngredientId)
   ).length;
 
@@ -311,7 +361,7 @@ export default function IngredientList() {
       if (next) {
         setSeenAlertIds((prevSeen) => {
           const merged = new Set(prevSeen);
-          alertIngredients.forEach((item) => merged.add(item.userIngredientId));
+          attentionIngredients.forEach((item) => merged.add(item.userIngredientId));
           return merged;
         });
       }
@@ -348,23 +398,40 @@ export default function IngredientList() {
 
             {showAlerts && (
               <div className="alert-panel">
-                <p className="alert-panel-title">소비기한 임박 알림</p>
-                {alertIngredients.length === 0 ? (
+                {attentionIngredients.length === 0 ? (
                   <p className="alert-panel-empty">임박한 재료가 없어요 👍</p>
                 ) : (
-                  alertIngredients.map((item) => (
-                    <div key={item.userIngredientId} className="alert-panel-item">
-                      <span className={`alert-panel-dot alert-dot-${getFreshness(item.dDay)}`} />
-                      <span className="alert-panel-text">
-                        {item.ingredientName} 소비기한{" "}
-                        {item.dDay < 0
-                          ? `${Math.abs(item.dDay)}일 지났어요`
-                          : item.dDay === 0
-                          ? "오늘까지예요"
-                          : `${item.dDay}일 남았어요`}
-                      </span>
-                    </div>
-                  ))
+                  <>
+                    {expiredIngredients.length > 0 && (
+                      <>
+                        <p className="alert-panel-title alert-panel-title-danger">
+                          지난 재료 · 바로 처리해주세요
+                        </p>
+                        {expiredIngredients.map((item) => (
+                          <div key={item.userIngredientId} className="alert-panel-item">
+                            <span className="alert-panel-dot alert-dot-danger" />
+                            <span className="alert-panel-text">
+                              {item.ingredientName} 소비기한 {Math.abs(item.dDay)}일 지났어요
+                            </span>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                    {upcomingIngredients.length > 0 && (
+                      <>
+                        <p className="alert-panel-title">임박 재료</p>
+                        {upcomingIngredients.map((item) => (
+                          <div key={item.userIngredientId} className="alert-panel-item">
+                            <span className={`alert-panel-dot alert-dot-${getFreshness(item.dDay)}`} />
+                            <span className="alert-panel-text">
+                              {item.ingredientName} 소비기한{" "}
+                              {item.dDay === 0 ? "오늘까지예요" : `${item.dDay}일 남았어요`}
+                            </span>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -414,8 +481,12 @@ export default function IngredientList() {
               <span className="stat-label">보유 재료</span>
             </div>
             <div className="stat-card stat-card-warning">
-              <span className="stat-value">{alertIngredients.length}</span>
+              <span className="stat-value">{upcomingIngredients.length}</span>
               <span className="stat-label">임박 재료</span>
+            </div>
+            <div className={`stat-card ${expiredIngredients.length > 0 ? "stat-card-danger" : "stat-card-good"}`}>
+              <span className="stat-value">{expiredIngredients.length}</span>
+              <span className="stat-label">지난 재료</span>
             </div>
             <div className="stat-card">
               <span className="stat-value">{categoryCount}</span>
@@ -503,6 +574,13 @@ export default function IngredientList() {
           </div>
         )}
       </div>
+
+      {undoToast && (
+        <div className="undo-toast">
+          <span>{undoToast.ingredientName} {undoToast.actionLabel} 처리했어요</span>
+          <button className="undo-toast-button" onClick={handleUndo}>되돌리기</button>
+        </div>
+      )}
     </div>
   );
 }

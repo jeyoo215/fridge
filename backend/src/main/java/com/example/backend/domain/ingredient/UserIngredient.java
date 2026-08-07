@@ -68,8 +68,14 @@ public class UserIngredient {
         this.status = Status.폐기;
     }
 
-    public void updateQuantityAndExpiration(BigDecimal quantity, LocalDate expirationDate) {
+    // 소진/폐기 처리를 실수로 눌렀을 때 되돌리기용
+    public void restore() {
+        this.status = Status.보유중;
+    }
+
+    public void updateQuantityAndExpiration(BigDecimal quantity, LocalDate purchaseDate, LocalDate expirationDate) {
         this.quantity = quantity;
+        this.purchaseDate = purchaseDate;
         this.expirationDate = expirationDate;
     }
 

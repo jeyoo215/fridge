@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { fetchRecipeDetail } from "../api/recipeApi";
+import { fetchLikeStatus, toggleLike, fetchScrapStatus, toggleScrap } from "../api/socialApi";
 import RecipeReviewSection from "../component/RecipeReviewSection";
 import "./RecipeDetail.css";
+
+const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
 
 export default function RecipeDetail() {
   const { recipeId } = useParams();
@@ -11,12 +14,52 @@ export default function RecipeDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // 좋아요/스크랩 상태 (나경님 파트: social 도메인)
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [scraped, setScraped] = useState(false);
+  const [scrapCount, setScrapCount] = useState(0);
+
   useEffect(() => {
     fetchRecipeDetail(recipeId)
       .then(setRecipe)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+
+    fetchLikeStatus(recipeId, TEMP_USER_ID)
+      .then((res) => {
+        setLiked(res.active);
+        setLikeCount(res.count);
+      })
+      .catch(() => {});
+
+    fetchScrapStatus(recipeId, TEMP_USER_ID)
+      .then((res) => {
+        setScraped(res.active);
+        setScrapCount(res.count);
+      })
+      .catch(() => {});
   }, [recipeId]);
+
+  const handleToggleLike = async () => {
+    try {
+      const res = await toggleLike(recipeId, TEMP_USER_ID);
+      setLiked(res.active);
+      setLikeCount(res.count);
+    } catch {
+      // 실패해도 화면은 그대로 두고 조용히 무시 (좋아요는 핵심 흐름이 아니라서)
+    }
+  };
+
+  const handleToggleScrap = async () => {
+    try {
+      const res = await toggleScrap(recipeId, TEMP_USER_ID);
+      setScraped(res.active);
+      setScrapCount(res.count);
+    } catch {
+      // 실패해도 조용히 무시
+    }
+  };
 
   if (loading) return <p className="recipe-detail-status">불러오는 중...</p>;
   if (error) return <p className="recipe-detail-status">{error}</p>;
@@ -33,6 +76,21 @@ export default function RecipeDetail() {
         <span>⏱ {recipe.cookingTimeMinutes}분</span>
         <span>· {recipe.difficulty}</span>
         <span>· {recipe.categoryName}</span>
+      </div>
+
+      <div className="recipe-social-actions">
+        <button
+          className={`recipe-social-button ${liked ? "active" : ""}`}
+          onClick={handleToggleLike}
+        >
+          {liked ? "❤️" : "🤍"} 좋아요 {likeCount}
+        </button>
+        <button
+          className={`recipe-social-button ${scraped ? "active" : ""}`}
+          onClick={handleToggleScrap}
+        >
+          {scraped ? "🔖" : "📑"} 스크랩 {scrapCount}
+        </button>
       </div>
 
       <Link to={`/recipes/${recipeId}/shopping-list`} className="recipe-detail-shopping-link">

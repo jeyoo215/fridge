@@ -6,6 +6,7 @@ import RecipeRecommend from "./pages/RecipeRecommend";
 import RecipeDetail from "./pages/RecipeDetail";
 import ShoppingList from "./pages/ShoppingList";
 import Challenge from "./pages/Challenge";
+import PopularRecipes from "./pages/PopularRecipes";
 import "./App.css";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Route path="/" element={<IngredientList />} />
         <Route path="/ingredients/new" element={<IngredientRegisterForm />} />
         <Route path="/recipes" element={<RecipeRecommend />} />
+        <Route path="/recipes/popular" element={<PopularRecipes />} />
         <Route path="/recipes/:recipeId" element={<RecipeDetail />} />
         <Route path="/recipes/:recipeId/shopping-list" element={<ShoppingList />} />
         <Route path="/challenge" element={<Challenge />} />

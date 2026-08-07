@@ -48,7 +48,7 @@ public class UserIngredientService {
     @Transactional
     public void update(Long userId, Long userIngredientId, UserIngredientUpdateRequest request) {
         UserIngredient userIngredient = findOwnedUserIngredient(userId, userIngredientId);
-        userIngredient.updateQuantityAndExpiration(request.quantity(), request.expirationDate());
+        userIngredient.updateQuantityAndExpiration(request.quantity(), request.purchaseDate(), request.expirationDate());
     }
 
     // 재료 소진 처리 ("요리에 다 썼어요")
@@ -63,6 +63,13 @@ public class UserIngredientService {
     public void discard(Long userId, Long userIngredientId) {
         UserIngredient userIngredient = findOwnedUserIngredient(userId, userIngredientId);
         userIngredient.discard();
+    }
+
+    // 소진/폐기 처리를 실수로 눌렀을 때 되돌리기
+    @Transactional
+    public void restore(Long userId, Long userIngredientId) {
+        UserIngredient userIngredient = findOwnedUserIngredient(userId, userIngredientId);
+        userIngredient.restore();
     }
 
     // 재료 목록에서 완전히 삭제 (잘못 등록한 경우 등)

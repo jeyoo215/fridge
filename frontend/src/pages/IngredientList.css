@@ -177,9 +177,9 @@
 /* ---------- 통계 카드 ---------- */
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  max-width: 420px;
+  max-width: 560px;
 }
 
 .stat-card {
@@ -200,7 +200,19 @@
 }
 
 .stat-card-warning .stat-value {
+  color: var(--color-amber);
+}
+
+.stat-card-danger {
+  background: var(--color-tomato-bg);
+}
+
+.stat-card-danger .stat-value {
   color: var(--color-tomato);
+}
+
+.stat-card-good .stat-value {
+  color: var(--color-basil);
 }
 
 .stat-label {
@@ -269,8 +281,16 @@
   font-size: 12.5px;
   font-weight: 700;
   color: var(--color-text-muted);
-  margin: 0 0 8px;
+  margin: 10px 0 8px;
   padding: 0 2px;
+}
+
+.alert-panel-title:first-child {
+  margin-top: 0;
+}
+
+.alert-panel-title-danger {
+  color: var(--color-tomato);
 }
 
 .alert-panel-empty {
@@ -621,7 +641,20 @@
 
 .edit-fields {
   display: flex;
-  gap: 6px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.edit-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.edit-field-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
 }
 
 .edit-input {
@@ -633,7 +666,7 @@
   background: white;
 }
 
-.edit-input-quantity { width: 50px; }
+.edit-input-quantity { width: 60px; }
 .edit-input-date { width: 130px; }
 
 .edit-actions {
@@ -690,5 +723,40 @@ input:focus-visible {
 
   .stats-row {
     max-width: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* ---------- 되돌리기 토스트 ---------- */
+.undo-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  background: var(--color-text);
+  color: white;
+  padding: 12px 14px 12px 18px;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13.5px;
+  z-index: 50;
+  max-width: calc(100vw - 32px);
+}
+
+.undo-toast-button {
+  background: none;
+  border: none;
+  color: #A8D5B8;
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0;
+}
+
+.undo-toast-button:hover {
+  text-decoration: underline;
 }
