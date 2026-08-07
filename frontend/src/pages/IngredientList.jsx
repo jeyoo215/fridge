@@ -40,7 +40,8 @@ function getFreshness(dDay) {
 
 function formatDDay(dDay) {
   if (dDay === null || dDay === undefined) return null;
-  return dDay >= 0 ? `D-${dDay}` : `D+${Math.abs(dDay)}`;
+  if (dDay === 0) return "D-DAY";
+  return dDay > 0 ? `D-${dDay}` : `D+${Math.abs(dDay)}`;
 }
 
 // "2026-08-06" -> "8/6" 처럼 짧게 표시
