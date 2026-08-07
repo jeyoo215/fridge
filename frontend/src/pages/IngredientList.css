@@ -281,8 +281,16 @@
   font-size: 12.5px;
   font-weight: 700;
   color: var(--color-text-muted);
-  margin: 0 0 8px;
+  margin: 10px 0 8px;
   padding: 0 2px;
+}
+
+.alert-panel-title:first-child {
+  margin-top: 0;
+}
+
+.alert-panel-title-danger {
+  color: var(--color-tomato);
 }
 
 .alert-panel-empty {

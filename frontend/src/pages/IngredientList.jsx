@@ -341,10 +341,17 @@ export default function IngredientList() {
     );
   }
 
-  const alertIngredients = ingredients.filter(
-    (item) => item.dDay !== null && item.dDay !== undefined && item.dDay <= 3
+  // 임박: 아직 안 지났지만 곧 지나는 것 (0~3일 남음)
+  const upcomingIngredients = ingredients.filter(
+    (item) => item.dDay !== null && item.dDay !== undefined && item.dDay >= 0 && item.dDay <= 3
   );
-  const unseenAlertCount = alertIngredients.filter(
+  // 지난 것: 이미 소비기한이 지난 것 (마이너스)
+  const expiredIngredients = ingredients.filter(
+    (item) => item.dDay !== null && item.dDay !== undefined && item.dDay < 0
+  );
+  // 알림 종 배지/읽음 처리는 "임박 + 지난 것" 둘 다 대상 (둘 다 관심이 필요하니까)
+  const attentionIngredients = [...expiredIngredients, ...upcomingIngredients];
+  const unseenAlertCount = attentionIngredients.filter(
     (item) => !seenAlertIds.has(item.userIngredientId)
   ).length;
 
@@ -354,7 +361,7 @@ export default function IngredientList() {
       if (next) {
         setSeenAlertIds((prevSeen) => {
           const merged = new Set(prevSeen);
-          alertIngredients.forEach((item) => merged.add(item.userIngredientId));
+          attentionIngredients.forEach((item) => merged.add(item.userIngredientId));
           return merged;
         });
       }
@@ -363,9 +370,6 @@ export default function IngredientList() {
   };
 
   const categoryCount = new Set(ingredients.map((i) => i.categoryName || "기타")).size;
-  const expiredCount = ingredients.filter(
-    (item) => item.dDay !== null && item.dDay !== undefined && item.dDay < 0
-  ).length;
 
   // 검색어로 필터링 (재료명 부분 일치, 대소문자 무시)
   const trimmedKeyword = searchKeyword.trim().toLowerCase();
@@ -394,23 +398,40 @@ export default function IngredientList() {
 
             {showAlerts && (
               <div className="alert-panel">
-                <p className="alert-panel-title">소비기한 임박 알림</p>
-                {alertIngredients.length === 0 ? (
+                {attentionIngredients.length === 0 ? (
                   <p className="alert-panel-empty">임박한 재료가 없어요 👍</p>
                 ) : (
-                  alertIngredients.map((item) => (
-                    <div key={item.userIngredientId} className="alert-panel-item">
-                      <span className={`alert-panel-dot alert-dot-${getFreshness(item.dDay)}`} />
-                      <span className="alert-panel-text">
-                        {item.ingredientName} 소비기한{" "}
-                        {item.dDay < 0
-                          ? `${Math.abs(item.dDay)}일 지났어요`
-                          : item.dDay === 0
-                          ? "오늘까지예요"
-                          : `${item.dDay}일 남았어요`}
-                      </span>
-                    </div>
-                  ))
+                  <>
+                    {expiredIngredients.length > 0 && (
+                      <>
+                        <p className="alert-panel-title alert-panel-title-danger">
+                          지난 재료 · 바로 처리해주세요
+                        </p>
+                        {expiredIngredients.map((item) => (
+                          <div key={item.userIngredientId} className="alert-panel-item">
+                            <span className="alert-panel-dot alert-dot-danger" />
+                            <span className="alert-panel-text">
+                              {item.ingredientName} 소비기한 {Math.abs(item.dDay)}일 지났어요
+                            </span>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                    {upcomingIngredients.length > 0 && (
+                      <>
+                        <p className="alert-panel-title">임박 재료</p>
+                        {upcomingIngredients.map((item) => (
+                          <div key={item.userIngredientId} className="alert-panel-item">
+                            <span className={`alert-panel-dot alert-dot-${getFreshness(item.dDay)}`} />
+                            <span className="alert-panel-text">
+                              {item.ingredientName} 소비기한{" "}
+                              {item.dDay === 0 ? "오늘까지예요" : `${item.dDay}일 남았어요`}
+                            </span>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -460,11 +481,11 @@ export default function IngredientList() {
               <span className="stat-label">보유 재료</span>
             </div>
             <div className="stat-card stat-card-warning">
-              <span className="stat-value">{alertIngredients.length}</span>
+              <span className="stat-value">{upcomingIngredients.length}</span>
               <span className="stat-label">임박 재료</span>
             </div>
-            <div className={`stat-card ${expiredCount > 0 ? "stat-card-danger" : "stat-card-good"}`}>
-              <span className="stat-value">{expiredCount}</span>
+            <div className={`stat-card ${expiredIngredients.length > 0 ? "stat-card-danger" : "stat-card-good"}`}>
+              <span className="stat-value">{expiredIngredients.length}</span>
               <span className="stat-label">지난 재료</span>
             </div>
             <div className="stat-card">
