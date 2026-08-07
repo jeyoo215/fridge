@@ -110,6 +110,17 @@ export async function discardIngredient(userId, userIngredientId) {
   }
 }
 
+// 사용 완료/폐기 되돌리기
+export async function restoreIngredient(userId, userIngredientId) {
+  const response = await fetch(
+    `${BASE_URL}/users/me/ingredients/${userIngredientId}/restore?userId=${userId}`,
+    { method: "PATCH" }
+  );
+  if (!response.ok) {
+    throw new Error("되돌리기에 실패했습니다.");
+  }
+}
+
 // 재료 삭제
 export async function deleteIngredient(userId, userIngredientId) {
   const response = await fetch(

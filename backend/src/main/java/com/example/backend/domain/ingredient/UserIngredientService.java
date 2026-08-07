@@ -65,6 +65,13 @@ public class UserIngredientService {
         userIngredient.discard();
     }
 
+    // 소진/폐기 처리를 실수로 눌렀을 때 되돌리기
+    @Transactional
+    public void restore(Long userId, Long userIngredientId) {
+        UserIngredient userIngredient = findOwnedUserIngredient(userId, userIngredientId);
+        userIngredient.restore();
+    }
+
     // 재료 목록에서 완전히 삭제 (잘못 등록한 경우 등)
     @Transactional
     public void delete(Long userId, Long userIngredientId) {

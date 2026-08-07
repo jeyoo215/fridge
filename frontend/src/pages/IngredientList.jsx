@@ -4,6 +4,7 @@ import {
   fetchMyIngredients,
   consumeIngredient,
   discardIngredient,
+  restoreIngredient,
   deleteIngredient,
   updateIngredient,
 } from "../api/ingredientApi";
@@ -82,6 +83,7 @@ export default function IngredientList() {
   const [editPurchaseDate, setEditPurchaseDate] = useState("");
   const [editExpirationDate, setEditExpirationDate] = useState("");
   const [actionError, setActionError] = useState(null);
+  const [undoToast, setUndoToast] = useState(null); // { userIngredientId, ingredientName, actionLabel }
 
   const [fridgeName, setFridgeName] = useState("내 냉장고");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -150,9 +152,11 @@ export default function IngredientList() {
 
   const handleConsume = async (userIngredientId) => {
     setOpenMenuId(null);
+    const target = ingredients.find((item) => item.userIngredientId === userIngredientId);
     try {
       await consumeIngredient(TEMP_USER_ID, userIngredientId);
       setIngredients((prev) => prev.filter((item) => item.userIngredientId !== userIngredientId));
+      showUndoToast(userIngredientId, target?.ingredientName, "사용 완료");
     } catch (err) {
       setActionError(err.message);
     }
@@ -160,9 +164,30 @@ export default function IngredientList() {
 
   const handleDiscard = async (userIngredientId) => {
     setOpenMenuId(null);
+    const target = ingredients.find((item) => item.userIngredientId === userIngredientId);
     try {
       await discardIngredient(TEMP_USER_ID, userIngredientId);
       setIngredients((prev) => prev.filter((item) => item.userIngredientId !== userIngredientId));
+      showUndoToast(userIngredientId, target?.ingredientName, "폐기");
+    } catch (err) {
+      setActionError(err.message);
+    }
+  };
+
+  // 사용완료/폐기 처리 후 5초간 "되돌리기" 토스트를 띄움
+  const showUndoToast = (userIngredientId, ingredientName, actionLabel) => {
+    setUndoToast({ userIngredientId, ingredientName, actionLabel });
+    window.clearTimeout(showUndoToast._timer);
+    showUndoToast._timer = window.setTimeout(() => setUndoToast(null), 5000);
+  };
+
+  const handleUndo = async () => {
+    if (!undoToast) return;
+    const { userIngredientId } = undoToast;
+    setUndoToast(null);
+    try {
+      await restoreIngredient(TEMP_USER_ID, userIngredientId);
+      loadIngredients(); // 다시 "보유중"으로 돌아왔으니 목록 새로 불러옴
     } catch (err) {
       setActionError(err.message);
     }
@@ -528,6 +553,13 @@ export default function IngredientList() {
           </div>
         )}
       </div>
+
+      {undoToast && (
+        <div className="undo-toast">
+          <span>{undoToast.ingredientName} {undoToast.actionLabel} 처리했어요</span>
+          <button className="undo-toast-button" onClick={handleUndo}>되돌리기</button>
+        </div>
+      )}
     </div>
   );
 }
