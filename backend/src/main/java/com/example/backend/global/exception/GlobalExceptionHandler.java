@@ -1,6 +1,8 @@
 package com.example.backend.global.exception;
 
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,6 +14,7 @@ import java.util.List;
 // 프로젝트 전체 공통 예외 처리.
 // 컨트롤러에 개별 @ExceptionHandler가 이미 있으면 그게 우선 적용되고,
 // 여기 없는 컨트롤러들은 이 핸들러로 떨어짐.
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -50,6 +53,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleUnexpected(Exception e) {
+        log.error("예상하지 못한 서버 예외 발생", e);
         return ErrorResponse.of("서버 오류가 발생했습니다.");
     }
 }
