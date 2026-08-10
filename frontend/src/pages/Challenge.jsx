@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { startChallenge, fetchChallengeStatus, fetchActiveChallenge } from "../api/challengeApi";
+import BadgeSection from "../component/BadgeSection";
 import "./Challenge.css";
 
 const TEMP_USER_ID = 1;
@@ -106,6 +107,8 @@ export default function Challenge() {
       )}
 
       {error && <p className="challenge-error">{error}</p>}
+
+      <BadgeSection />
     </div>
   );
 }
