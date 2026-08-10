@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchRecommendedRecipes } from "../api/recipeApi";
+import { fetchRecommendedRecipes, fetchComboRecommendations } from "../api/recipeApi";
 import "./RecipeRecommend.css";
 
 // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체하기
@@ -11,6 +11,9 @@ export default function RecipeRecommend() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [comboRecipes, setComboRecipes] = useState([]);
+  const [comboLoading, setComboLoading] = useState(true);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,6 +21,12 @@ export default function RecipeRecommend() {
       .then(setRecipes)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+
+    // 의외의 조합 추천은 실패해도 메인 추천 흐름에 영향 없게 별도로 처리 (FR-23)
+    fetchComboRecommendations(TEMP_USER_ID)
+      .then(setComboRecipes)
+      .catch(() => setComboRecipes([]))
+      .finally(() => setComboLoading(false));
   }, []);
 
   if (loading) return <p className="recipe-status">불러오는 중...</p>;
@@ -58,6 +67,27 @@ export default function RecipeRecommend() {
           </div>
         </div>
       ))}
+
+      {!comboLoading && comboRecipes.length > 0 && (
+        <section className="combo-recommend-section">
+          <h3 className="combo-recommend-title">🎲 이런 조합은 어때요?</h3>
+          <p className="combo-recommend-subtitle">아직 안 써본 재료 조합으로 만들 수 있어요</p>
+
+          {comboRecipes.map((recipe) => (
+            <div
+              key={recipe.recipeId}
+              className="recipe-card combo-recipe-card"
+              onClick={() => navigate(`/recipes/${recipe.recipeId}`)}
+              style={{ cursor: "pointer" }}
+            >
+              <div className="recipe-card-info">
+                <span className="recipe-name">{recipe.recipeName}</span>
+                <span className="recipe-match">✨ 새로운 조합 추천</span>
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
     </div>
   );
 }

@@ -22,3 +22,10 @@ export async function fetchRecipeDetail(recipeId) {
 
   return response.json();
 }
+
+// AutoML 추천 레시피
+export async function fetchComboRecommendations(userId) {
+  const response = await fetch(`${BASE_URL}/recipes/combo-recommend?userId=${userId}`);
+  if (!response.ok) throw new Error("의외의 조합 추천을 불러오지 못했습니다.");
+  return response.json();
+}

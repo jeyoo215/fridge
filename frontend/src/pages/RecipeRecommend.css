@@ -89,3 +89,27 @@
   border-radius: 999px;
   white-space: nowrap;
 }
+
+.combo-recommend-section {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.combo-recommend-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--color-text);
+}
+
+.combo-recommend-subtitle {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 14px;
+}
+
+.combo-recipe-card {
+  border: 1px dashed var(--color-basil);
+}
