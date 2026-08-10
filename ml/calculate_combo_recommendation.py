@@ -9,6 +9,7 @@ MIN_SUPPORT = 0.05   # 데이터 적을 땐 0.02 정도로 낮춰서 테스트�
 MIN_CONFIDENCE = 0.3
 TOP_N_PER_USER = 5
 
+# Apriori 연관 규칙 마이닝
 
 def fetch_df(conn, query):
     return pd.read_sql(query, conn)
