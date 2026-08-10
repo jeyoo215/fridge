@@ -5,6 +5,7 @@ import IngredientRegisterForm from "./pages/IngredientRegisterForm";
 import RecipeRecommend from "./pages/RecipeRecommend";
 import RecipeDetail from "./pages/RecipeDetail";
 import ShoppingList from "./pages/ShoppingList";
+import MyShoppingList from "./pages/MyShoppingList";
 import Challenge from "./pages/Challenge";
 import PopularRecipes from "./pages/PopularRecipes";
 import "./App.css";
@@ -20,6 +21,7 @@ function App() {
         <Route path="/recipes/popular" element={<PopularRecipes />} />
         <Route path="/recipes/:recipeId" element={<RecipeDetail />} />
         <Route path="/recipes/:recipeId/shopping-list" element={<ShoppingList />} />
+        <Route path="/shopping-list" element={<MyShoppingList />} />
         <Route path="/challenge" element={<Challenge />} />
       </Routes>
     </BrowserRouter>

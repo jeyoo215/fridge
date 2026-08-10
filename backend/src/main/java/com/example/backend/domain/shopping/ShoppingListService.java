@@ -1,9 +1,12 @@
 package com.example.backend.domain.shopping;
 
+import com.example.backend.domain.ingredient.Ingredient;
 import com.example.backend.domain.ingredient.UserIngredient;
 import com.example.backend.domain.ingredient.UserIngredientRepository;
 import com.example.backend.domain.recipe.Recipe;
+import com.example.backend.domain.recipe.RecipeIngredient;
 import com.example.backend.domain.recipe.RecipeRepository;
+import com.example.backend.domain.shopping.dto.MyShoppingListResponse;
 import com.example.backend.domain.shopping.dto.ShoppingListItemResponse;
 import com.example.backend.domain.shopping.dto.ShoppingListResponse;
 
@@ -23,25 +26,87 @@ public class ShoppingListService {
 
     private final RecipeRepository recipeRepository;
     private final UserIngredientRepository userIngredientRepository;
+    private final ShoppingListRepository shoppingListRepository;
 
-    // 특정 레시피 기준으로, 보유하지 않은(부족한) 재료 목록 생성 (FR-30)
+    // 특정 레시피 기준 부족 재료 미리보기 (저장 안 함, 기존 기능 그대로 유지) (FR-30)
     public ShoppingListResponse getShoppingList(Long userId, Long recipeId) {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 레시피입니다. id=" + recipeId));
 
-        // 내가 보유중인 재료 id 목록
+        List<ShoppingListItemResponse> missingIngredients = findMissingRecipeIngredients(userId, recipe).stream()
+                .map(ShoppingListItemResponse::new)
+                .toList();
+
+        return new ShoppingListResponse(recipe.getRecipeId(), recipe.getRecipeName(), missingIngredients);
+    }
+
+    // 레시피의 부족한 재료를 내 장보기 리스트에 담기 (이미 담긴 재료는 중복으로 안 담음)
+    @Transactional
+    public void addMissingIngredientsToMyList(Long userId, Long recipeId) {
+        Recipe recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 레시피입니다. id=" + recipeId));
+
+        ShoppingList shoppingList = shoppingListRepository.findByUserId(userId)
+                .orElseGet(() -> shoppingListRepository.save(ShoppingList.builder().userId(userId).build()));
+
+        for (RecipeIngredient recipeIngredient : findMissingRecipeIngredients(userId, recipe)) {
+            Ingredient ingredient = recipeIngredient.getIngredient();
+            if (shoppingList.containsIngredient(ingredient.getIngredientId())) {
+                continue;
+            }
+            shoppingList.addItem(ShoppingListItem.builder()
+                    .ingredient(ingredient)
+                    .quantity(recipeIngredient.getQuantity())
+                    .unit(recipeIngredient.getUnit())
+                    .build());
+        }
+    }
+
+    // 내 장보기 리스트 전체 조회 (아직 리스트가 없으면 빈 리스트로 응답)
+    public MyShoppingListResponse getMyShoppingList(Long userId) {
+        return shoppingListRepository.findByUserId(userId)
+                .map(MyShoppingListResponse::new)
+                .orElseGet(MyShoppingListResponse::empty);
+    }
+
+    @Transactional
+    public void checkItem(Long userId, Long itemId) {
+        findOwnedItem(userId, itemId).check();
+    }
+
+    @Transactional
+    public void uncheckItem(Long userId, Long itemId) {
+        findOwnedItem(userId, itemId).uncheck();
+    }
+
+    // 항목 삭제 (안 살 재료 빼기)
+    @Transactional
+    public void deleteItem(Long userId, Long itemId) {
+        ShoppingList shoppingList = shoppingListRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("장보기 리스트가 없습니다."));
+        ShoppingListItem item = findOwnedItem(userId, itemId);
+        shoppingList.getItems().remove(item);
+    }
+
+    private ShoppingListItem findOwnedItem(Long userId, Long itemId) {
+        ShoppingList shoppingList = shoppingListRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("장보기 리스트가 없습니다."));
+
+        return shoppingList.getItems().stream()
+                .filter(item -> item.getItemId().equals(itemId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 본인 소유가 아닌 항목입니다. id=" + itemId));
+    }
+
+    private List<RecipeIngredient> findMissingRecipeIngredients(Long userId, Recipe recipe) {
         Set<Long> ownedIngredientIds = userIngredientRepository
                 .findByUserIdAndStatusOrderByExpirationDateAsc(userId, UserIngredient.Status.보유중)
                 .stream()
                 .map(userIngredient -> userIngredient.getIngredient().getIngredientId())
                 .collect(Collectors.toSet());
 
-        // 레시피 필요 재료 중, 보유하지 않은 것만 부족 재료로 추림
-        List<ShoppingListItemResponse> missingIngredients = recipe.getRecipeIngredients().stream()
+        return recipe.getRecipeIngredients().stream()
                 .filter(recipeIngredient -> !ownedIngredientIds.contains(recipeIngredient.getIngredient().getIngredientId()))
-                .map(ShoppingListItemResponse::new)
                 .toList();
-
-        return new ShoppingListResponse(recipe.getRecipeId(), recipe.getRecipeName(), missingIngredients);
     }
 }
