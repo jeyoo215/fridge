@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchShoppingList } from "../api/shoppingListApi";
+import { fetchShoppingList, addMissingIngredientsToMyList } from "../api/shoppingListApi";
 import "./ShoppingList.css";
 
 const TEMP_USER_ID = 1;
@@ -11,6 +11,8 @@ export default function ShoppingList() {
   const [list, setList] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded] = useState(false);
 
   useEffect(() => {
     fetchShoppingList(TEMP_USER_ID, recipeId)
@@ -18,6 +20,18 @@ export default function ShoppingList() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [recipeId]);
+
+  const handleAddToMyList = async () => {
+    setAdding(true);
+    try {
+      await addMissingIngredientsToMyList(TEMP_USER_ID, recipeId);
+      setAdded(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setAdding(false);
+    }
+  };
 
   if (loading) return <p className="shopping-list-status">불러오는 중...</p>;
   if (error) return <p className="shopping-list-status">{error}</p>;
@@ -34,16 +48,26 @@ export default function ShoppingList() {
       {list.missingIngredients.length === 0 ? (
         <p className="shopping-list-status">필요한 재료를 다 갖고 있어요! 🎉</p>
       ) : (
-        <ul className="shopping-list-items">
-          {list.missingIngredients.map((item) => (
-            <li key={item.ingredientId} className="shopping-list-item">
-              <span className="shopping-list-item-name">{item.ingredientName}</span>
-              <span className="shopping-list-item-amount">
-                {item.quantity} {item.unit}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="shopping-list-items">
+            {list.missingIngredients.map((item) => (
+              <li key={item.ingredientId} className="shopping-list-item">
+                <span className="shopping-list-item-name">{item.ingredientName}</span>
+                <span className="shopping-list-item-amount">
+                  {item.quantity} {item.unit}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <button
+            className="shopping-list-add-button"
+            onClick={handleAddToMyList}
+            disabled={adding || added}
+          >
+            {added ? "✓ 내 장보기 리스트에 담았어요" : adding ? "담는 중..." : "내 장보기 리스트에 담기"}
+          </button>
+        </>
       )}
     </div>
   );
