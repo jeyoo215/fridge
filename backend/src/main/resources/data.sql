@@ -125,3 +125,10 @@ INSERT INTO cooking_step (step_id, recipe_id, step_order, description) VALUES
   (1, 1, 1, '두부를 도톰하게 썰어 소금간을 한다.'),
   (2, 1, 2, '계란을 풀어 두부에 옷을 입힌다.'),
   (3, 1, 3, '팬에 기름을 두르고 노릇하게 부친다.');
+
+INSERT IGNORE INTO badge (badge_name, description, condition_type, condition_value) VALUES
+('첫 걸음', '첫 챌린지 성공', 'CHALLENGE_SUCCESS_COUNT', 1),
+('꾸준함의 시작', '챌린지 3회 성공', 'CHALLENGE_SUCCESS_COUNT', 3),
+('냉장고 파먹기 장인', '챌린지 10회 성공', 'CHALLENGE_SUCCESS_COUNT', 10),
+('3일 연속 성공', '챌린지 3연속 성공', 'STREAK_COUNT', 3),
+('일주일 스트릭', '챌린지 7연속 성공', 'STREAK_COUNT', 7);
