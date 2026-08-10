@@ -86,3 +86,9 @@
   padding: 10px 12px;
   font-size: 13px;
 }
+
+.challenge-last-checked {
+  font-size: 12px;
+  color: #999;
+  margin-top: -4px;
+}

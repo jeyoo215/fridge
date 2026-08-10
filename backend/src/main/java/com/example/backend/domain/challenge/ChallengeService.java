@@ -1,5 +1,6 @@
 package com.example.backend.domain.challenge;
 
+import com.example.backend.domain.badge.BadgeService;
 import com.example.backend.domain.challenge.dto.ChallengeResponse;
 import com.example.backend.domain.challenge.dto.ChallengeStartRequest;
 import com.example.backend.domain.ingredient.UserIngredientRepository;
@@ -18,6 +19,7 @@ public class ChallengeService {
 
     private final ChallengeRepository challengeRepository;
     private final UserIngredientRepository userIngredientRepository;
+    private final BadgeService badgeService;
 
     // 챌린지 시작 (FR-40)
     @Transactional
@@ -54,8 +56,10 @@ public class ChallengeService {
 
             if (boughtDuringChallenge) {
                 challenge.markFailed();
+                badgeService.onChallengeFailed(challenge.getUserId());
             } else {
                 challenge.markSuccess();
+                badgeService.onChallengeSuccess(challenge.getUserId());
             }
         }
 
