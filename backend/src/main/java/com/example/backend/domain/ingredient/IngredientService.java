@@ -38,9 +38,19 @@ public class IngredientService {
         IngredientCategory category = ingredientCategoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다. categoryId=" + request.categoryId()));
 
+        Ingredient.StorageMethod storageMethod = null;
+        if (request.storageMethod() != null && !request.storageMethod().isBlank()) {
+            try {
+                storageMethod = Ingredient.StorageMethod.valueOf(request.storageMethod());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("보관법은 냉장/냉동/실온 중 하나여야 합니다.");
+            }
+        }
+
         Ingredient ingredient = Ingredient.builder()
                 .category(category)
                 .ingredientName(request.ingredientName().trim())
+                .storageMethod(storageMethod)
                 .build();
 
         return new IngredientSearchResponse(ingredientRepository.save(ingredient));

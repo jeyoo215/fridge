@@ -17,6 +17,9 @@ public class UserIngredientResponse {
     private final String unit;
     private final LocalDate purchaseDate;
     private final LocalDate expirationDate;
+    private final BigDecimal price;
+    private final String storageMethod;       // 보관법 안내 (냉장/냉동/실온)
+    private final Integer defaultShelfLifeDays;
     private final long dDay;
 
     public UserIngredientResponse(UserIngredient entity) {
@@ -29,6 +32,11 @@ public class UserIngredientResponse {
         this.unit = entity.getUnit();
         this.purchaseDate = entity.getPurchaseDate();
         this.expirationDate = entity.getExpirationDate();
+        this.price = entity.getPrice();
+        this.storageMethod = entity.getIngredient().getStorageMethod() != null
+                ? entity.getIngredient().getStorageMethod().name()
+                : null;
+        this.defaultShelfLifeDays = entity.getIngredient().getDefaultShelfLifeDays();
         this.dDay = ChronoUnit.DAYS.between(LocalDate.now(), entity.getExpirationDate());
     }
 }

@@ -29,6 +29,9 @@ export default function Nav() {
         <NavLink to="/community" className={linkClassName}>
           📝 커뮤니티
         </NavLink>
+        <NavLink to="/stats" className={linkClassName}>
+          📊 통계
+        </NavLink>
       </div>
 
       <button
