@@ -1,0 +1,142 @@
+.community-detail-container {
+  max-width: 640px;
+  margin: 24px auto 60px;
+  padding: 24px 20px;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+
+.community-detail-status {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 40px 0;
+  font-size: 14px;
+}
+
+.community-detail-status.error {
+  color: var(--color-danger-text);
+}
+
+.community-detail-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.community-detail-author {
+  font-size: 13px;
+  color: var(--color-basil);
+  font-weight: 600;
+}
+
+.community-detail-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.community-detail-actions button {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.community-detail-actions button.danger {
+  border-color: var(--color-tomato);
+  color: var(--color-tomato);
+}
+
+.community-detail-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 6px;
+}
+
+.community-detail-date {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 24px;
+}
+
+.community-detail-section {
+  margin-bottom: 28px;
+}
+
+.community-detail-subtitle {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-basil-dark);
+  margin: 0 0 10px;
+}
+
+.community-detail-image {
+  width: 100%;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.community-detail-content {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--color-text);
+  /* 사이트 전역 font-synthesis: none 때문에 이탤릭 글꼴이 없는 폰트에서 기울임이 합성 안 되는 문제 해결 */
+  font-synthesis: style;
+}
+
+.community-detail-content p {
+  margin: 0 0 10px;
+}
+
+/* Quill 에디터가 정렬 서식을 이 클래스들로 저장하는데, 에디터 밖(상세 화면)에선 직접 스타일을 줘야 함 */
+.community-detail-content .ql-align-center {
+  text-align: center;
+}
+
+.community-detail-content .ql-align-right {
+  text-align: right;
+}
+
+.community-detail-content .ql-align-justify {
+  text-align: justify;
+}
+
+.community-detail-social {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.community-detail-like-button,
+.community-detail-scrap-button {
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+}
+
+.community-detail-like-button.active {
+  border-color: var(--color-tomato);
+  color: var(--color-tomato);
+  background: var(--color-tomato-bg);
+}
+
+.community-detail-scrap-button.active {
+  border-color: var(--color-amber);
+  color: var(--color-amber);
+  background: var(--color-amber-bg);
+}
