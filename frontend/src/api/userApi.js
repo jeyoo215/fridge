@@ -64,3 +64,30 @@ export async function updateMyTools(userId, toolIds) {
     throw new Error(body?.message || "조리도구 저장에 실패했습니다.");
   }
 }
+
+// 마이페이지 "내 활동": 내가 스크랩한 게시글 목록
+export async function fetchMyCommunityScraps(userId) {
+  const response = await fetch(`${BASE_URL}/users/me/community/scraps?userId=${userId}`);
+  if (!response.ok) {
+    throw new Error("스크랩한 게시글을 불러오지 못했습니다.");
+  }
+  return response.json();
+}
+
+// 마이페이지 "내 활동": 내가 좋아요한 게시글 목록
+export async function fetchMyCommunityLikes(userId) {
+  const response = await fetch(`${BASE_URL}/users/me/community/likes?userId=${userId}`);
+  if (!response.ok) {
+    throw new Error("좋아요한 게시글을 불러오지 못했습니다.");
+  }
+  return response.json();
+}
+
+// 마이페이지 "내 활동": 내가 댓글단 게시글 목록
+export async function fetchMyCommunityComments(userId) {
+  const response = await fetch(`${BASE_URL}/users/me/community/comments?userId=${userId}`);
+  if (!response.ok) {
+    throw new Error("댓글단 게시글을 불러오지 못했습니다.");
+  }
+  return response.json();
+}
