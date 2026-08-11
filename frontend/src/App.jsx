@@ -11,6 +11,7 @@ import PopularRecipes from "./pages/PopularRecipes";
 import CommunityList from "./pages/CommunityList";
 import CommunityPostForm from "./pages/CommunityPostForm";
 import CommunityPostDetail from "./pages/CommunityPostDetail";
+import MyPage from "./pages/MyPage";
 import "./App.css";
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
         <Route path="/community/new" element={<CommunityPostForm />} />
         <Route path="/community/:postId/edit" element={<CommunityPostForm />} />
         <Route path="/community/:postId" element={<CommunityPostDetail />} />
+        <Route path="/mypage" element={<MyPage />} />
       </Routes>
     </BrowserRouter>
   );
