@@ -4,12 +4,35 @@
   padding: 24px 20px 60px;
 }
 
+.mypage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
 .mypage-title {
   font-family: var(--font-display);
   font-size: 22px;
   font-weight: 700;
   color: var(--color-text);
-  margin-bottom: 18px;
+}
+
+.mypage-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mypage-edit-toggle {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .mypage-status {
@@ -153,10 +176,8 @@
   color: white;
 }
 
-.mypage-tool-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.mypage-tool-chip.readonly {
+  cursor: default;
 }
 
 .mypage-save-button {

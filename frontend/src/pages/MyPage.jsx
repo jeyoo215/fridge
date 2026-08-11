@@ -13,6 +13,8 @@ const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그�
 
 export default function MyPage() {
   const [allergyIngredients, setAllergyIngredients] = useState([]);
+  const [pendingNewIngredients, setPendingNewIngredients] = useState([]);
+  const [pendingDeleteIds, setPendingDeleteIds] = useState([]);
   const [newIngredientName, setNewIngredientName] = useState("");
   const [newIngredientType, setNewIngredientType] = useState("알레르기");
   const [allTools, setAllTools] = useState([]);
@@ -20,8 +22,9 @@ export default function MyPage() {
   const [savedToolIds, setSavedToolIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [savingTools, setSavingTools] = useState(false);
-  const [toolsSaved, setToolsSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -47,57 +50,99 @@ export default function MyPage() {
   };
 
   const toolsDirty = !isSameToolSet(selectedToolIds, savedToolIds);
+  const ingredientsDirty = pendingNewIngredients.length > 0 || pendingDeleteIds.length > 0;
+  const isDirty = toolsDirty || ingredientsDirty;
 
-  const handleAddAllergyIngredient = async (e) => {
+  const handleAddAllergyIngredient = (e) => {
     e.preventDefault();
     const name = newIngredientName.trim();
     if (!name) return;
-    try {
-      const { id } = await registerAllergyIngredient(TEMP_USER_ID, name, newIngredientType);
-      setAllergyIngredients((prev) => [...prev, { id, ingredientName: name, type: newIngredientType }]);
-      setNewIngredientName("");
-    } catch (err) {
-      setError(err.message);
-    }
+    setSaved(false);
+    setPendingNewIngredients((prev) => [
+      ...prev,
+      { tempId: `new-${Date.now()}-${prev.length}`, ingredientName: name, type: newIngredientType },
+    ]);
+    setNewIngredientName("");
   };
 
-  const handleDeleteAllergyIngredient = async (id) => {
-    try {
-      await deleteAllergyIngredient(TEMP_USER_ID, id);
-      setAllergyIngredients((prev) => prev.filter((item) => item.id !== id));
-    } catch (err) {
-      setError(err.message);
+  const handleRemoveIngredient = (item) => {
+    setSaved(false);
+    if (item.tempId) {
+      setPendingNewIngredients((prev) => prev.filter((pending) => pending.tempId !== item.tempId));
+    } else {
+      setPendingDeleteIds((prev) => [...prev, item.id]);
     }
   };
 
   const toggleTool = (toolId) => {
-    setToolsSaved(false);
+    setSaved(false);
     setSelectedToolIds((prev) =>
       prev.includes(toolId) ? prev.filter((id) => id !== toolId) : [...prev, toolId]
     );
   };
 
-  const handleSaveTools = async () => {
-    setSavingTools(true);
+  const handleSaveAll = async () => {
+    setSaving(true);
     try {
-      await updateMyTools(TEMP_USER_ID, selectedToolIds);
-      setSavedToolIds(selectedToolIds);
-      setToolsSaved(true);
+      await Promise.all([
+        ...pendingDeleteIds.map((id) => deleteAllergyIngredient(TEMP_USER_ID, id)),
+        ...pendingNewIngredients.map((item) =>
+          registerAllergyIngredient(TEMP_USER_ID, item.ingredientName, item.type)
+        ),
+      ]);
+      if (toolsDirty) {
+        await updateMyTools(TEMP_USER_ID, selectedToolIds);
+        setSavedToolIds(selectedToolIds);
+      }
+
+      const freshAllergyList = await fetchMyAllergyIngredients(TEMP_USER_ID);
+      setAllergyIngredients(freshAllergyList);
+      setPendingNewIngredients([]);
+      setPendingDeleteIds([]);
+      setSaved(true);
     } catch (err) {
       setError(err.message);
     } finally {
-      setSavingTools(false);
+      setSaving(false);
     }
+  };
+
+  const handleToggleEdit = () => {
+    if (editing) {
+      // 수정 모드를 저장 없이 끝내면 저장하지 않은 변경사항은 모두 되돌린다.
+      setSelectedToolIds(savedToolIds);
+      setPendingNewIngredients([]);
+      setPendingDeleteIds([]);
+    }
+    setSaved(false);
+    setEditing((prev) => !prev);
   };
 
   if (loading) return <p className="mypage-status">불러오는 중...</p>;
 
-  const allergyList = allergyIngredients.filter((item) => item.type === "알레르기");
-  const avoidList = allergyIngredients.filter((item) => item.type === "기피");
+  const visibleIngredients = [
+    ...allergyIngredients.filter((item) => !pendingDeleteIds.includes(item.id)),
+    ...pendingNewIngredients,
+  ];
+  const allergyList = visibleIngredients.filter((item) => item.type === "알레르기");
+  const avoidList = visibleIngredients.filter((item) => item.type === "기피");
 
   return (
     <div className="mypage-container">
-      <h2 className="mypage-title">🙋 내 정보</h2>
+      <div className="mypage-header">
+        <h2 className="mypage-title">🙋 내 정보</h2>
+        <div className="mypage-header-actions">
+          {editing && isDirty && (
+            <button type="button" className="mypage-save-button" onClick={handleSaveAll} disabled={saving}>
+              {saving ? "저장 중..." : "저장"}
+            </button>
+          )}
+          {editing && !isDirty && saved && <span className="mypage-save-confirm">저장했어요 ✓</span>}
+          <button type="button" className="mypage-edit-toggle" onClick={handleToggleEdit}>
+            {editing ? "완료" : "수정"}
+          </button>
+        </div>
+      </div>
       {error && <p className="mypage-status error">{error}</p>}
 
       <section className="mypage-section">
@@ -110,16 +155,18 @@ export default function MyPage() {
           ) : (
             <ul className="mypage-tag-list">
               {allergyList.map((item) => (
-                <li key={item.id} className="mypage-tag danger">
+                <li key={item.tempId ?? item.id} className="mypage-tag danger">
                   {item.ingredientName}
-                  <button
-                    type="button"
-                    className="mypage-tag-remove"
-                    onClick={() => handleDeleteAllergyIngredient(item.id)}
-                    aria-label={`${item.ingredientName} 삭제`}
-                  >
-                    ×
-                  </button>
+                  {editing && (
+                    <button
+                      type="button"
+                      className="mypage-tag-remove"
+                      onClick={() => handleRemoveIngredient(item)}
+                      aria-label={`${item.ingredientName} 삭제`}
+                    >
+                      ×
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -133,58 +180,63 @@ export default function MyPage() {
           ) : (
             <ul className="mypage-tag-list">
               {avoidList.map((item) => (
-                <li key={item.id} className="mypage-tag">
+                <li key={item.tempId ?? item.id} className="mypage-tag">
                   {item.ingredientName}
-                  <button
-                    type="button"
-                    className="mypage-tag-remove"
-                    onClick={() => handleDeleteAllergyIngredient(item.id)}
-                    aria-label={`${item.ingredientName} 삭제`}
-                  >
-                    ×
-                  </button>
+                  {editing && (
+                    <button
+                      type="button"
+                      className="mypage-tag-remove"
+                      onClick={() => handleRemoveIngredient(item)}
+                      aria-label={`${item.ingredientName} 삭제`}
+                    >
+                      ×
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
           )}
         </div>
 
-        <form className="mypage-add-form" onSubmit={handleAddAllergyIngredient}>
-          <input
-            type="text"
-            placeholder="재료 이름"
-            value={newIngredientName}
-            onChange={(e) => setNewIngredientName(e.target.value)}
-          />
-          <select value={newIngredientType} onChange={(e) => setNewIngredientType(e.target.value)}>
-            <option value="알레르기">알레르기</option>
-            <option value="기피">기피</option>
-          </select>
-          <button type="submit">추가</button>
-        </form>
+        {editing && (
+          <form className="mypage-add-form" onSubmit={handleAddAllergyIngredient}>
+            <input
+              type="text"
+              placeholder="재료 이름"
+              value={newIngredientName}
+              onChange={(e) => setNewIngredientName(e.target.value)}
+            />
+            <select value={newIngredientType} onChange={(e) => setNewIngredientType(e.target.value)}>
+              <option value="알레르기">알레르기</option>
+              <option value="기피">기피</option>
+            </select>
+            <button type="submit">추가</button>
+          </form>
+        )}
       </section>
 
       <section className="mypage-section">
         <h3 className="mypage-section-title">보유 조리도구</h3>
         <div className="mypage-tool-grid">
-          {allTools.map((tool) => (
-            <button
-              type="button"
-              key={tool.toolId}
-              className={`mypage-tool-chip${selectedToolIds.includes(tool.toolId) ? " active" : ""}`}
-              onClick={() => toggleTool(tool.toolId)}
-            >
-              {tool.toolName}
-            </button>
-          ))}
-        </div>
-        <div className="mypage-tool-actions">
-          {toolsDirty && (
-            <button type="button" className="mypage-save-button" onClick={handleSaveTools} disabled={savingTools}>
-              {savingTools ? "저장 중..." : "저장"}
-            </button>
+          {allTools.map((tool) =>
+            editing ? (
+              <button
+                type="button"
+                key={tool.toolId}
+                className={`mypage-tool-chip${selectedToolIds.includes(tool.toolId) ? " active" : ""}`}
+                onClick={() => toggleTool(tool.toolId)}
+              >
+                {tool.toolName}
+              </button>
+            ) : (
+              <span
+                key={tool.toolId}
+                className={`mypage-tool-chip readonly${savedToolIds.includes(tool.toolId) ? " active" : ""}`}
+              >
+                {tool.toolName}
+              </span>
+            )
           )}
-          {!toolsDirty && toolsSaved && <span className="mypage-save-confirm">저장했어요 ✓</span>}
         </div>
       </section>
     </div>
