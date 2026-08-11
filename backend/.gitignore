@@ -49,6 +49,9 @@ google-vision-key.json
 # ===== 빌드 결과물 =====
 target/
 
+# ===== 로컬 업로드 파일 (커뮤니티 게시글 첨부 이미지/동영상, 개발용 로컬 저장) =====
+uploads/
+
 # ===== OS 생성 파일 =====
 .DS_Store
 Thumbs.db

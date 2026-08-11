@@ -1,11 +1,23 @@
 package com.example.backend.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
+    @Value("${community.media.upload-dir:uploads/community}")
+    private String uploadDir;
+
+    // 커뮤니티 게시글에 업로드된 이미지/동영상을 /media/community/** 로 그대로 서빙 (로컬 디스크 저장, 개발용)
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/media/community/**")
+                .addResourceLocations("file:" + uploadDir + "/");
+    }
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {

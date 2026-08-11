@@ -11,6 +11,7 @@ public record UserIngredientRegisterRequest(
         @NotNull BigDecimal quantity,
         String unit,
         LocalDate purchaseDate,
-        @NotNull LocalDate expirationDate
+        @NotNull LocalDate expirationDate,
+        BigDecimal price // 선택 입력. 입력 안 하면 통계에서 평균 추정치로 대체됨
 ) {
 }
