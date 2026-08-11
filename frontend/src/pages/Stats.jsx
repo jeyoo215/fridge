@@ -99,6 +99,17 @@ export default function Stats() {
             </p>
           </div>
 
+          {stats.mostDiscardedIngredientName && (
+            <div className="stats-highlight-card stats-most-discarded-card">
+              <p className="stats-highlight-label">이번 달 가장 많이 버린 재료</p>
+              <p className="stats-most-discarded-name">
+                🗑️ {stats.mostDiscardedIngredientName}
+                <span className="stats-most-discarded-count">{stats.mostDiscardedCount}회</span>
+              </p>
+              <p className="stats-highlight-note">이 재료는 조금씩 사보는 게 어떨까요?</p>
+            </div>
+          )}
+
           <div className="stats-highlight-card stats-highlight-card-green">
             <p className="stats-highlight-label">탄소 절감 효과 (추정)</p>
             <p className="stats-highlight-value">{stats.estimatedCo2ReductionKg}kg CO₂</p>

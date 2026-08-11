@@ -33,6 +33,7 @@ export default function IngredientRegisterForm() {
   const [categories, setCategories] = useState([]);
   const [showNewIngredientForm, setShowNewIngredientForm] = useState(false);
   const [newIngredientCategoryId, setNewIngredientCategoryId] = useState("");
+  const [newIngredientStorageMethod, setNewIngredientStorageMethod] = useState("");
   const [creatingIngredient, setCreatingIngredient] = useState(false);
 
   // 카메라 인식 관련 상태
@@ -100,6 +101,7 @@ export default function IngredientRegisterForm() {
       const created = await createIngredient({
         ingredientName: keyword.trim(),
         categoryId: Number(newIngredientCategoryId),
+        storageMethod: newIngredientStorageMethod || null,
       });
       // 새로 만든 재료를 바로 선택된 상태로 이어감 (수량/구매일/소비기한 입력만 남음)
       handleSelectIngredient(created);
@@ -328,6 +330,16 @@ export default function IngredientRegisterForm() {
                   {c.categoryName}
                 </option>
               ))}
+            </select>
+            <label>보관법 (선택)</label>
+            <select
+              value={newIngredientStorageMethod}
+              onChange={(e) => setNewIngredientStorageMethod(e.target.value)}
+            >
+              <option value="">선택 안 함</option>
+              <option value="냉장">❄️ 냉장 보관</option>
+              <option value="냉동">🧊 냉동 보관</option>
+              <option value="실온">☀️ 실온 보관</option>
             </select>
             <button
               type="button"

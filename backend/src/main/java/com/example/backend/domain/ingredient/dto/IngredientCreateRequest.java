@@ -9,6 +9,8 @@ public record IngredientCreateRequest(
         String ingredientName,
 
         @NotNull(message = "카테고리를 선택해주세요.")
-        Long categoryId
+        Long categoryId,
+
+        String storageMethod // "냉장"/"냉동"/"실온" 중 하나, 선택 입력
 ) {
 }

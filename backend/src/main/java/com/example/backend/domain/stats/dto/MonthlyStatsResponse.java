@@ -16,6 +16,8 @@ public record MonthlyStatsResponse(
         BigDecimal estimatedWastedAmount,
         boolean amountPartiallyEstimated,
         BigDecimal estimatedCo2ReductionKg,
-        String equivalentDescription
+        String equivalentDescription,
+        String mostDiscardedIngredientName, // 이번 달 가장 많이 버린 재료 이름 (없으면 null)
+        long mostDiscardedCount
 ) {
 }

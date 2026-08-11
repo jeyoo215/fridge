@@ -156,3 +156,27 @@
   color: var(--color-text-muted);
   margin: 0;
 }
+
+.stats-most-discarded-card {
+  background: var(--color-amber-bg);
+}
+
+.stats-most-discarded-name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-amber);
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stats-most-discarded-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  background: var(--color-amber);
+  padding: 2px 10px;
+  border-radius: 999px;
+}

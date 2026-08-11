@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -57,6 +59,16 @@ public class StatsService {
 
         String equivalentDescription = buildEquivalentDescription(estimatedCo2ReductionKg);
 
+        // 가장 많이 버린 재료 계산 (이름별로 세서 최다인 것 하나)
+        Map<String, Long> discardCountByName = discardedItems.stream()
+                .collect(Collectors.groupingBy(
+                        i -> i.getIngredient().getIngredientName(),
+                        Collectors.counting()
+                ));
+        Map.Entry<String, Long> topDiscarded = discardCountByName.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .orElse(null);
+
         return new MonthlyStatsResponse(
                 yearMonth.toString(),
                 consumedItems.size() + discardedItems.size(),
@@ -66,7 +78,9 @@ public class StatsService {
                 wastedResult.total(),
                 anyEstimated,
                 estimatedCo2ReductionKg,
-                equivalentDescription
+                equivalentDescription,
+                topDiscarded != null ? topDiscarded.getKey() : null,
+                topDiscarded != null ? topDiscarded.getValue() : 0
         );
     }
 
