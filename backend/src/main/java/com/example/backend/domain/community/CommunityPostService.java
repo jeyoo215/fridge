@@ -40,10 +40,13 @@ public class CommunityPostService {
         return communityPostRepository.save(post).getPostId();
     }
 
-    // 게시판 목록 (최신순, 페이지당 10개)
-    public CommunityPostPageResponse getList(int page, int size) {
+    // 게시판 목록 (기본 최신순, sortBy="popular"면 좋아요 많은 순)
+    public CommunityPostPageResponse getList(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Long> idPage = communityPostRepository.findPostIdsOrderByCreatedAtDesc(pageable);
+        Page<Long> idPage = "popular".equals(sortBy)
+                ? communityPostRepository.findPostIdsOrderByLikeCountDesc(pageable)
+                : communityPostRepository.findPostIdsOrderByCreatedAtDesc(pageable);
+
         List<Long> postIds = idPage.getContent();
         if (postIds.isEmpty()) {
             return new CommunityPostPageResponse(List.of(), page, idPage.getTotalPages(), idPage.getTotalElements());
@@ -53,7 +56,7 @@ public class CommunityPostService {
                 .stream()
                 .collect(Collectors.toMap(CommunityPost::getPostId, post -> post));
 
-        // id 목록의 최신순 정렬을 그대로 유지하기 위해 IN 조회 결과를 postIds 순서에 맞춰 다시 매핑한다.
+        // id 목록의 정렬(최신순 또는 인기순)을 그대로 유지하기 위해 IN 조회 결과를 postIds 순서에 맞춰 다시 매핑한다.
         List<CommunityPostListResponse> content = postIds.stream()
                 .map(postsById::get)
                 .map(post -> new CommunityPostListResponse(post, communityPostLikeRepository.countByPost_PostId(post.getPostId())))

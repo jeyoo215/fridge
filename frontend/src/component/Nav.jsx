@@ -17,9 +17,6 @@ export default function Nav() {
         <NavLink to="/recipes" className={linkClassName}>
           🍳 레시피
         </NavLink>
-        <NavLink to="/recipes/popular" className={linkClassName}>
-          🔥 인기 레시피
-        </NavLink>
         <NavLink to="/shopping-list" className={linkClassName}>
           🛒 장보기
         </NavLink>
