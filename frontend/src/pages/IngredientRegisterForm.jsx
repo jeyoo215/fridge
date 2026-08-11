@@ -25,6 +25,7 @@ export default function IngredientRegisterForm() {
   const [unit, setUnit] = useState("");
   const [purchaseDate, setPurchaseDate] = useState(todayDateString); // 기본값: 오늘
   const [expirationDate, setExpirationDate] = useState("");
+  const [price, setPrice] = useState(""); // 선택 입력 (안 넣으면 통계에서 평균 추정치로 계산됨)
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -32,6 +33,7 @@ export default function IngredientRegisterForm() {
   const [categories, setCategories] = useState([]);
   const [showNewIngredientForm, setShowNewIngredientForm] = useState(false);
   const [newIngredientCategoryId, setNewIngredientCategoryId] = useState("");
+  const [newIngredientStorageMethod, setNewIngredientStorageMethod] = useState("");
   const [creatingIngredient, setCreatingIngredient] = useState(false);
 
   // 카메라 인식 관련 상태
@@ -99,6 +101,7 @@ export default function IngredientRegisterForm() {
       const created = await createIngredient({
         ingredientName: keyword.trim(),
         categoryId: Number(newIngredientCategoryId),
+        storageMethod: newIngredientStorageMethod || null,
       });
       // 새로 만든 재료를 바로 선택된 상태로 이어감 (수량/구매일/소비기한 입력만 남음)
       handleSelectIngredient(created);
@@ -203,6 +206,7 @@ export default function IngredientRegisterForm() {
         unit,
         purchaseDate,
         expirationDate,
+        price: price ? Number(price) : null,
       });
       navigate("/");
     } catch (err) {
@@ -327,6 +331,16 @@ export default function IngredientRegisterForm() {
                 </option>
               ))}
             </select>
+            <label>보관법 (선택)</label>
+            <select
+              value={newIngredientStorageMethod}
+              onChange={(e) => setNewIngredientStorageMethod(e.target.value)}
+            >
+              <option value="">선택 안 함</option>
+              <option value="냉장">❄️ 냉장 보관</option>
+              <option value="냉동">🧊 냉동 보관</option>
+              <option value="실온">☀️ 실온 보관</option>
+            </select>
             <button
               type="button"
               className="new-ingredient-confirm-button"
@@ -377,6 +391,18 @@ export default function IngredientRegisterForm() {
           type="date"
           value={expirationDate}
           onChange={(e) => setExpirationDate(e.target.value)}
+        />
+      </div>
+
+      <div className="ingredient-form-field">
+        <label>가격 (선택) · 입력 안 하면 통계에서 평균값으로 계산돼요</label>
+        <input
+          type="number"
+          min="0"
+          step="100"
+          placeholder="예: 2500"
+          value={price}
+          onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
         />
       </div>
 
