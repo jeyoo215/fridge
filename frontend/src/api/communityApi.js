@@ -118,3 +118,37 @@ export async function toggleCommunityPostLike(userId, postId) {
   }
   return response.json();
 }
+
+// 댓글 목록 (등록순)
+export async function fetchCommunityPostComments(postId) {
+  const response = await fetch(`${BASE_URL}/community/posts/${postId}/comments`);
+  if (!response.ok) {
+    throw new Error("댓글 목록을 불러오지 못했습니다.");
+  }
+  return response.json();
+}
+
+// 댓글 등록
+export async function createCommunityPostComment(userId, postId, content) {
+  const response = await fetch(`${BASE_URL}/community/posts/${postId}/comments?userId=${userId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || "댓글 등록에 실패했습니다.");
+  }
+  return response.json();
+}
+
+// 댓글 삭제 (본인 댓글만)
+export async function deleteCommunityPostComment(userId, commentId) {
+  const response = await fetch(`${BASE_URL}/community/comments/${commentId}?userId=${userId}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || "댓글 삭제에 실패했습니다.");
+  }
+}

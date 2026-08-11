@@ -140,3 +140,111 @@
   color: var(--color-amber);
   background: var(--color-amber-bg);
 }
+
+.community-detail-comments {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.community-detail-comments-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 14px;
+}
+
+.community-detail-comments-empty {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0 0 16px;
+}
+
+.community-detail-comment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.community-detail-comment {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+  background: var(--color-bg);
+  border-radius: 10px;
+}
+
+.community-detail-comment-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.community-detail-comment-meta {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.community-detail-comment-author {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-basil);
+}
+
+.community-detail-comment-date {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.community-detail-comment-content {
+  font-size: 14px;
+  color: var(--color-text);
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.community-detail-comment-delete {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.community-detail-comment-form {
+  display: flex;
+  gap: 8px;
+}
+
+.community-detail-comment-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+
+.community-detail-comment-form button {
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-basil);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
