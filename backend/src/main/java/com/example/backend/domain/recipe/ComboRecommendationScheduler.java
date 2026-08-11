@@ -1,5 +1,6 @@
 package com.example.backend.domain.recipe;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -25,6 +26,24 @@ public class ComboRecommendationScheduler {
 
     @Value("${combo.batch.script-path:../ml/calculate_combo_recommendation.py}")
     private String scriptPath;
+
+    // 앱 부팅 시 파이썬 실행 파일이 실제로 동작하는지 미리 확인.
+    // 여기서 실패해도 앱을 죽이진 않음 - 그냥 "이대로 두면 새벽마다 조용히 실패한다"고 미리 경고만 함.
+    @PostConstruct
+    public void checkPythonAvailable() {
+        if (!enabled) {
+            log.info("combo.batch.enabled=false - 조합 추천 배치 파이썬 환경 체크를 건너뜀");
+            return;
+        }
+        try {
+            Process process = new ProcessBuilder(pythonPath, "--version").start();
+            process.waitFor();
+        } catch (Exception e) {
+            log.warn("⚠️ combo.batch.python-path='{}' 실행 확인 실패 - 조합 추천 배치가 새벽마다 조용히 " +
+                    "실패할 수 있습니다. 파이썬 환경이 없으면 application.properties에서 " +
+                    "combo.batch.enabled=false로 꺼두세요.", pythonPath);
+        }
+    }
 
     // 매일 새벽에 자동 실행 (cron은 application.properties의 combo.batch.cron 에서 설정)
     @Scheduled(cron = "${combo.batch.cron:0 0 3 * * *}")
