@@ -7,20 +7,26 @@ export default function CommunityList() {
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [sortBy, setSortBy] = useState("latest"); // "latest" | "popular"
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
-    fetchCommunityPosts(page)
+    fetchCommunityPosts(page, 10, sortBy)
       .then((data) => {
         setPosts(data.content);
         setTotalPages(data.totalPages);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [page]);
+  }, [page, sortBy]);
+
+  const changeSortBy = (value) => {
+    setSortBy(value);
+    setPage(0); // 정렬 기준 바뀌면 1페이지부터 다시 보기
+  };
 
   return (
     <div className="community-list-container">
@@ -28,6 +34,23 @@ export default function CommunityList() {
         <h2 className="community-list-title">커뮤니티</h2>
         <button className="community-write-button" onClick={() => navigate("/community/new")}>
           ✏️ 글쓰기
+        </button>
+      </div>
+
+      <div className="community-sort-toggle">
+        <button
+          type="button"
+          className={sortBy === "latest" ? "active" : ""}
+          onClick={() => changeSortBy("latest")}
+        >
+          최신순
+        </button>
+        <button
+          type="button"
+          className={sortBy === "popular" ? "active" : ""}
+          onClick={() => changeSortBy("popular")}
+        >
+          🔥 인기순
         </button>
       </div>
 

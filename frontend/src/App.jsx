@@ -7,7 +7,6 @@ import RecipeDetail from "./pages/RecipeDetail";
 import ShoppingList from "./pages/ShoppingList";
 import MyShoppingList from "./pages/MyShoppingList";
 import Challenge from "./pages/Challenge";
-import PopularRecipes from "./pages/PopularRecipes";
 import CommunityList from "./pages/CommunityList";
 import CommunityPostForm from "./pages/CommunityPostForm";
 import CommunityPostDetail from "./pages/CommunityPostDetail";
@@ -22,7 +21,6 @@ function App() {
         <Route path="/" element={<IngredientList />} />
         <Route path="/ingredients/new" element={<IngredientRegisterForm />} />
         <Route path="/recipes" element={<RecipeRecommend />} />
-        <Route path="/recipes/popular" element={<PopularRecipes />} />
         <Route path="/recipes/:recipeId" element={<RecipeDetail />} />
         <Route path="/recipes/:recipeId/shopping-list" element={<ShoppingList />} />
         <Route path="/shopping-list" element={<MyShoppingList />} />

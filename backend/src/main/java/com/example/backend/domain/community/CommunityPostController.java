@@ -26,11 +26,12 @@ public class CommunityPostController {
         return Map.of("postId", communityPostService.create(userId, request));
     }
 
-    // 예: GET /api/v1/community/posts?page=0&size=10
+    // 예: GET /api/v1/community/posts?page=0&size=10&sortBy=popular  (sortBy 생략하면 최신순)
     @GetMapping
     public CommunityPostPageResponse getList(@RequestParam(name = "page", defaultValue = "0") int page,
-                                              @RequestParam(name = "size", defaultValue = "10") int size) {
-        return communityPostService.getList(page, size);
+                                              @RequestParam(name = "size", defaultValue = "10") int size,
+                                              @RequestParam(name = "sortBy", defaultValue = "latest") String sortBy) {
+        return communityPostService.getList(page, size, sortBy);
     }
 
     // 예: GET /api/v1/community/posts/1

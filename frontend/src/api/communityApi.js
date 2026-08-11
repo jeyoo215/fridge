@@ -24,8 +24,8 @@ export async function uploadCommunityMedia(file) {
 }
 
 // 커뮤니티 게시글 목록 (최신순, 페이지당 10개)
-export async function fetchCommunityPosts(page = 0, size = 10) {
-  const response = await fetch(`${BASE_URL}/community/posts?page=${page}&size=${size}`);
+export async function fetchCommunityPosts(page = 0, size = 10, sortBy = "latest") {
+  const response = await fetch(`${BASE_URL}/community/posts?page=${page}&size=${size}&sortBy=${sortBy}`);
   if (!response.ok) {
     throw new Error("게시글 목록을 불러오지 못했습니다.");
   }
