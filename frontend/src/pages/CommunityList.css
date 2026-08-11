@@ -18,6 +18,29 @@
   color: var(--color-text);
 }
 
+.community-sort-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.community-sort-toggle button {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.community-sort-toggle button.active {
+  background: var(--color-basil);
+  border-color: var(--color-basil);
+  color: white;
+}
+
 .community-write-button {
   padding: 8px 16px;
   border-radius: 999px;

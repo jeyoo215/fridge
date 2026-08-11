@@ -15,6 +15,11 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
     @Query("SELECT p.postId FROM CommunityPost p ORDER BY p.createdAt DESC")
     Page<Long> findPostIdsOrderByCreatedAtDesc(Pageable pageable);
 
+    // 인기순(좋아요 많은 순) 정렬. 좋아요 0개인 글도 나와야 하니 LEFT JOIN으로 집계.
+    @Query("SELECT p.postId FROM CommunityPost p LEFT JOIN CommunityPostLike l ON l.post = p " +
+            "GROUP BY p.postId, p.createdAt ORDER BY COUNT(l) DESC, p.createdAt DESC")
+    Page<Long> findPostIdsOrderByLikeCountDesc(Pageable pageable);
+
     // 위에서 뽑은 id들에 대해서만 섹션까지 함께 조회 (N+1 방지)
     @Query("SELECT DISTINCT p FROM CommunityPost p LEFT JOIN FETCH p.sections WHERE p.postId IN :postIds")
     List<CommunityPost> findAllWithSectionsByPostIdIn(@Param("postIds") List<Long> postIds);
