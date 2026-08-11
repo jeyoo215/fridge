@@ -92,6 +92,9 @@ export default function MyPage() {
 
   if (loading) return <p className="mypage-status">불러오는 중...</p>;
 
+  const allergyList = allergyIngredients.filter((item) => item.type === "알레르기");
+  const avoidList = allergyIngredients.filter((item) => item.type === "기피");
+
   return (
     <div className="mypage-container">
       <h2 className="mypage-title">🙋 내 정보</h2>
@@ -99,26 +102,53 @@ export default function MyPage() {
 
       <section className="mypage-section">
         <h3 className="mypage-section-title">알레르기 · 기피 재료</h3>
-        {allergyIngredients.length === 0 ? (
-          <p className="mypage-empty">등록된 재료가 없어요.</p>
-        ) : (
-          <ul className="mypage-tag-list">
-            {allergyIngredients.map((item) => (
-              <li key={item.id} className={`mypage-tag${item.type === "알레르기" ? " danger" : ""}`}>
-                <span className="mypage-tag-type">{item.type}</span>
-                {item.ingredientName}
-                <button
-                  type="button"
-                  className="mypage-tag-remove"
-                  onClick={() => handleDeleteAllergyIngredient(item.id)}
-                  aria-label={`${item.ingredientName} 삭제`}
-                >
-                  ×
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+
+        <div className="mypage-tag-group">
+          <h4 className="mypage-tag-group-title">알레르기</h4>
+          {allergyList.length === 0 ? (
+            <p className="mypage-empty">등록된 알레르기 재료가 없어요.</p>
+          ) : (
+            <ul className="mypage-tag-list">
+              {allergyList.map((item) => (
+                <li key={item.id} className="mypage-tag danger">
+                  {item.ingredientName}
+                  <button
+                    type="button"
+                    className="mypage-tag-remove"
+                    onClick={() => handleDeleteAllergyIngredient(item.id)}
+                    aria-label={`${item.ingredientName} 삭제`}
+                  >
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="mypage-tag-group">
+          <h4 className="mypage-tag-group-title">기피</h4>
+          {avoidList.length === 0 ? (
+            <p className="mypage-empty">등록된 기피 재료가 없어요.</p>
+          ) : (
+            <ul className="mypage-tag-list">
+              {avoidList.map((item) => (
+                <li key={item.id} className="mypage-tag">
+                  {item.ingredientName}
+                  <button
+                    type="button"
+                    className="mypage-tag-remove"
+                    onClick={() => handleDeleteAllergyIngredient(item.id)}
+                    aria-label={`${item.ingredientName} 삭제`}
+                  >
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
         <form className="mypage-add-form" onSubmit={handleAddAllergyIngredient}>
           <input
             type="text"

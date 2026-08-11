@@ -45,13 +45,24 @@
   margin: 0 0 14px;
 }
 
+.mypage-tag-group {
+  margin-bottom: 20px;
+}
+
+.mypage-tag-group-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin: 0 0 8px;
+}
+
 .mypage-tag-list {
   list-style: none;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   padding: 0;
-  margin: 0 0 16px;
+  margin: 0;
 }
 
 .mypage-tag {
@@ -69,11 +80,6 @@
 .mypage-tag.danger {
   background: var(--color-tomato-bg);
   color: var(--color-tomato);
-}
-
-.mypage-tag-type {
-  font-size: 11px;
-  opacity: 0.8;
 }
 
 .mypage-tag-remove {
