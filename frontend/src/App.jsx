@@ -8,6 +8,7 @@ import ShoppingList from "./pages/ShoppingList";
 import MyShoppingList from "./pages/MyShoppingList";
 import Challenge from "./pages/Challenge";
 import PopularRecipes from "./pages/PopularRecipes";
+import Stats from "./pages/Stats";
 import "./App.css";
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
         <Route path="/recipes/:recipeId/shopping-list" element={<ShoppingList />} />
         <Route path="/shopping-list" element={<MyShoppingList />} />
         <Route path="/challenge" element={<Challenge />} />
+        <Route path="/stats" element={<Stats />} />
       </Routes>
     </BrowserRouter>
   );

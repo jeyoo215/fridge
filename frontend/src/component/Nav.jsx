@@ -19,6 +19,9 @@ export default function Nav() {
       <NavLink to="/challenge" className={({ isActive }) => `app-nav-link${isActive ? " active" : ""}`}>
         🏆 챌린지
       </NavLink>
+      <NavLink to="/stats" className={({ isActive }) => `app-nav-link${isActive ? " active" : ""}`}>
+        📊 통계
+      </NavLink>
     </nav>
   );
 }

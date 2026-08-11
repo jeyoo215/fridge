@@ -17,6 +17,7 @@ public class UserIngredientResponse {
     private final String unit;
     private final LocalDate purchaseDate;
     private final LocalDate expirationDate;
+    private final BigDecimal price;
     private final long dDay;
 
     public UserIngredientResponse(UserIngredient entity) {
@@ -29,6 +30,7 @@ public class UserIngredientResponse {
         this.unit = entity.getUnit();
         this.purchaseDate = entity.getPurchaseDate();
         this.expirationDate = entity.getExpirationDate();
+        this.price = entity.getPrice();
         this.dDay = ChronoUnit.DAYS.between(LocalDate.now(), entity.getExpirationDate());
     }
 }

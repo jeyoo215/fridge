@@ -83,6 +83,7 @@ export default function IngredientList() {
   const [editQuantity, setEditQuantity] = useState("");
   const [editPurchaseDate, setEditPurchaseDate] = useState("");
   const [editExpirationDate, setEditExpirationDate] = useState("");
+  const [editPrice, setEditPrice] = useState("");
   const [actionError, setActionError] = useState(null);
   const [undoToast, setUndoToast] = useState(null); // { userIngredientId, ingredientName, actionLabel }
 
@@ -211,6 +212,7 @@ export default function IngredientList() {
     setEditQuantity(item.quantity);
     setEditPurchaseDate(item.purchaseDate || "");
     setEditExpirationDate(item.expirationDate);
+    setEditPrice(item.price != null ? item.price : "");
   };
 
   const cancelEdit = () => setEditingId(null);
@@ -221,6 +223,7 @@ export default function IngredientList() {
         quantity: Number(editQuantity),
         purchaseDate: editPurchaseDate || null,
         expirationDate: editExpirationDate,
+        price: editPrice ? Number(editPrice) : null,
       });
       setEditingId(null);
       loadIngredients();
@@ -268,6 +271,18 @@ export default function IngredientList() {
                 className="edit-input edit-input-date"
                 value={editExpirationDate}
                 onChange={(e) => setEditExpirationDate(e.target.value)}
+              />
+            </label>
+            <label className="edit-field-group">
+              <span className="edit-field-label">가격</span>
+              <input
+                type="number"
+                min="0"
+                step="100"
+                placeholder="선택"
+                className="edit-input edit-input-quantity"
+                value={editPrice}
+                onChange={(e) => setEditPrice(e.target.value.replace(/[^0-9]/g, ""))}
               />
             </label>
           </div>
