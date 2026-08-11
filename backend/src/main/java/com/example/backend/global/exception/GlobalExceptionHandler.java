@@ -6,6 +6,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.List;
 
@@ -44,6 +45,13 @@ public class GlobalExceptionHandler {
                 .map(fe -> new ErrorResponse.FieldError(fe.getField(), fe.getDefaultMessage()))
                 .toList();
         return ErrorResponse.of("입력값이 올바르지 않습니다.", fieldErrors);
+    }
+
+    // 업로드 파일이 spring.servlet.multipart.max-file-size(현재 100MB)를 넘었을 때
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.CONTENT_TOO_LARGE)
+    public ErrorResponse handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
+        return ErrorResponse.of("업로드 가능한 파일 용량을 초과했습니다.");
     }
 
     // 그 외 예상 못한 서버 예외 (로그는 남기되, 클라이언트엔 상세 스택트레이스 노출 안 함)
