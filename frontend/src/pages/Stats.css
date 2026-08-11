@@ -45,6 +45,46 @@
   font-size: 14px;
 }
 
+.stats-net-card {
+  background: var(--color-surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  padding: 22px 20px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.stats-net-label {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0 0 6px;
+}
+
+.stats-net-value {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.stats-net-sub {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.stats-value-good {
+  color: var(--color-basil);
+}
+
+.stats-value-bad {
+  color: var(--color-tomato);
+}
+
+.stats-highlight-card-danger {
+  background: var(--color-tomato-bg);
+}
+
 .stats-summary-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

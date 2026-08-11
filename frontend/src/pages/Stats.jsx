@@ -52,6 +52,23 @@ export default function Stats() {
 
       {stats && !loading && (
         <>
+          <div className="stats-net-card">
+            <p className="stats-net-label">이번 달 순 절감액</p>
+            <p
+              className={`stats-net-value ${
+                Number(stats.estimatedSavedAmount) - Number(stats.estimatedWastedAmount) >= 0
+                  ? "stats-value-good"
+                  : "stats-value-bad"
+              }`}
+            >
+              {(Number(stats.estimatedSavedAmount) - Number(stats.estimatedWastedAmount)).toLocaleString()}원
+            </p>
+            <p className="stats-net-sub">
+              절약 {Number(stats.estimatedSavedAmount).toLocaleString()}원 − 낭비{" "}
+              {Number(stats.estimatedWastedAmount).toLocaleString()}원
+            </p>
+          </div>
+
           <div className="stats-summary-grid">
             <div className="stats-summary-card">
               <span className="stats-summary-value">{stats.consumedCount}개</span>
@@ -65,11 +82,18 @@ export default function Stats() {
 
           <div className="stats-highlight-card">
             <p className="stats-highlight-label">이번 달 절약한 금액</p>
-            <p className="stats-highlight-value">
-              {Number(stats.estimatedSavedAmount).toLocaleString()}원
+            <p className="stats-highlight-value stats-value-good">
+              +{Number(stats.estimatedSavedAmount).toLocaleString()}원
+            </p>
+          </div>
+
+          <div className="stats-highlight-card stats-highlight-card-danger">
+            <p className="stats-highlight-label">이번 달 낭비한 금액 (폐기)</p>
+            <p className="stats-highlight-value stats-value-bad">
+              -{Number(stats.estimatedWastedAmount).toLocaleString()}원
             </p>
             <p className="stats-highlight-note">
-              {stats.savedAmountPartiallyEstimated
+              {stats.amountPartiallyEstimated
                 ? "* 가격을 입력 안 한 재료는 평균값으로 계산했어요 (일부 추정치 포함)"
                 : "* 등록하신 실제 가격 그대로 계산했어요"}
             </p>

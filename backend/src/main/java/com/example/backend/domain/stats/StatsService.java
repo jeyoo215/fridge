@@ -41,21 +41,15 @@ public class StatsService {
         List<UserIngredient> consumedItems = resolved.stream()
                 .filter(i -> i.getStatus() == UserIngredient.Status.소진)
                 .toList();
-        long discardedCount = resolved.stream()
+        List<UserIngredient> discardedItems = resolved.stream()
                 .filter(i -> i.getStatus() == UserIngredient.Status.폐기)
-                .count();
+                .toList();
 
-        // "절약"과 "탄소 절감"은 폐기 안 하고 다 쓴(소진) 재료 기준으로 계산
-        boolean anyEstimated = false;
-        BigDecimal totalSaved = BigDecimal.ZERO;
-        for (UserIngredient item : consumedItems) {
-            if (item.getPrice() != null) {
-                totalSaved = totalSaved.add(item.getPrice());
-            } else {
-                totalSaved = totalSaved.add(AVG_PRICE_PER_ITEM_WON);
-                anyEstimated = true;
-            }
-        }
+        // 절약 금액: 폐기 안 하고 다 쓴(소진) 재료 기준
+        AmountResult savedResult = sumAmount(consumedItems);
+        // 낭비 금액: 상해서 버린(폐기) 재료 기준
+        AmountResult wastedResult = sumAmount(discardedItems);
+        boolean anyEstimated = savedResult.hasEstimated() || wastedResult.hasEstimated();
 
         BigDecimal estimatedCo2ReductionKg = AVG_CO2_PER_ITEM_KG
                 .multiply(BigDecimal.valueOf(consumedItems.size()))
@@ -65,14 +59,33 @@ public class StatsService {
 
         return new MonthlyStatsResponse(
                 yearMonth.toString(),
-                consumedItems.size() + discardedCount,
+                consumedItems.size() + discardedItems.size(),
                 consumedItems.size(),
-                discardedCount,
-                totalSaved,
+                discardedItems.size(),
+                savedResult.total(),
+                wastedResult.total(),
                 anyEstimated,
                 estimatedCo2ReductionKg,
                 equivalentDescription
         );
+    }
+
+    // 재료 목록의 가격을 합산 (실제 가격 있으면 그대로, 없으면 평균 추정치로 대체)
+    private AmountResult sumAmount(List<UserIngredient> items) {
+        BigDecimal total = BigDecimal.ZERO;
+        boolean hasEstimated = false;
+        for (UserIngredient item : items) {
+            if (item.getPrice() != null) {
+                total = total.add(item.getPrice());
+            } else {
+                total = total.add(AVG_PRICE_PER_ITEM_WON);
+                hasEstimated = true;
+            }
+        }
+        return new AmountResult(total, hasEstimated);
+    }
+
+    private record AmountResult(BigDecimal total, boolean hasEstimated) {
     }
 
     private String buildEquivalentDescription(BigDecimal co2ReductionKg) {
