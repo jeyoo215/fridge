@@ -1,11 +1,13 @@
 package com.example.backend.domain.shopping;
 
 import com.example.backend.domain.ingredient.Ingredient;
+import com.example.backend.domain.ingredient.IngredientRepository;
 import com.example.backend.domain.ingredient.UserIngredient;
 import com.example.backend.domain.ingredient.UserIngredientRepository;
 import com.example.backend.domain.recipe.Recipe;
 import com.example.backend.domain.recipe.RecipeIngredient;
 import com.example.backend.domain.recipe.RecipeRepository;
+import com.example.backend.domain.shopping.dto.ManualShoppingItemRequest;
 import com.example.backend.domain.shopping.dto.MyShoppingListResponse;
 import com.example.backend.domain.shopping.dto.ShoppingListItemResponse;
 import com.example.backend.domain.shopping.dto.ShoppingListResponse;
@@ -27,6 +29,7 @@ public class ShoppingListService {
     private final RecipeRepository recipeRepository;
     private final UserIngredientRepository userIngredientRepository;
     private final ShoppingListRepository shoppingListRepository;
+    private final IngredientRepository ingredientRepository;
 
     // 특정 레시피 기준 부족 재료 미리보기 (저장 안 함, 기존 기능 그대로 유지) (FR-30)
     public ShoppingListResponse getShoppingList(Long userId, Long recipeId) {
@@ -108,5 +111,27 @@ public class ShoppingListService {
         return recipe.getRecipeIngredients().stream()
                 .filter(recipeIngredient -> !ownedIngredientIds.contains(recipeIngredient.getIngredient().getIngredientId()))
                 .toList();
+    }
+
+    // 재료를 직접 검색해서 장보기 리스트에 담기 (셀프 추가)
+    @Transactional
+    public void addManualItem(Long userId, ManualShoppingItemRequest request) {
+        Ingredient ingredient = ingredientRepository.findById(request.ingredientId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 재료입니다. ingredientId=" + request.ingredientId()));
+
+        ShoppingList shoppingList = shoppingListRepository.findByUserId(userId)
+                .orElseGet(() -> shoppingListRepository.save(ShoppingList.builder().userId(userId).build()));
+
+        shoppingList.getItems().stream()
+                .filter(item -> item.getIngredient().getIngredientId().equals(ingredient.getIngredientId()))
+                .findFirst()
+                .ifPresentOrElse(
+                        existing -> existing.addQuantity(request.quantity()),
+                        () -> shoppingList.addItem(ShoppingListItem.builder()
+                                .ingredient(ingredient)
+                                .quantity(request.quantity())
+                                .unit(request.unit())
+                                .build())
+                );
     }
 }

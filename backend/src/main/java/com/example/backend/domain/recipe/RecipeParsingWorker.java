@@ -41,21 +41,20 @@ public class RecipeParsingWorker {
                                 .build()));
     }
 
-
-
     // 조리순서 저장 (external_id로 레시피 찾아서). 저장 true, 이미 있거나 없으면 false
     @Transactional
-    public boolean saveSteps(String externalId, java.util.List<String> manuals) {
+    public boolean saveSteps(String externalId, java.util.List<com.example.backend.domain.recipe.dto.api.CookRcpRow.Step> steps) {
         Recipe recipe = recipeRepository.findBySourceAndExternalId("식약처", externalId).orElse(null);
         if (recipe == null) return false;
-        if (!recipe.getCookingSteps().isEmpty()) return false; // 이미 있으면 건너뜀
-        if (manuals.isEmpty()) return false;
+        if (!recipe.getCookingSteps().isEmpty()) return false;
+        if (steps.isEmpty()) return false;
 
         int order = 1;
-        for (String desc : manuals) {
+        for (var step : steps) {
             recipe.addCookingStep(CookingStep.builder()
                     .stepOrder(order++)
-                    .description(desc)
+                    .description(step.description())
+                    .imageUrl(step.imageUrl())
                     .build());
         }
         recipeRepository.save(recipe);

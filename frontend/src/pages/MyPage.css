@@ -260,6 +260,7 @@
   background: var(--color-surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
+  cursor: pointer;
 }
 
 .mypage-activity-post-thumbnail {

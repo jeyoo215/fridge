@@ -25,13 +25,18 @@ public class CookingStep {
     @Column(name = "description", columnDefinition = "TEXT", nullable = false)
     private String description;
 
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
     @Builder
-    public CookingStep(Integer stepOrder, String description) {
+    public CookingStep(Integer stepOrder, String description, String imageUrl) {
         this.stepOrder = stepOrder;
         this.description = description;
+        this.imageUrl = imageUrl;
     }
 
     void setRecipe(Recipe recipe) {
         this.recipe = recipe;
     }
+
 }

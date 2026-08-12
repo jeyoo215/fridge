@@ -77,16 +77,55 @@ public class CookRcpRow {
     @JsonProperty("MANUAL19") private String manual19;
     @JsonProperty("MANUAL20") private String manual20;
 
-    // MANUAL01~20을 순서대로 리스트로 (빈 값 제외, 앞의 "1.", "2." 번호 제거)
-    public java.util.List<String> getManuals() {
-        return java.util.stream.Stream.of(
-                manual01, manual02, manual03, manual04, manual05,
-                manual06, manual07, manual08, manual09, manual10,
-                manual11, manual12, manual13, manual14, manual15,
-                manual16, manual17, manual18, manual19, manual20)
-            .filter(s -> s != null && !s.isBlank())
-            .map(String::trim)
-            .map(s -> s.replaceFirst("^\\d+\\.?\\s*", "")) // 앞의 "1." "2 " 같은 번호 제거
-            .toList();
+
+    @JsonProperty("MANUAL_IMG01") private String manualImg01;
+    @JsonProperty("MANUAL_IMG02") private String manualImg02;
+    @JsonProperty("MANUAL_IMG03") private String manualImg03;
+    @JsonProperty("MANUAL_IMG04") private String manualImg04;
+    @JsonProperty("MANUAL_IMG05") private String manualImg05;
+    @JsonProperty("MANUAL_IMG06") private String manualImg06;
+    @JsonProperty("MANUAL_IMG07") private String manualImg07;
+    @JsonProperty("MANUAL_IMG08") private String manualImg08;
+    @JsonProperty("MANUAL_IMG09") private String manualImg09;
+    @JsonProperty("MANUAL_IMG10") private String manualImg10;
+    @JsonProperty("MANUAL_IMG11") private String manualImg11;
+    @JsonProperty("MANUAL_IMG12") private String manualImg12;
+    @JsonProperty("MANUAL_IMG13") private String manualImg13;
+    @JsonProperty("MANUAL_IMG14") private String manualImg14;
+    @JsonProperty("MANUAL_IMG15") private String manualImg15;
+    @JsonProperty("MANUAL_IMG16") private String manualImg16;
+    @JsonProperty("MANUAL_IMG17") private String manualImg17;
+    @JsonProperty("MANUAL_IMG18") private String manualImg18;
+    @JsonProperty("MANUAL_IMG19") private String manualImg19;
+    @JsonProperty("MANUAL_IMG20") private String manualImg20; 
+
+
+    // 조리 단계 하나 (설명 + 이미지)
+    public record Step(String description, String imageUrl) {}
+
+    // MANUAL + MANUAL_IMG를 순서대로 쌍으로 묶음 (설명 빈 건 제외, 앞번호 제거)
+    public java.util.List<Step> getSteps() {
+        String[] descs = {
+            manual01, manual02, manual03, manual04, manual05,
+            manual06, manual07, manual08, manual09, manual10,
+            manual11, manual12, manual13, manual14, manual15,
+            manual16, manual17, manual18, manual19, manual20
+        };
+        String[] imgs = {
+            manualImg01, manualImg02, manualImg03, manualImg04, manualImg05,
+            manualImg06, manualImg07, manualImg08, manualImg09, manualImg10,
+            manualImg11, manualImg12, manualImg13, manualImg14, manualImg15,
+            manualImg16, manualImg17, manualImg18, manualImg19, manualImg20
+        };
+
+        java.util.List<Step> steps = new java.util.ArrayList<>();
+        for (int i = 0; i < descs.length; i++) {
+            String d = descs[i];
+            if (d == null || d.isBlank()) continue;
+            d = d.trim().replaceFirst("^\\d+\\.?\\s*", ""); // 앞번호 제거
+            String img = (imgs[i] == null || imgs[i].isBlank()) ? null : imgs[i].trim();
+            steps.add(new Step(d, img));
+        }
+        return steps;
     }
 }

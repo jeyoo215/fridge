@@ -37,7 +37,7 @@ public class RecipeController {
     // 지금은 로그인이 아직 없어서, 테스트하기 편하게 쿼리파라미터로 userId를 임시로 받음.
     // 예: GET /api/v1/recipes/recommend?userId=1
     @GetMapping("/recommend")
-    public List<RecipeRecommendResponse> recommendRecipes(@RequestParam Long userId) {
+    public List<RecipeRecommendResponse> recommendRecipes(@RequestParam("userId") Long userId) {
         return recipeService.recommendRecipes(userId);
     }
 

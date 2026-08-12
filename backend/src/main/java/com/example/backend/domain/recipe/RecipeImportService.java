@@ -149,7 +149,7 @@ public class RecipeImportService {
             var rows = response.getCookRcp01().getRow();
             for (var row : rows) {
                 try {
-                    if (worker.saveSteps(row.getRcpSeq(), row.getManuals())) {
+                    if (worker.saveSteps(row.getRcpSeq(), row.getSteps())) {
                         savedCount++;
                     }
                 } catch (Exception e) {
