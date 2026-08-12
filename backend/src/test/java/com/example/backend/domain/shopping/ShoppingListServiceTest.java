@@ -1,11 +1,13 @@
 package com.example.backend.domain.shopping;
 
 import com.example.backend.domain.ingredient.Ingredient;
+import com.example.backend.domain.ingredient.IngredientRepository;
 import com.example.backend.domain.ingredient.UserIngredient;
 import com.example.backend.domain.ingredient.UserIngredientRepository;
 import com.example.backend.domain.recipe.Recipe;
 import com.example.backend.domain.recipe.RecipeIngredient;
 import com.example.backend.domain.recipe.RecipeRepository;
+import com.example.backend.domain.shopping.dto.ManualShoppingItemRequest;
 import com.example.backend.domain.shopping.dto.MyShoppingListResponse;
 import com.example.backend.domain.shopping.dto.ShoppingListResponse;
 
@@ -24,6 +26,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,6 +35,7 @@ class ShoppingListServiceTest {
     @Mock private RecipeRepository recipeRepository;
     @Mock private UserIngredientRepository userIngredientRepository;
     @Mock private ShoppingListRepository shoppingListRepository;
+    @Mock private IngredientRepository ingredientRepository;
 
     @InjectMocks
     private ShoppingListService shoppingListService;
@@ -177,5 +181,62 @@ class ShoppingListServiceTest {
         Ingredient ingredient = Ingredient.builder().ingredientName(name).isSeasoning(false).build();
         ReflectionTestUtils.setField(ingredient, "ingredientId", id);
         return ingredient;
+    }
+
+    @Test
+    @DisplayName("셀프로 재료를 검색해서 담으면 리스트에 새 항목으로 추가된다")
+    void addManualItem_새재료_정상추가() {
+        Ingredient onion = ingredient(2L, "양파");
+        ShoppingList list = ShoppingList.builder().userId(1L).build();
+
+        when(ingredientRepository.findById(2L)).thenReturn(Optional.of(onion));
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.of(list));
+
+        shoppingListService.addManualItem(1L, new ManualShoppingItemRequest(2L, BigDecimal.ONE, "개"));
+
+        assertThat(list.getItems()).hasSize(1);
+        assertThat(list.getItems().get(0).getIngredient().getIngredientId()).isEqualTo(2L);
+        assertThat(list.getItems().get(0).getQuantity()).isEqualByComparingTo(BigDecimal.ONE);
+    }
+
+    @Test
+    @DisplayName("장보기 리스트가 없는 유저가 셀프로 담으면 리스트가 새로 생성된다")
+    void addManualItem_리스트없으면_새로생성() {
+        Ingredient onion = ingredient(2L, "양파");
+        ShoppingList newList = ShoppingList.builder().userId(1L).build();
+
+        when(ingredientRepository.findById(2L)).thenReturn(Optional.of(onion));
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.empty());
+        when(shoppingListRepository.save(any(ShoppingList.class))).thenReturn(newList);
+
+        shoppingListService.addManualItem(1L, new ManualShoppingItemRequest(2L, BigDecimal.ONE, "개"));
+
+        assertThat(newList.getItems()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("이미 담긴 재료를 셀프로 또 담으면 항목 수는 그대로이고 수량만 합산된다")
+    void addManualItem_이미담긴재료는_수량합산() {
+        Ingredient onion = ingredient(2L, "양파");
+        ShoppingList list = ShoppingList.builder().userId(1L).build();
+        list.addItem(ShoppingListItem.builder().ingredient(onion).quantity(BigDecimal.ONE).unit("개").build());
+
+        when(ingredientRepository.findById(2L)).thenReturn(Optional.of(onion));
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.of(list));
+
+        shoppingListService.addManualItem(1L, new ManualShoppingItemRequest(2L, BigDecimal.ONE, "개"));
+
+        assertThat(list.getItems()).hasSize(1); // 새 항목으로 안 늘어남
+        assertThat(list.getItems().get(0).getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(2));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 재료를 셀프로 담으려 하면 예외가 발생한다")
+    void addManualItem_존재하지않는재료면_예외() {
+        when(ingredientRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+                shoppingListService.addManualItem(1L, new ManualShoppingItemRequest(999L, BigDecimal.ONE, "개"))
+        ).isInstanceOf(IllegalArgumentException.class);
     }
 }
