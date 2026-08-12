@@ -9,6 +9,7 @@ import com.example.backend.domain.ingredient.IngredientRepository;
 import com.example.backend.domain.ingredient.UserIngredient;
 import com.example.backend.domain.ingredient.UserIngredientRepository;
 
+import com.example.backend.domain.recipe.dto.RecipeCategoryResponse;
 import com.example.backend.domain.recipe.dto.RecipeCreateRequest;
 import com.example.backend.domain.recipe.dto.RecipeDetailResponse;
 import com.example.backend.domain.recipe.dto.RecipeRecommendResponse;
@@ -54,6 +55,7 @@ public class RecipeService {
                 .cookingTimeMinutes(request.cookingTimeMinutes())
                 .difficulty(request.difficulty())
                 .imageUrl(request.imageUrl())
+                .source(request.source())
                 .build();
 
         // 재료 목록 연결
@@ -159,6 +161,13 @@ public class RecipeService {
         return recipe.getRecipeTools().stream()
                 .map(recipeTool -> recipeTool.getTool().getToolId())
                 .allMatch(ownedToolIds::contains);
+    }
+
+    // 레시피 카테고리 전체 목록 (커뮤니티 글쓰기 화면 드롭다운용)
+    public List<RecipeCategoryResponse> getCategories() {
+        return recipeCategoryRepository.findAll().stream()
+                .map(RecipeCategoryResponse::new)
+                .toList();
     }
 
     // 레시피 상세 조회 (FR-24)

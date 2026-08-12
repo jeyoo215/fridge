@@ -1,13 +1,18 @@
 package com.example.backend.domain.community;
 
+import com.example.backend.domain.ingredient.Ingredient;
+import com.example.backend.domain.recipe.Recipe;
+import com.example.backend.domain.recipe.RecipeCategory;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-// 레시피를 소개하는 커뮤니티 게시글 (제목 + 여러 개의 소제목/본문/이미지 섹션으로 구성되는 블로그 형태)
+// 레시피를 소개하는 커뮤니티 게시글 (제목 + 여러 개의 소제목/본문/이미지 섹션으로 구성되는 블로그 형태).
+// 재료/조리순서를 구조화해서 같이 받아두면, 좋아요가 많이 쌓였을 때 정식 Recipe로 승격시킬 수 있다.
 @Entity
 @Table(name = "community_post")
 @Getter
@@ -26,17 +31,44 @@ public class CommunityPost {
     @Column(nullable = false, length = 100)
     private String title;
 
+    // 레시피 카테고리/조리시간/난이도는 예전 글에는 없을 수 있어서 nullable로 두되,
+    // 새 글은 CommunityPostCreateRequest의 @NotNull 검증으로 항상 채워지도록 강제한다.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private RecipeCategory category;
+
+    @Column(name = "cooking_time_minutes")
+    private Integer cookingTimeMinutes;
+
+    @Column(name = "difficulty", length = 20)
+    private String difficulty;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sectionOrder ASC")
     private final List<CommunityPostSection> sections = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final List<CommunityPostIngredient> ingredients = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private final List<CommunityPostStep> steps = new ArrayList<>();
+
+    // 좋아요(추천)가 임계치를 넘어 정식 레시피로 승격되면 채워짐. null이면 미승격 상태.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "promoted_recipe_id")
+    private Recipe promotedRecipe;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Builder
-    public CommunityPost(Long userId, String title) {
+    public CommunityPost(Long userId, String title, RecipeCategory category,
+                          Integer cookingTimeMinutes, String difficulty) {
         this.userId = userId;
         this.title = title;
+        this.category = category;
+        this.cookingTimeMinutes = cookingTimeMinutes;
+        this.difficulty = difficulty;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -52,9 +84,46 @@ public class CommunityPost {
         sections.add(section);
     }
 
-    // 게시글 수정: 제목/섹션을 통째로 새 내용으로 교체 (orphanRemoval=true라 비워지는 순간 기존 섹션은 삭제됨)
-    public void update(String title) {
+    public void addIngredient(Ingredient ingredient, BigDecimal quantity, String unit) {
+        CommunityPostIngredient ingredientEntity = CommunityPostIngredient.builder()
+                .ingredient(ingredient)
+                .quantity(quantity)
+                .unit(unit)
+                .build();
+        ingredientEntity.setPost(this);
+        ingredients.add(ingredientEntity);
+    }
+
+    public void addStep(String description) {
+        CommunityPostStep step = CommunityPostStep.builder()
+                .stepOrder(steps.size())
+                .description(description)
+                .build();
+        step.setPost(this);
+        steps.add(step);
+    }
+
+    // 게시글 수정: 제목/섹션/재료/조리순서를 통째로 새 내용으로 교체
+    // (orphanRemoval=true라 컬렉션이 비워지는 순간 기존 값은 삭제됨)
+    public void update(String title, RecipeCategory category, Integer cookingTimeMinutes, String difficulty) {
+        if (isPromoted()) {
+            throw new IllegalStateException("정식 레시피로 등록된 게시글은 수정할 수 없습니다.");
+        }
         this.title = title;
+        this.category = category;
+        this.cookingTimeMinutes = cookingTimeMinutes;
+        this.difficulty = difficulty;
         this.sections.clear();
+        this.ingredients.clear();
+        this.steps.clear();
+    }
+
+    public boolean isPromoted() {
+        return promotedRecipe != null;
+    }
+
+    // 좋아요 임계치를 넘었을 때 호출 (CommunityPostPromotionService 전용)
+    public void promote(Recipe recipe) {
+        this.promotedRecipe = recipe;
     }
 }

@@ -50,6 +50,9 @@ export default function RecipeRecommend() {
           <div className="recipe-card-info">
             <div className="recipe-name-row">
               <span className="recipe-name">{recipe.recipeName}</span>
+              {recipe.userCreated && (
+                <span className="recipe-user-badge">👑 유저 제작 레시피</span>
+              )}
               {recipe.expiryPriorityScore > 0 && (
                 <span className="recipe-expiry-badge">🔥 유통기한 임박 재료 활용</span>
               )}

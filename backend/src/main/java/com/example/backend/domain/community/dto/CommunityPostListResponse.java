@@ -18,6 +18,7 @@ public class CommunityPostListResponse {
     private final String previewText;
     private final LocalDateTime createdAt;
     private final long likeCount;
+    private final Long promotedRecipeId;
 
     public CommunityPostListResponse(CommunityPost entity, long likeCount) {
         this.postId = entity.getPostId();
@@ -25,6 +26,7 @@ public class CommunityPostListResponse {
         this.title = entity.getTitle();
         this.createdAt = entity.getCreatedAt();
         this.likeCount = likeCount;
+        this.promotedRecipeId = entity.isPromoted() ? entity.getPromotedRecipe().getRecipeId() : null;
 
         CommunityPostSection firstSection = entity.getSections().isEmpty() ? null : entity.getSections().get(0);
         // 목록 카드 썸네일은 이미지일 때만 보여준다 (동영상은 재생 없이 정지 프레임을 뽑을 방법이 없어서 생략).

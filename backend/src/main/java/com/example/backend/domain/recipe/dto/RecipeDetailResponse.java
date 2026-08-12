@@ -23,6 +23,7 @@ public class RecipeDetailResponse {
     private final List<IngredientItem> ingredients;
     private final List<StepItem> steps;
     private final List<Long> toolIds;
+    private final boolean isUserCreated; // 커뮤니티 게시글이 승격되어 생성된 레시피인지
 
     public RecipeDetailResponse(Recipe entity) {
         this.recipeId = entity.getRecipeId();
@@ -31,6 +32,7 @@ public class RecipeDetailResponse {
         this.cookingTimeMinutes = entity.getCookingTimeMinutes();
         this.difficulty = entity.getDifficulty();
         this.categoryName = entity.getCategory().getCategoryName();
+        this.isUserCreated = "커뮤니티".equals(entity.getSource());
 
         this.ingredients = entity.getRecipeIngredients().stream()
                 .map(IngredientItem::new)
