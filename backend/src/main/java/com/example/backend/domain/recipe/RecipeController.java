@@ -17,6 +17,7 @@ public class RecipeController {
 
     private final RecipeService recipeService;
     private final RecipeParsingService recipeParsingService;
+    private final RecipeImportService recipeImportService;
 
     // 레시피 등록 (FR-24)
     // 재료 목록/조리순서 목록까지 요청 본문 한 번에 받아서 같이 저장
@@ -51,5 +52,11 @@ public class RecipeController {
     @PostMapping("/parse")
     public int parseRecipes(@RequestParam(defaultValue = "10") int limit) {
         return recipeParsingService.parseRecipes(limit);
+    }
+
+    // 메서드
+    @PostMapping("/import-steps")
+    public int importSteps() {
+        return recipeImportService.importCookingSteps();
     }
 }

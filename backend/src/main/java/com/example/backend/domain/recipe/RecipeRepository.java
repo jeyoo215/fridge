@@ -3,6 +3,8 @@ package com.example.backend.domain.recipe;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import java.util.Optional;
+
 
 import java.util.List;
 
@@ -35,4 +37,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             AND r.recipeIngredients IS EMPTY
             """)
     List<Recipe> findRecipesToParse(org.springframework.data.domain.Pageable pageable);
+
+
+    Optional<Recipe> findBySourceAndExternalId(String source, String externalId);
 }

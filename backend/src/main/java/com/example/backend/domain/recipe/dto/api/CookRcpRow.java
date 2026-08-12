@@ -54,4 +54,39 @@ public class CookRcpRow {
 
     @JsonProperty("INFO_NA")
     private String infoNa;          // 나트륨 → Recipe.sodium
+
+
+    @JsonProperty("MANUAL01") private String manual01;
+    @JsonProperty("MANUAL02") private String manual02;
+    @JsonProperty("MANUAL03") private String manual03;
+    @JsonProperty("MANUAL04") private String manual04;
+    @JsonProperty("MANUAL05") private String manual05;
+    @JsonProperty("MANUAL06") private String manual06;
+    @JsonProperty("MANUAL07") private String manual07;
+    @JsonProperty("MANUAL08") private String manual08;
+    @JsonProperty("MANUAL09") private String manual09;
+    @JsonProperty("MANUAL10") private String manual10;
+    @JsonProperty("MANUAL11") private String manual11;
+    @JsonProperty("MANUAL12") private String manual12;
+    @JsonProperty("MANUAL13") private String manual13;
+    @JsonProperty("MANUAL14") private String manual14;
+    @JsonProperty("MANUAL15") private String manual15;
+    @JsonProperty("MANUAL16") private String manual16;
+    @JsonProperty("MANUAL17") private String manual17;
+    @JsonProperty("MANUAL18") private String manual18;
+    @JsonProperty("MANUAL19") private String manual19;
+    @JsonProperty("MANUAL20") private String manual20;
+
+    // MANUAL01~20을 순서대로 리스트로 (빈 값 제외, 앞의 "1.", "2." 번호 제거)
+    public java.util.List<String> getManuals() {
+        return java.util.stream.Stream.of(
+                manual01, manual02, manual03, manual04, manual05,
+                manual06, manual07, manual08, manual09, manual10,
+                manual11, manual12, manual13, manual14, manual15,
+                manual16, manual17, manual18, manual19, manual20)
+            .filter(s -> s != null && !s.isBlank())
+            .map(String::trim)
+            .map(s -> s.replaceFirst("^\\d+\\.?\\s*", "")) // 앞의 "1." "2 " 같은 번호 제거
+            .toList();
+    }
 }

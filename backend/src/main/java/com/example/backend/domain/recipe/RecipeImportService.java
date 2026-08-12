@@ -20,6 +20,7 @@ public class RecipeImportService {
     private static final String SOURCE = "식약처";
     private static final String SERVICE_ID = "COOKRCP01";
     private static final int BATCH_SIZE = 1000; // 식약처 API 한 번 호출 최대 건수
+    private final RecipeParsingWorker worker;
 
     private final RecipeRepository recipeRepository;
     private final RecipeCategoryRepository recipeCategoryRepository;
@@ -89,7 +90,7 @@ public class RecipeImportService {
         Recipe recipe = Recipe.builder()
                 .category(category)
                 .recipeName(row.getRcpNm())
-                .rawIngredients(row.getRcpPartsDtls())   // 재료 원문 그대로 보존
+                .rawIngredients(row.getRcpPartsDtls()) // 재료 원문 그대로 보존
                 .imageUrl(row.getAttFileNoMain())
                 .source(SOURCE)
                 .externalId(externalId)
@@ -124,5 +125,44 @@ public class RecipeImportService {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    // 식약처 API 다시 받아서 조리순서만 채움
+    public int importCookingSteps() {
+        RestClient restClient = RestClient.create();
+        int savedCount = 0;
+        int start = 1;
+
+        while (true) {
+            int end = start + BATCH_SIZE - 1;
+            String url = String.format("%s/%s/%s/json/%d/%d", baseUrl, apiKey, SERVICE_ID, start, end);
+
+            var response = restClient.get().uri(url).retrieve()
+                    .body(com.example.backend.domain.recipe.dto.api.CookRcpResponse.class);
+
+            if (response == null || response.getCookRcp01() == null
+                    || response.getCookRcp01().getRow() == null
+                    || response.getCookRcp01().getRow().isEmpty()) {
+                break;
+            }
+
+            var rows = response.getCookRcp01().getRow();
+            for (var row : rows) {
+                try {
+                    if (worker.saveSteps(row.getRcpSeq(), row.getManuals())) {
+                        savedCount++;
+                    }
+                } catch (Exception e) {
+                    log.error("조리순서 저장 실패 [{}]: {}", row.getRcpSeq(), e.getMessage());
+                }
+            }
+
+            if (rows.size() < BATCH_SIZE)
+                break;
+            start += BATCH_SIZE;
+        }
+
+        log.info("조리순서 수집 완료: {}건", savedCount);
+        return savedCount;
     }
 }
