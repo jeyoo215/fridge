@@ -12,6 +12,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -69,6 +70,8 @@ public class StatsService {
                 .max(Map.Entry.comparingByValue())
                 .orElse(null);
 
+        List<MonthlyStatsResponse.CategoryDiscardStat> categoryDiscardStats = buildCategoryDiscardStats(discardedItems);
+
         return new MonthlyStatsResponse(
                 yearMonth.toString(),
                 consumedItems.size() + discardedItems.size(),
@@ -80,8 +83,25 @@ public class StatsService {
                 estimatedCo2ReductionKg,
                 equivalentDescription,
                 topDiscarded != null ? topDiscarded.getKey() : null,
-                topDiscarded != null ? topDiscarded.getValue() : 0
+                topDiscarded != null ? topDiscarded.getValue() : 0,
+                categoryDiscardStats
         );
+    }
+
+    // 카테고리별 폐기 개수를 많은 순으로 정리 (카테고리 없는 재료는 "기타"로 묶음)
+    private List<MonthlyStatsResponse.CategoryDiscardStat> buildCategoryDiscardStats(List<UserIngredient> discardedItems) {
+        Map<String, Long> countByCategory = discardedItems.stream()
+                .collect(Collectors.groupingBy(
+                        i -> i.getIngredient().getCategory() != null
+                                ? i.getIngredient().getCategory().getCategoryName()
+                                : "기타",
+                        Collectors.counting()
+                ));
+
+        return countByCategory.entrySet().stream()
+                .map(e -> new MonthlyStatsResponse.CategoryDiscardStat(e.getKey(), e.getValue()))
+                .sorted(Comparator.comparingLong(MonthlyStatsResponse.CategoryDiscardStat::discardedCount).reversed())
+                .toList();
     }
 
     // 재료 목록의 가격을 합산 (실제 가격 있으면 그대로, 없으면 평균 추정치로 대체)
