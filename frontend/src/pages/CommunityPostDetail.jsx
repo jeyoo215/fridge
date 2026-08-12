@@ -56,9 +56,13 @@ export default function CommunityPostDetail() {
   }, [loading, location.hash]);
 
   const handleToggleLike = async () => {
-    const res = await toggleCommunityPostLike(TEMP_USER_ID, postId);
-    setLiked(res.active);
-    setLikeCount(res.count);
+    try {
+      const res = await toggleCommunityPostLike(TEMP_USER_ID, postId);
+      setLiked(res.active);
+      setLikeCount(res.count);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   const handleToggleScrap = async () => {
@@ -110,17 +114,58 @@ export default function CommunityPostDetail() {
     <article className="community-detail-container">
       <div className="community-detail-top">
         <div className="community-detail-author">사용자 {post.userId}</div>
-        <div className="community-detail-actions">
-          <button type="button" onClick={() => navigate(`/community/${postId}/edit`)}>
-            수정
-          </button>
-          <button type="button" className="danger" onClick={handleDelete}>
-            삭제
-          </button>
-        </div>
+        {!post.promotedRecipeId && (
+          <div className="community-detail-actions">
+            <button type="button" onClick={() => navigate(`/community/${postId}/edit`)}>
+              수정
+            </button>
+            <button type="button" className="danger" onClick={handleDelete}>
+              삭제
+            </button>
+          </div>
+        )}
       </div>
       <h2 className="community-detail-title">{post.title}</h2>
       <div className="community-detail-date">{post.createdAt?.slice(0, 10)}</div>
+
+      {post.promotedRecipeId && (
+        <button
+          type="button"
+          className="community-detail-promoted-banner"
+          onClick={() => navigate(`/recipes/${post.promotedRecipeId}`)}
+        >
+          🏅 추천을 많이 받아 정식 레시피로 등록됐어요 · 레시피 보러가기 →
+        </button>
+      )}
+
+      <div className="community-detail-recipe-meta">
+        <span>🏷 {post.categoryName}</span>
+        <span>⏱ {post.cookingTimeMinutes}분</span>
+        <span>· {post.difficulty}</span>
+      </div>
+
+      <section className="community-detail-recipe-block">
+        <h3 className="community-detail-block-title">재료</h3>
+        <ul className="community-detail-ingredient-list">
+          {post.ingredients.map((item) => (
+            <li key={item.ingredientId}>
+              <span>{item.ingredientName}</span>
+              <span className="community-detail-ingredient-amount">
+                {item.quantity ?? ""} {item.unit || ""}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="community-detail-recipe-block">
+        <h3 className="community-detail-block-title">조리순서</h3>
+        <ol className="community-detail-step-list">
+          {post.steps.map((step) => (
+            <li key={step.stepOrder}>{step.description}</li>
+          ))}
+        </ol>
+      </section>
 
       {post.sections.map((section, index) => (
         <section className="community-detail-section" key={index}>

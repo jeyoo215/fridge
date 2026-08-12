@@ -1,5 +1,6 @@
 package com.example.backend.domain.recipe;
 
+import com.example.backend.domain.recipe.dto.RecipeCategoryResponse;
 import com.example.backend.domain.recipe.dto.RecipeDetailResponse;
 import com.example.backend.domain.recipe.dto.RecipeRecommendResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,13 @@ public class RecipeController {
     @GetMapping("/recommend")
     public List<RecipeRecommendResponse> recommendRecipes(@RequestParam("userId") Long userId) {
         return recipeService.recommendRecipes(userId);
+    }
+
+    // 커뮤니티 글쓰기 화면의 카테고리 선택 드롭다운용
+    // 예: GET /api/v1/recipes/categories
+    @GetMapping("/categories")
+    public List<RecipeCategoryResponse> getCategories() {
+        return recipeService.getCategories();
     }
 
     // 예: GET /api/v1/recipes/1
