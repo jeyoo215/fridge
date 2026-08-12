@@ -3,6 +3,8 @@ package com.example.backend.domain.recipe;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -52,6 +54,22 @@ public class ComboRecommendationScheduler {
             log.info("combo.batch.enabled=false 라서 조합 추천 배치를 건너뜀");
             return;
         }
+        executeBatch();
+    }
+
+    @Value("${combo.batch.run-on-startup:true}")
+    private boolean runOnStartup;
+
+    // 서버가 완전히 뜬 직후 한 번 자동 실행. data.sql을 새로 넣고 재시작했을 때
+    // 새벽 3시까지 기다리지 않고 바로 최신 조합 추천을 볼 수 있게 해줌.
+    @Async
+    @EventListener(ApplicationReadyEvent.class)
+    public void runOnStartupBatch() {
+        if (!enabled || !runOnStartup) {
+            log.info("서버 시작 시 조합 추천 배치 자동 실행을 건너뜀 (enabled={}, runOnStartup={})", enabled, runOnStartup);
+            return;
+        }
+        log.info("서버 시작 시 조합 추천 배치 자동 실행");
         executeBatch();
     }
 
