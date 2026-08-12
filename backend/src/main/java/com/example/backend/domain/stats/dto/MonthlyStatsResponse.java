@@ -1,6 +1,7 @@
 package com.example.backend.domain.stats.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 // 월간 절약/폐기방지/탄소절감 통계
 // savedAmount: 소진(다 쓴) 재료 기준 절약 추정 금액. wastedAmount: 폐기한 재료 기준 낭비 추정 금액.
@@ -18,6 +19,9 @@ public record MonthlyStatsResponse(
         BigDecimal estimatedCo2ReductionKg,
         String equivalentDescription,
         String mostDiscardedIngredientName, // 이번 달 가장 많이 버린 재료 이름 (없으면 null)
-        long mostDiscardedCount
+        long mostDiscardedCount,
+        List<CategoryDiscardStat> categoryDiscardStats // 카테고리별 폐기 개수 (많은 순)
 ) {
+    public record CategoryDiscardStat(String categoryName, long discardedCount) {
+    }
 }
