@@ -10,6 +10,7 @@ import Challenge from "./pages/Challenge";
 import CommunityList from "./pages/CommunityList";
 import CommunityPostForm from "./pages/CommunityPostForm";
 import CommunityPostDetail from "./pages/CommunityPostDetail";
+import MyPage from "./pages/MyPage";
 import Stats from "./pages/Stats";
 import "./App.css";
 
@@ -29,6 +30,7 @@ function App() {
         <Route path="/community/new" element={<CommunityPostForm />} />
         <Route path="/community/:postId/edit" element={<CommunityPostForm />} />
         <Route path="/community/:postId" element={<CommunityPostDetail />} />
+        <Route path="/mypage" element={<MyPage />} />
         <Route path="/stats" element={<Stats />} />
       </Routes>
     </BrowserRouter>
