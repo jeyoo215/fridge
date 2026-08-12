@@ -33,10 +33,21 @@ public class IngredientService {
     }
 
     // 재료 마스터에 없는 재료를 사용자가 직접 새로 등록
+    // 조미료(isSeasoning=true)는 카테고리 없이 등록, 재료(false)는 카테고리 필수
     @Transactional
     public IngredientSearchResponse createIngredient(IngredientCreateRequest request) {
-        IngredientCategory category = ingredientCategoryRepository.findById(request.categoryId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다. categoryId=" + request.categoryId()));
+        IngredientCategory category = null;
+
+        if (request.isSeasoning()) {
+            // 조미료는 카테고리 선택 자체를 안 받으므로, categoryId가 와도 무시함
+            category = null;
+        } else {
+            if (request.categoryId() == null) {
+                throw new IllegalArgumentException("카테고리를 선택해주세요.");
+            }
+            category = ingredientCategoryRepository.findById(request.categoryId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다. categoryId=" + request.categoryId()));
+        }
 
         Ingredient.StorageMethod storageMethod = null;
         if (request.storageMethod() != null && !request.storageMethod().isBlank()) {
@@ -51,6 +62,7 @@ public class IngredientService {
                 .category(category)
                 .ingredientName(request.ingredientName().trim())
                 .storageMethod(storageMethod)
+                .isSeasoning(request.isSeasoning())
                 .build();
 
         return new IngredientSearchResponse(ingredientRepository.save(ingredient));

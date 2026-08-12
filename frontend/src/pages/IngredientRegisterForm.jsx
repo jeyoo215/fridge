@@ -32,6 +32,7 @@ export default function IngredientRegisterForm() {
   // 새 재료 등록(재료 마스터에 없는 경우) 관련 상태
   const [categories, setCategories] = useState([]);
   const [showNewIngredientForm, setShowNewIngredientForm] = useState(false);
+  const [newIngredientType, setNewIngredientType] = useState("ingredient"); // "ingredient"(재료) | "seasoning"(조미료)
   const [newIngredientCategoryId, setNewIngredientCategoryId] = useState("");
   const [newIngredientStorageMethod, setNewIngredientStorageMethod] = useState("");
   const [creatingIngredient, setCreatingIngredient] = useState(false);
@@ -91,7 +92,8 @@ export default function IngredientRegisterForm() {
   };
 
   const handleCreateNewIngredient = async () => {
-    if (!newIngredientCategoryId) {
+    const isSeasoning = newIngredientType === "seasoning";
+    if (!isSeasoning && !newIngredientCategoryId) {
       setError("카테고리를 선택해주세요.");
       return;
     }
@@ -100,8 +102,9 @@ export default function IngredientRegisterForm() {
     try {
       const created = await createIngredient({
         ingredientName: keyword.trim(),
-        categoryId: Number(newIngredientCategoryId),
+        categoryId: isSeasoning ? null : Number(newIngredientCategoryId),
         storageMethod: newIngredientStorageMethod || null,
+        isSeasoning,
       });
       // 새로 만든 재료를 바로 선택된 상태로 이어감 (수량/구매일/소비기한 입력만 남음)
       handleSelectIngredient(created);
@@ -319,18 +322,45 @@ export default function IngredientRegisterForm() {
 
         {showNewIngredientForm && (
           <div className="new-ingredient-panel">
-            <label>카테고리 선택</label>
-            <select
-              value={newIngredientCategoryId}
-              onChange={(e) => setNewIngredientCategoryId(e.target.value)}
-            >
-              <option value="">카테고리를 선택하세요</option>
-              {categories.map((c) => (
-                <option key={c.categoryId} value={c.categoryId}>
-                  {c.categoryName}
-                </option>
-              ))}
-            </select>
+            <div className="new-ingredient-type-radio">
+              <label>
+                <input
+                  type="radio"
+                  name="newIngredientType"
+                  value="ingredient"
+                  checked={newIngredientType === "ingredient"}
+                  onChange={() => setNewIngredientType("ingredient")}
+                />
+                재료
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="newIngredientType"
+                  value="seasoning"
+                  checked={newIngredientType === "seasoning"}
+                  onChange={() => setNewIngredientType("seasoning")}
+                />
+                조미료
+              </label>
+            </div>
+
+            {newIngredientType === "ingredient" && (
+              <>
+                <label>카테고리 선택</label>
+                <select
+                  value={newIngredientCategoryId}
+                  onChange={(e) => setNewIngredientCategoryId(e.target.value)}
+                >
+                  <option value="">카테고리를 선택하세요</option>
+                  {categories.map((c) => (
+                    <option key={c.categoryId} value={c.categoryId}>
+                      {c.categoryName}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
             <label>보관법 (선택)</label>
             <select
               value={newIngredientStorageMethod}
