@@ -60,6 +60,14 @@ public class UserIngredientController {
         userIngredientService.discard(userId, userIngredientId);
     }
 
+    // 소진/폐기 되돌리기 (다시 "보유중" 상태로)
+    // 예: PATCH /api/v1/users/me/ingredients/1/restore?userId=1
+    @PatchMapping("/{userIngredientId}/restore")
+    public void restore(@RequestParam("userId") Long userId,
+                         @PathVariable("userIngredientId") Long userIngredientId) {
+        userIngredientService.restore(userId, userIngredientId);
+    }
+
     // 완전 삭제
     // 예: DELETE /api/v1/users/me/ingredients/1?userId=1
     @DeleteMapping("/{userIngredientId}")

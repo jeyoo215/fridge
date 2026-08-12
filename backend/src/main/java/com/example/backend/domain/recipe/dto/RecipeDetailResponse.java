@@ -39,8 +39,10 @@ public class RecipeDetailResponse {
                 .sorted((a, b) -> Integer.compare(a.getStepOrder(), b.getStepOrder()))
                 .map(StepDetail::new)
                 .toList();
+
+
         this.toolIds = recipe.getRecipeTools().stream()
-                .map(com.example.backend.domain.recipe.RecipeTool::getToolId)
+                .map(recipeTool -> recipeTool.getTool().getToolId())
                 .toList();
     }
 

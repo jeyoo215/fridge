@@ -4,8 +4,33 @@ DELETE FROM recipe_tool;
 DELETE FROM recipe;
 DELETE FROM recipe_category;
 DELETE FROM user_ingredient;
+DELETE FROM recipe;
 DELETE FROM ingredient;
 DELETE FROM ingredient_category;
+DELETE FROM user_tool;
+DELETE FROM cooking_tool;
+DELETE FROM user_allergy_ingredient;
+DELETE FROM recipe_category;
+DELETE FROM user;
+
+-- 프론트/다른 더미 데이터가 공통으로 참조하는 임시 유저(user_id=1). 회원가입 기능은 아직 없음.
+INSERT INTO user (user_id, email, password, nickname, created_at) VALUES
+  (1, 'test@example.com', NULL, '테스트유저', NOW());
+
+-- 조리도구 마스터 (마이페이지에서 사용자가 다중선택하는 목록, 개발자가 직접 시드)
+INSERT INTO cooking_tool (tool_id, tool_name) VALUES
+  (1, '에어프라이어'), (2, '전자레인지'), (3, '오븐'), (4, '인덕션'),
+  (5, '믹서기'), (6, '냄비'), (7, '프라이팬'), (8, '찜기');
+
+-- user_id=1의 알레르기/기피 재료 예시 (사용자가 직접 입력한다는 가정의 더미 데이터)
+INSERT INTO user_allergy_ingredient (id, user_id, ingredient_name, type) VALUES
+  (1, 1, '땅콩', '알레르기'),
+  (2, 1, '고수', '기피');
+
+-- user_id=1이 보유한 조리도구 예시
+INSERT INTO user_tool (user_tool_id, user_id, tool_id) VALUES
+  (1, 1, 6),
+  (2, 1, 7);
 
 -- VisionLabelTranslator의 영문→한글 매핑 40개 전부에 맞춰서 재료 마스터를 채움
 -- (카메라 인식 테스트가 이 목록 안에서만 정상적으로 매칭됨)
@@ -109,3 +134,10 @@ INSERT INTO recipe_tool (id, recipe_id, tool_id) VALUES
   (3, 2, 1),
   (4, 3, 1),
   (5, 3, 3);
+
+INSERT IGNORE INTO badge (badge_name, description, condition_type, condition_value) VALUES
+('첫 걸음', '첫 챌린지 성공', 'CHALLENGE_SUCCESS_COUNT', 1),
+('꾸준함의 시작', '챌린지 3회 성공', 'CHALLENGE_SUCCESS_COUNT', 3),
+('냉장고 파먹기 장인', '챌린지 10회 성공', 'CHALLENGE_SUCCESS_COUNT', 10),
+('3일 연속 성공', '챌린지 3연속 성공', 'STREAK_COUNT', 3),
+('일주일 스트릭', '챌린지 7연속 성공', 'STREAK_COUNT', 7);

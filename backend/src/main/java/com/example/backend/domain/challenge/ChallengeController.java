@@ -25,4 +25,11 @@ public class ChallengeController {
     public ChallengeResponse getStatus(@PathVariable Long challengeId) {
         return challengeService.getStatus(challengeId);
     }
+
+    // 예: GET /api/v1/challenges/me?userId=1
+    // 진행중인 챌린지가 없으면 404 (GlobalExceptionHandler가 처리)
+    @GetMapping("/me")
+    public ChallengeResponse getActiveChallenge(@RequestParam Long userId) {
+        return challengeService.getActiveChallenge(userId);
+    }
 }

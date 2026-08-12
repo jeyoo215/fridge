@@ -1,5 +1,6 @@
 package com.example.backend.domain.recipe;
 
+import com.example.backend.domain.user.CookingTool;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,13 +19,13 @@ public class RecipeTool {
     @JoinColumn(name = "recipe_id", nullable = false)
     private Recipe recipe;
 
-    // TODO: 페어1이 CookingTool 엔티티 만들면 @ManyToOne으로 교체
-    @Column(name = "tool_id", nullable = false)
-    private Long toolId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tool_id", nullable = false)
+    private CookingTool tool;
 
     @Builder
-    public RecipeTool(Long toolId) {
-        this.toolId = toolId;
+    public RecipeTool(CookingTool tool) {
+        this.tool = tool;
     }
 
     // Recipe에서만 호출 (같은 패키지 내부 전용)

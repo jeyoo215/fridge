@@ -113,6 +113,7 @@
   display: flex;
   gap: 6px;
   align-items: center;
+  width: 100%;
 }
 
 .fridge-title-input {
@@ -123,6 +124,9 @@
   border-radius: 8px;
   background: var(--color-surface);
   outline: none;
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .fridge-title-save,
@@ -135,6 +139,7 @@
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .fridge-title-save {
@@ -177,9 +182,9 @@
 /* ---------- 통계 카드 ---------- */
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  max-width: 420px;
+  max-width: 560px;
 }
 
 .stat-card {
@@ -200,7 +205,19 @@
 }
 
 .stat-card-warning .stat-value {
+  color: var(--color-amber);
+}
+
+.stat-card-danger {
+  background: var(--color-tomato-bg);
+}
+
+.stat-card-danger .stat-value {
   color: var(--color-tomato);
+}
+
+.stat-card-good .stat-value {
+  color: var(--color-basil);
 }
 
 .stat-label {
@@ -256,7 +273,7 @@
   top: 42px;
   right: 0;
   width: 260px;
-  max-height: 280px;
+  max-height: 320px;
   overflow-y: auto;
   background: var(--color-surface);
   border-radius: 12px;
@@ -265,12 +282,63 @@
   z-index: 30;
 }
 
+.alert-panel-top {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+
+.alert-threshold-toggle {
+  background: none;
+  border: none;
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.alert-threshold-toggle:hover {
+  color: var(--color-basil-dark);
+}
+
+.alert-threshold-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--color-bg);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+.alert-threshold-setting label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.alert-threshold-setting select {
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  font-size: 12px;
+  background: var(--color-surface);
+}
+
 .alert-panel-title {
   font-size: 12.5px;
   font-weight: 700;
   color: var(--color-text-muted);
-  margin: 0 0 8px;
+  margin: 10px 0 8px;
   padding: 0 2px;
+}
+
+.alert-panel-title:first-child {
+  margin-top: 0;
+}
+
+.alert-panel-title-danger {
+  color: var(--color-tomato);
 }
 
 .alert-panel-empty {
@@ -306,6 +374,25 @@
 }
 
 /* ---------- 검색 + 보기 전환 툴바 ---------- */
+.select-mode-toggle {
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.select-mode-toggle.active {
+  background: var(--color-tomato);
+  border-color: var(--color-tomato);
+  color: white;
+}
+
 .toolbar {
   display: flex;
   gap: 10px;
@@ -426,6 +513,27 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 14px;
+  width: 100%;
+}
+
+.category-panel-header-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.category-collapse-arrow {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  transition: transform 0.15s ease;
+}
+
+.category-collapse-arrow.collapsed {
+  transform: rotate(-90deg);
 }
 
 .category-icon {
@@ -463,6 +571,20 @@
   padding: 12px 12px 12px 16px;
   background: var(--color-bg);
   border-radius: 10px;
+  transition: background 0.15s ease;
+}
+
+.ingredient-card-selected {
+  background: var(--color-basil-bg);
+  outline: 2px solid var(--color-basil);
+}
+
+.ingredient-select-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-basil);
+  flex-shrink: 0;
+  cursor: pointer;
 }
 
 .freshness-bar {
@@ -496,7 +618,14 @@
   white-space: nowrap;
 }
 
-.ingredient-purchase-date {
+.ingredient-sub-info {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ingredient-purchase-date,
+.ingredient-storage-method {
   font-size: 11px;
   color: var(--color-text-muted);
 }
@@ -600,7 +729,20 @@
 
 .edit-fields {
   display: flex;
-  gap: 6px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.edit-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.edit-field-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
 }
 
 .edit-input {
@@ -612,7 +754,7 @@
   background: white;
 }
 
-.edit-input-quantity { width: 50px; }
+.edit-input-quantity { width: 60px; }
 .edit-input-date { width: 130px; }
 
 .edit-actions {
@@ -669,5 +811,94 @@ input:focus-visible {
 
   .stats-row {
     max-width: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  /* iOS Safari는 input 글자 크기가 16px보다 작으면 탭할 때 화면을 자동으로 확대해버림 → 그거 방지 */
+  .page input {
+    font-size: 16px !important;
+  }
+
+  .fridge-title-edit {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---------- 되돌리기 토스트 ---------- */
+.undo-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  background: var(--color-text);
+  color: white;
+  padding: 12px 14px 12px 18px;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13.5px;
+  z-index: 50;
+  max-width: calc(100vw - 32px);
+}
+
+.undo-toast-button {
+  background: none;
+  border: none;
+  color: #A8D5B8;
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0;
+}
+
+.undo-toast-button:hover {
+  text-decoration: underline;
+}
+
+/* ---------- 일괄 처리 하단 바 ---------- */
+.bulk-action-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  background: var(--color-text);
+  color: white;
+  padding: 12px 14px 12px 18px;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13.5px;
+  font-weight: 700;
+  z-index: 50;
+  max-width: calc(100vw - 32px);
+}
+
+.bulk-action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.bulk-action-buttons button {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-basil);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bulk-action-buttons button.bulk-action-danger {
+  background: var(--color-tomato);
+}
+
+.bulk-action-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
