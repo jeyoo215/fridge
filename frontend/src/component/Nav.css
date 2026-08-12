@@ -1,6 +1,7 @@
 .app-nav {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
   padding: 10px 24px;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
@@ -8,8 +9,80 @@
   top: 0;
   z-index: 10;
   font-family: var(--font-body);
+}
+
+.app-nav-links {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.app-nav-menu-button {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font-size: 18px;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.app-nav-menu-button:hover {
+  background: var(--color-bg);
+}
+
+.app-nav-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  animation: app-nav-sheet-in 0.22s ease;
+}
+
+@keyframes app-nav-sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.app-nav-sheet-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-nav-sheet-back {
+  border: none;
+  background: none;
+  font-size: 20px;
+  color: var(--color-text);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.app-nav-sheet-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.app-nav-sheet-body {
+  flex: 1;
+  overflow-y: auto;
 }
 
 .app-nav-link {
