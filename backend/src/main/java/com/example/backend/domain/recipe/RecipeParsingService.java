@@ -24,7 +24,7 @@ public class RecipeParsingService {
 
     private final RecipeRepository recipeRepository;
     private final IngredientRepository ingredientRepository;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${anthropic.api.key}")
     private String apiKey;

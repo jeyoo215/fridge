@@ -16,6 +16,7 @@ import java.util.List;
 public class RecipeController {
 
     private final RecipeService recipeService;
+    private final RecipeParsingService recipeParsingService;
 
     // 레시피 등록 (FR-24)
     // 재료 목록/조리순서 목록까지 요청 본문 한 번에 받아서 같이 저장
@@ -43,5 +44,12 @@ public class RecipeController {
     @GetMapping("/categories")
     public List<RecipeCategoryResponse> getCategories() {
         return recipeService.getCategories();
+    }
+
+    // 레시피 재료 LLM 파싱 (임시 관리용 - limit건만 파싱)
+    // 예: POST /api/v1/recipes/parse?limit=10
+    @PostMapping("/parse")
+    public int parseRecipes(@RequestParam(defaultValue = "10") int limit) {
+        return recipeParsingService.parseRecipes(limit);
     }
 }
