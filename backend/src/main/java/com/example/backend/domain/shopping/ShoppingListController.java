@@ -1,5 +1,6 @@
 package com.example.backend.domain.shopping;
 
+import com.example.backend.domain.shopping.dto.ManualShoppingItemRequest;
 import com.example.backend.domain.shopping.dto.MyShoppingListResponse;
 import com.example.backend.domain.shopping.dto.ShoppingListResponse;
 import lombok.RequiredArgsConstructor;
@@ -55,5 +56,12 @@ public class ShoppingListController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleIllegalArgument(IllegalArgumentException e) {
         return Map.of("message", e.getMessage());
+    }
+
+    // 재료를 직접 검색해서 셀프로 담기
+    @PostMapping("/items/manual")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void addManualItem(@RequestParam("userId") Long userId, @RequestBody ManualShoppingItemRequest request) {
+        shoppingListService.addManualItem(userId, request);
     }
 }

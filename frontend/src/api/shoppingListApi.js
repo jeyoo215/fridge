@@ -50,3 +50,15 @@ export async function deleteShoppingItem(userId, itemId) {
   );
   if (!response.ok) throw new Error("삭제에 실패했습니다.");
 }
+
+export async function addManualShoppingItem(userId, payload) {
+  const response = await fetch(`${BASE_URL}/shopping-list/items/manual?userId=${userId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.message || "재료를 담지 못했습니다.");
+  }
+}
