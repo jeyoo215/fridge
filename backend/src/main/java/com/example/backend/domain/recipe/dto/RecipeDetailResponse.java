@@ -40,7 +40,6 @@ public class RecipeDetailResponse {
                 .map(StepDetail::new)
                 .toList();
 
-
         this.toolIds = recipe.getRecipeTools().stream()
                 .map(recipeTool -> recipeTool.getTool().getToolId())
                 .toList();
@@ -64,15 +63,18 @@ public class RecipeDetailResponse {
         }
     }
 
-    // 조리 단계 상세 (순서 + 설명)
+    // 조리 단계 상세 (순서 + 설명 + 이미지)
     @Getter
     public static class StepDetail {
         private final Integer stepOrder;
         private final String description;
+        private final String imageUrl;
 
         public StepDetail(CookingStep cookingStep) {
             this.stepOrder = cookingStep.getStepOrder();
             this.description = cookingStep.getDescription();
+            this.imageUrl = cookingStep.getImageUrl();
         }
     }
+
 }

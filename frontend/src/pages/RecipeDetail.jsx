@@ -31,14 +31,14 @@ export default function RecipeDetail() {
         setLiked(res.active);
         setLikeCount(res.count);
       })
-      .catch(() => {});
+      .catch(() => { });
 
     fetchScrapStatus(recipeId, TEMP_USER_ID)
       .then((res) => {
         setScraped(res.active);
         setScrapCount(res.count);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [recipeId]);
 
   const handleToggleLike = async () => {
@@ -115,7 +115,16 @@ export default function RecipeDetail() {
         <h3>조리 순서</h3>
         <ol className="recipe-detail-step-list">
           {recipe.steps.map((step) => (
-            <li key={step.stepOrder}>{step.description}</li>
+            <li key={step.stepOrder}>
+              <p>{step.description}</p>
+              {step.imageUrl && (
+                <img
+                  src={step.imageUrl}
+                  alt={`조리순서 ${step.stepOrder}`}
+                  className="recipe-detail-step-image"
+                />
+              )}
+            </li>
           ))}
         </ol>
       </section>
