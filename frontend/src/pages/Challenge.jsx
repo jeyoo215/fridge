@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { startChallenge, fetchChallengeStatus, fetchActiveChallenge } from "../api/challengeApi";
 import { searchIngredients } from "../api/ingredientApi";
-import BadgeSection from "../components/BadgeSection"; // 기존 컴포넌트 그대로 사용
+import BadgeSection from "../component/BadgeSection"; // 기존 컴포넌트 그대로 사용
 import "./Challenge.css";
 
 const TEMP_USER_ID = 1;
