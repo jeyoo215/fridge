@@ -36,7 +36,11 @@ function saveSeenAlertIds(idSet) {
 function loadAlertThreshold() {
   const raw = localStorage.getItem(ALERT_THRESHOLD_STORAGE_KEY);
   const parsed = Number(raw);
-  return raw && !Number.isNaN(parsed) ? parsed : DEFAULT_ALERT_THRESHOLD;
+  // 0 이하이거나 너무 큰 값(30일 넘음)이면 저장된 값이 손상된 걸로 보고 기본값 사용
+  if (!raw || Number.isNaN(parsed) || parsed <= 0 || parsed > 30) {
+    return DEFAULT_ALERT_THRESHOLD;
+  }
+  return parsed;
 }
 
 function getFreshness(dDay, threshold) {
@@ -279,20 +283,34 @@ export default function IngredientList() {
 
     setBulkProcessing(true);
     setActionError(null);
-    try {
-      for (const id of selectedIds) {
+
+    const targetIds = Array.from(selectedIds);
+    const succeededIds = [];
+    const failedNames = [];
+
+    // 하나씩 처리하되, 중간에 실패해도 나머지는 계속 시도 (기존엔 하나 실패하면 전부 멈췄음)
+    for (const id of targetIds) {
+      try {
         await actionFn(TEMP_USER_ID, id);
+        succeededIds.push(id);
+      } catch (err) {
+        const target = ingredients.find((item) => item.userIngredientId === id);
+        failedNames.push(target?.ingredientName || `#${id}`);
       }
-      setIngredients((prev) => prev.filter((item) => !selectedIds.has(item.userIngredientId)));
-      setSelectedIds(new Set());
-      setSelectMode(false);
-    } catch (err) {
-      setActionError(`일부 처리에 실패했어요: ${err.message}`);
-      loadIngredients();
-    } finally {
-      setBulkProcessing(false);
+    }
+
+    setIngredients((prev) => prev.filter((item) => !succeededIds.includes(item.userIngredientId)));
+    setSelectedIds(new Set());
+    setSelectMode(false);
+    setBulkProcessing(false);
+
+    if (failedNames.length > 0) {
+      setActionError(
+        `${succeededIds.length}개는 "${label}" 처리됐지만, ${failedNames.length}개는 실패했어요: ${failedNames.join(", ")}`
+      );
     }
   };
+
 
   // 재료 카드 하나를 렌더링 (카테고리별 뷰/임박순 뷰/구매일순 뷰 다 재사용)
   const renderCard = (item) => {
