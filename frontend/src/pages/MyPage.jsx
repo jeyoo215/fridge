@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   fetchMyAllergyIngredients,
   registerAllergyIngredient,
@@ -21,7 +22,8 @@ const ACTIVITY_CATEGORIES = [
   { key: "comments", label: "💬 댓글단 게시글", fetcher: fetchMyCommunityComments },
 ];
 
-export default function MyPage() {
+export default function MyPage({ onNavigateAway } = {}) {
+  const navigate = useNavigate();
   const [allergyIngredients, setAllergyIngredients] = useState([]);
   const [pendingNewIngredients, setPendingNewIngredients] = useState([]);
   const [pendingDeleteIds, setPendingDeleteIds] = useState([]);
@@ -146,6 +148,11 @@ export default function MyPage() {
     }
   };
 
+  const handleActivityPostClick = (postId) => {
+    onNavigateAway?.();
+    navigate(`/community/${postId}#comments`);
+  };
+
   if (loading) return <p className="mypage-status">불러오는 중...</p>;
 
   if (activityScreen === "menu") {
@@ -194,7 +201,11 @@ export default function MyPage() {
 
         <ul className="mypage-activity-post-list">
           {activityPosts.map((post) => (
-            <li key={post.postId} className="mypage-activity-post-card">
+            <li
+              key={post.postId}
+              className="mypage-activity-post-card"
+              onClick={() => handleActivityPostClick(post.postId)}
+            >
               {post.thumbnailUrl && (
                 <div className="mypage-activity-post-thumbnail">
                   <img src={toMediaSrc(post.thumbnailUrl)} alt="" />
