@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Nav from "./component/Nav";
 import IngredientList from "./pages/IngredientList";
 import IngredientRegisterForm from "./pages/IngredientRegisterForm";
@@ -32,6 +32,7 @@ function App() {
         <Route path="/community/:postId" element={<CommunityPostDetail />} />
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/stats" element={<Stats />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
