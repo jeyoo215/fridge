@@ -12,4 +12,7 @@ public interface UserIngredientRepository extends JpaRepository<UserIngredient, 
 
     // 통계용: 특정 기간(주로 한 달) 안에 소진/폐기 처리된 재료 전부 (월간 통계 계산에 사용)
     List<UserIngredient> findByUserIdAndResolvedAtBetween(Long userId, LocalDateTime start, LocalDateTime end);
+
+    // 챌린지용
+    List<UserIngredient> findByUserIdAndIngredient_IngredientIdAndStatus(Long userId, Long ingredientId, UserIngredient.Status status);
 }
