@@ -10,12 +10,11 @@
 "의외의 재료 조합" 레시피에 추천 점수를 매겨 DB에 저장하는 Python 배치 스크립트다.
 
 > **역할 분리**: 이 스크립트가 `combination_recommendation` 테이블에 점수를 써넣고,
-> Spring(`ComboRecommendation` 엔티티)은 그 결과를 **조회만** 한다. Spring이 직접
-> Apriori를 돌리지 않음에 주의.
+> Spring(`ComboRecommendation` 엔티티)은 그 결과를 **조회만** 한다. 
 
 ## 요구사항
 
-- Python 3.12 이상 (requirements.txt에 명시된 패키지들이 그 버전 기준으로 배포된 버전임)
+- Python 3.11 이상 (requirements.txt에 명시된 패키지들이 그 버전 기준으로 배포된 버전임)
 - MySQL 서버가 실행 중이어야 함
 - 백엔드가 최소 한 번 구동되어 `ddl-auto=update`로 `combination_recommendation` 등
   관련 테이블이 생성되어 있어야 함 (스크립트가 테이블을 만들어주지 않음, INSERT만 함)
@@ -28,8 +27,8 @@
 ```bash
 cd ml
 python -m venv venv
-# Windows: venv\Scripts\activate
-# macOS/Linux: source venv/bin/activate
+Windows: venv\Scripts\activate
+# (macOS/Linux: source venv/bin/activate)
 pip install -r requirements.txt
 ```
 
@@ -42,6 +41,7 @@ pip install -r requirements.txt
 
 ```bash
 python calculate_combo_recommendation.py
+# 안 해도 백엔드 서버 시작 시 자동 실행
 ```
 
 동작 순서:
@@ -53,9 +53,7 @@ python calculate_combo_recommendation.py
 
 ## 언제 실행해야 하나
 
-**실시간 아님.** 레시피/리뷰 데이터가 바뀐 뒤 수동 혹은 스케줄러로 다시 돌려야
-추천 결과가 최신 상태로 반영된다. 현재는 수동 실행만 구현되어 있고 cron 등
-자동 스케줄링은 아직 없음 — 배포 단계에서 필요하면 추가해야 함.
+**실시간 아님.** 매일 오전 3시에 자동실행(업데이트) / 백엔드 서버 재시작 시 시간 불문 1회 실행
 
 ## 주의사항 / 알려진 제약
 

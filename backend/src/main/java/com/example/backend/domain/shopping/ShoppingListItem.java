@@ -54,4 +54,9 @@ public class ShoppingListItem {
     public void uncheck() {
         this.checked = false;
     }
+
+    public void addQuantity(BigDecimal amount) {
+        if (amount == null) return;
+        this.quantity = (this.quantity == null) ? amount : this.quantity.add(amount);
+    }
 }
