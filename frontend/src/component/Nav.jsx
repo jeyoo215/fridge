@@ -54,7 +54,7 @@ export default function Nav() {
             <span className="app-nav-sheet-title">내 정보</span>
           </div>
           <div className="app-nav-sheet-body">
-            <MyPage />
+            <MyPage onNavigateAway={() => setMenuOpen(false)} />
           </div>
         </div>
       )}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   fetchCommunityPost,
   fetchCommunityPostLikeStatus,
@@ -18,6 +18,7 @@ const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그�
 
 export default function CommunityPostDetail() {
   const { postId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [liked, setLiked] = useState(false);
@@ -48,6 +49,11 @@ export default function CommunityPostDetail() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [postId]);
+
+  useEffect(() => {
+    if (loading || location.hash !== "#comments") return;
+    document.getElementById("comments")?.scrollIntoView({ behavior: "smooth" });
+  }, [loading, location.hash]);
 
   const handleToggleLike = async () => {
     const res = await toggleCommunityPostLike(TEMP_USER_ID, postId);
@@ -149,7 +155,7 @@ export default function CommunityPostDetail() {
         </button>
       </div>
 
-      <section className="community-detail-comments">
+      <section id="comments" className="community-detail-comments">
         <h3 className="community-detail-comments-title">댓글 {comments.length}</h3>
         {comments.length === 0 ? (
           <p className="community-detail-comments-empty">아직 댓글이 없어요. 첫 댓글을 남겨보세요!</p>
