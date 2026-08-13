@@ -25,7 +25,6 @@ export default function IngredientRegisterForm() {
   const [unit, setUnit] = useState("");
   const [purchaseDate, setPurchaseDate] = useState(todayDateString); // 기본값: 오늘
   const [expirationDate, setExpirationDate] = useState("");
-  const [price, setPrice] = useState(""); // 선택 입력 (안 넣으면 통계에서 평균 추정치로 계산됨)
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -209,7 +208,6 @@ export default function IngredientRegisterForm() {
         unit,
         purchaseDate,
         expirationDate,
-        price: price ? Number(price) : null,
       });
       navigate("/");
     } catch (err) {
@@ -421,18 +419,6 @@ export default function IngredientRegisterForm() {
           type="date"
           value={expirationDate}
           onChange={(e) => setExpirationDate(e.target.value)}
-        />
-      </div>
-
-      <div className="ingredient-form-field">
-        <label>가격 (선택) · 입력 안 하면 통계에서 평균값으로 계산돼요</label>
-        <input
-          type="number"
-          min="0"
-          step="100"
-          placeholder="예: 2500"
-          value={price}
-          onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
         />
       </div>
 
