@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface CommunityPostRepository extends JpaRepository<CommunityPost, Long> {
 
@@ -20,10 +19,7 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
             "GROUP BY p.postId, p.createdAt ORDER BY COUNT(l) DESC, p.createdAt DESC")
     Page<Long> findPostIdsOrderByLikeCountDesc(Pageable pageable);
 
-    // 위에서 뽑은 id들에 대해서만 섹션까지 함께 조회 (N+1 방지)
-    @Query("SELECT DISTINCT p FROM CommunityPost p LEFT JOIN FETCH p.sections WHERE p.postId IN :postIds")
-    List<CommunityPost> findAllWithSectionsByPostIdIn(@Param("postIds") List<Long> postIds);
-
-    @Query("SELECT p FROM CommunityPost p LEFT JOIN FETCH p.sections WHERE p.postId = :postId")
-    Optional<CommunityPost> findByIdWithSections(@Param("postId") Long postId);
+    // 위에서 뽑은 id들에 대해서만 조리순서까지 함께 조회 (목록 카드 썸네일/미리보기용, N+1 방지)
+    @Query("SELECT DISTINCT p FROM CommunityPost p LEFT JOIN FETCH p.steps WHERE p.postId IN :postIds")
+    List<CommunityPost> findAllWithStepsByPostIdIn(@Param("postIds") List<Long> postIds);
 }

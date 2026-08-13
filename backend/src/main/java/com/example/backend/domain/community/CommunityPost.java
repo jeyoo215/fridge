@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-// 레시피를 소개하는 커뮤니티 게시글 (제목 + 여러 개의 소제목/본문/이미지 섹션으로 구성되는 블로그 형태).
+// 레시피를 소개하는 커뮤니티 게시글 (제목 + 재료 + 번호가 매겨진 조리순서로 구성. 각 조리순서 단계는
+// 리치텍스트 본문 + 이미지/동영상 첨부를 가질 수 있어서, 예전의 "섹션" 역할까지 함께 담당한다).
 // 재료/조리순서를 구조화해서 같이 받아두면, 좋아요가 많이 쌓였을 때 정식 Recipe로 승격시킬 수 있다.
 @Entity
 @Table(name = "community_post")
@@ -44,13 +45,10 @@ public class CommunityPost {
     private String difficulty;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("sectionOrder ASC")
-    private final List<CommunityPostSection> sections = new ArrayList<>();
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<CommunityPostIngredient> ingredients = new ArrayList<>();
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("stepOrder ASC")
     private final List<CommunityPostStep> steps = new ArrayList<>();
 
     // 좋아요(추천)가 임계치를 넘어 정식 레시피로 승격되면 채워짐. null이면 미승격 상태.
@@ -72,18 +70,6 @@ public class CommunityPost {
         this.createdAt = LocalDateTime.now();
     }
 
-    public void addSection(String subtitle, String content, String mediaUrl, CommunityPostSection.MediaType mediaType) {
-        CommunityPostSection section = CommunityPostSection.builder()
-                .post(this)
-                .sectionOrder(sections.size())
-                .subtitle(subtitle)
-                .content(content)
-                .mediaUrl(mediaUrl)
-                .mediaType(mediaType)
-                .build();
-        sections.add(section);
-    }
-
     public void addIngredient(Ingredient ingredient, BigDecimal quantity, String unit) {
         CommunityPostIngredient ingredientEntity = CommunityPostIngredient.builder()
                 .ingredient(ingredient)
@@ -94,16 +80,18 @@ public class CommunityPost {
         ingredients.add(ingredientEntity);
     }
 
-    public void addStep(String description) {
+    public void addStep(String description, String mediaUrl, CommunityPostStep.MediaType mediaType) {
         CommunityPostStep step = CommunityPostStep.builder()
                 .stepOrder(steps.size())
                 .description(description)
+                .mediaUrl(mediaUrl)
+                .mediaType(mediaType)
                 .build();
         step.setPost(this);
         steps.add(step);
     }
 
-    // 게시글 수정: 제목/섹션/재료/조리순서를 통째로 새 내용으로 교체
+    // 게시글 수정: 제목/재료/조리순서를 통째로 새 내용으로 교체
     // (orphanRemoval=true라 컬렉션이 비워지는 순간 기존 값은 삭제됨)
     public void update(String title, RecipeCategory category, Integer cookingTimeMinutes, String difficulty) {
         if (isPromoted()) {
@@ -113,7 +101,6 @@ public class CommunityPost {
         this.category = category;
         this.cookingTimeMinutes = cookingTimeMinutes;
         this.difficulty = difficulty;
-        this.sections.clear();
         this.ingredients.clear();
         this.steps.clear();
     }

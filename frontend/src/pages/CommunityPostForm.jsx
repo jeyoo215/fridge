@@ -38,19 +38,15 @@ const QUILL_MODULES = {
   ],
 };
 
-function emptySection() {
-  return { key: crypto.randomUUID(), subtitle: "", content: "", mediaUrl: "", mediaType: null, uploading: false };
-}
-
 function emptyStep() {
-  return { key: crypto.randomUUID(), description: "" };
+  return { key: crypto.randomUUID(), description: "", mediaUrl: "", mediaType: null, uploading: false };
 }
 
 export default function CommunityPostForm() {
   const { postId } = useParams(); // 있으면 수정 모드, 없으면 새 글 작성 모드
   const isEditMode = Boolean(postId);
 
-  // 섹션별 Quill 인스턴스 / 크기·색상 입력창을 key로 찾아가기 위한 저장소 (렌더링과 무관해서 ref로 관리)
+  // 조리순서 단계별 Quill 인스턴스 / 크기·색상 입력창을 key로 찾아가기 위한 저장소 (렌더링과 무관해서 ref로 관리)
   const editorRefs = useRef({});
   const getBucket = (key) => {
     if (!editorRefs.current[key]) {
@@ -60,7 +56,6 @@ export default function CommunityPostForm() {
   };
 
   const [title, setTitle] = useState("");
-  const [sections, setSections] = useState([emptySection()]);
   const [loading, setLoading] = useState(isEditMode);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -78,7 +73,7 @@ export default function CommunityPostForm() {
   const [ingredientKeyword, setIngredientKeyword] = useState("");
   const [ingredientResults, setIngredientResults] = useState([]);
 
-  // 조리순서 목록
+  // 조리순서 목록 (번호 + 리치텍스트 본문 + 이미지/동영상 첨부, 예전의 "섹션" 기능을 겸함)
   const [steps, setSteps] = useState([emptyStep()]);
 
   // 카테고리 목록이 나중에 도착해도 이름 매칭이 되도록 별도 상태로 들고 있다가 반영한다.
@@ -110,18 +105,14 @@ export default function CommunityPostForm() {
         );
         setSteps(
           post.steps.length > 0
-            ? post.steps.map((step) => ({ key: crypto.randomUUID(), description: step.description }))
+            ? post.steps.map((step) => ({
+                key: crypto.randomUUID(),
+                description: step.description,
+                mediaUrl: step.mediaUrl || "",
+                mediaType: step.mediaType,
+                uploading: false,
+              }))
             : [emptyStep()]
-        );
-        setSections(
-          post.sections.map((s) => ({
-            key: crypto.randomUUID(),
-            subtitle: s.subtitle,
-            content: s.content,
-            mediaUrl: s.mediaUrl || "",
-            mediaType: s.mediaType,
-            uploading: false,
-          }))
         );
         // categoryId는 상세 응답에 이름만 내려와서, 카테고리 목록에서 이름으로 찾아 채운다.
         setPendingCategoryName(post.categoryName);
@@ -168,24 +159,14 @@ export default function CommunityPostForm() {
     setIngredients((prev) => prev.filter((row) => row.key !== key));
   };
 
-  const addStep = () => setSteps((prev) => [...prev, emptyStep()]);
-
-  const updateStep = (key, description) => {
-    setSteps((prev) => prev.map((step) => (step.key === key ? { ...step, description } : step)));
+  const updateStep = (key, patch) => {
+    setSteps((prev) => prev.map((step) => (step.key === key ? { ...step, ...patch } : step)));
   };
+
+  const addStep = () => setSteps((prev) => [...prev, emptyStep()]);
 
   const removeStep = (key) => {
     setSteps((prev) => (prev.length > 1 ? prev.filter((step) => step.key !== key) : prev));
-  };
-
-  const updateSection = (key, patch) => {
-    setSections((prev) => prev.map((s) => (s.key === key ? { ...s, ...patch } : s)));
-  };
-
-  const addSection = () => setSections((prev) => [...prev, emptySection()]);
-
-  const removeSection = (key) => {
-    setSections((prev) => (prev.length > 1 ? prev.filter((s) => s.key !== key) : prev));
   };
 
   // 적용 버튼은 에디터 바깥에 있어서 클릭하는 순간 에디터가 포커스를 잃는데,
@@ -234,13 +215,13 @@ export default function CommunityPostForm() {
     }
 
     setError(null);
-    updateSection(key, { uploading: true });
+    updateStep(key, { uploading: true });
     try {
       const { url, mediaType } = await uploadCommunityMedia(file);
-      updateSection(key, { mediaUrl: url, mediaType, uploading: false });
+      updateStep(key, { mediaUrl: url, mediaType, uploading: false });
     } catch (err) {
       setError(err.message);
-      updateSection(key, { uploading: false });
+      updateStep(key, { uploading: false });
     }
   };
 
@@ -262,15 +243,11 @@ export default function CommunityPostForm() {
       setError("재료를 1개 이상 추가해주세요.");
       return;
     }
-    if (steps.some((s) => !s.description.trim())) {
-      setError("모든 조리순서를 입력해주세요.");
+    if (steps.some((s) => !s.description.trim() || s.description === "<p><br></p>")) {
+      setError("모든 조리순서의 내용을 입력해주세요.");
       return;
     }
-    if (sections.some((s) => !s.subtitle.trim() || !s.content.trim() || s.content === "<p><br></p>")) {
-      setError("모든 섹션의 소제목과 내용을 입력해주세요.");
-      return;
-    }
-    if (sections.some((s) => s.uploading)) {
+    if (steps.some((s) => s.uploading)) {
       setError("파일 업로드가 끝날 때까지 기다려주세요.");
       return;
     }
@@ -282,18 +259,16 @@ export default function CommunityPostForm() {
       categoryId: Number(categoryId),
       cookingTimeMinutes: Number(cookingTimeMinutes),
       difficulty,
-      sections: sections.map(({ subtitle, content, mediaUrl, mediaType }) => ({
-        subtitle,
-        content,
-        mediaUrl: mediaUrl || null,
-        mediaType,
-      })),
       ingredients: ingredients.map(({ ingredientId, quantity, unit }) => ({
         ingredientId,
         quantity: quantity === "" ? null : Number(quantity),
         unit: unit || null,
       })),
-      steps: steps.map(({ description }) => ({ description })),
+      steps: steps.map(({ description, mediaUrl, mediaType }) => ({
+        description,
+        mediaUrl: mediaUrl || null,
+        mediaType,
+      })),
     };
     try {
       if (isEditMode) {
@@ -417,66 +392,34 @@ export default function CommunityPostForm() {
         </div>
       </div>
 
-      <div className="community-form-recipe-block">
-        <h3 className="community-form-block-title">조리순서</h3>
-        {steps.map((step, index) => (
-          <div className="community-form-step-row" key={step.key}>
-            <span className="community-form-step-number">{index + 1}</span>
-            <textarea
-              value={step.description}
-              onChange={(e) => updateStep(step.key, e.target.value)}
-              placeholder={`${index + 1}단계 설명`}
-            />
-            {steps.length > 1 && (
-              <button type="button" onClick={() => removeStep(step.key)}>
-                삭제
-              </button>
-            )}
-          </div>
-        ))}
-        <button type="button" className="community-form-add-section" onClick={addStep}>
-          + 조리순서 추가
-        </button>
-      </div>
-
-      {sections.map((section, index) => (
-        <div className="community-form-section" key={section.key}>
+      {steps.map((step, index) => (
+        <div className="community-form-section" key={step.key}>
           <div className="community-form-section-header">
-            <span>섹션 {index + 1}</span>
-            {sections.length > 1 && (
-              <button type="button" className="community-form-remove" onClick={() => removeSection(section.key)}>
+            <span className="community-form-step-badge">{index + 1}단계</span>
+            {steps.length > 1 && (
+              <button type="button" className="community-form-remove" onClick={() => removeStep(step.key)}>
                 삭제
               </button>
             )}
           </div>
-
-          <label className="community-form-label">
-            소제목
-            <input
-              className="community-form-input"
-              value={section.subtitle}
-              onChange={(e) => updateSection(section.key, { subtitle: e.target.value })}
-              placeholder="예: 재료 준비"
-            />
-          </label>
 
           <label className="community-form-label">
             사진/동영상 첨부 (선택, 이미지 50MB / 동영상 100MB까지)
             <input
               type="file"
               accept="image/*,video/*"
-              onChange={(e) => handleFileSelected(section.key, e.target.files?.[0])}
+              onChange={(e) => handleFileSelected(step.key, e.target.files?.[0])}
             />
           </label>
 
-          {section.uploading && <p className="community-form-upload-status">업로드 중...</p>}
+          {step.uploading && <p className="community-form-upload-status">업로드 중...</p>}
 
-          {section.mediaUrl && !section.uploading && (
+          {step.mediaUrl && !step.uploading && (
             <div className="community-form-preview">
-              {section.mediaType === "VIDEO" ? (
-                <video src={toMediaSrc(section.mediaUrl)} controls />
+              {step.mediaType === "VIDEO" ? (
+                <video src={toMediaSrc(step.mediaUrl)} controls />
               ) : (
-                <img src={toMediaSrc(section.mediaUrl)} alt="첨부 미리보기" />
+                <img src={toMediaSrc(step.mediaUrl)} alt="첨부 미리보기" />
               )}
             </div>
           )}
@@ -489,10 +432,10 @@ export default function CommunityPostForm() {
                 min="5"
                 max="50"
                 defaultValue="16"
-                ref={(el) => (getBucket(section.key).sizeInput = el)}
+                ref={(el) => (getBucket(step.key).sizeInput = el)}
               />
             </label>
-            <button type="button" onClick={() => applyFontSize(section.key)}>
+            <button type="button" onClick={() => applyFontSize(step.key)}>
               크기 적용
             </button>
             <label>
@@ -500,10 +443,10 @@ export default function CommunityPostForm() {
               <input
                 type="color"
                 defaultValue="#000000"
-                ref={(el) => (getBucket(section.key).colorInput = el)}
+                ref={(el) => (getBucket(step.key).colorInput = el)}
               />
             </label>
-            <button type="button" onClick={() => applyColor(section.key)}>
+            <button type="button" onClick={() => applyColor(step.key)}>
               색상 적용
             </button>
           </div>
@@ -512,22 +455,22 @@ export default function CommunityPostForm() {
           </p>
 
           <label className="community-form-label">
-            내용
+            {index + 1}단계 설명
             <ReactQuill
               ref={(el) => {
-                getBucket(section.key).quillComponent = el;
+                getBucket(step.key).quillComponent = el;
               }}
               theme="snow"
-              value={section.content}
-              onChange={(value) => updateSection(section.key, { content: value })}
+              value={step.description}
+              onChange={(value) => updateStep(step.key, { description: value })}
               modules={QUILL_MODULES}
             />
           </label>
         </div>
       ))}
 
-      <button type="button" className="community-form-add-section" onClick={addSection}>
-        + 섹션 추가
+      <button type="button" className="community-form-add-section" onClick={addStep}>
+        + 조리순서 추가
       </button>
 
       {error && <p className="community-form-error">{error}</p>}

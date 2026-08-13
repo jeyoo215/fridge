@@ -50,7 +50,7 @@ public class CommunityActivityService {
             return List.of();
         }
 
-        Map<Long, CommunityPost> postsById = communityPostRepository.findAllWithSectionsByPostIdIn(postIds)
+        Map<Long, CommunityPost> postsById = communityPostRepository.findAllWithStepsByPostIdIn(postIds)
                 .stream()
                 .collect(Collectors.toMap(CommunityPost::getPostId, post -> post, (a, b) -> a, LinkedHashMap::new));
 

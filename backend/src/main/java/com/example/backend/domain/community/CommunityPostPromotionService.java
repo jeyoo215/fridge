@@ -35,7 +35,11 @@ public class CommunityPostPromotionService {
                         .toList(),
                 post.getSteps().stream()
                         .sorted(Comparator.comparingInt(CommunityPostStep::getStepOrder))
-                        .map(step -> new RecipeCreateRequest.StepItem(step.getStepOrder(), step.getDescription()))
+                        .map(step -> new RecipeCreateRequest.StepItem(
+                                step.getStepOrder(),
+                                step.getDescription(),
+                                step.getMediaUrl(),
+                                step.getMediaType() != null ? step.getMediaType().name() : null))
                         .toList(),
                 List.of(), // 커뮤니티 글쓰기 화면에서는 조리도구를 받지 않음
                 PROMOTED_RECIPE_SOURCE
@@ -45,12 +49,12 @@ public class CommunityPostPromotionService {
         post.promote(recipeRepository.getReferenceById(recipeId));
     }
 
-    // 목록 카드 썸네일과 동일한 규칙: 첫 섹션이 이미지일 때만 사용
+    // 목록 카드 썸네일과 동일한 규칙: 첫 조리순서 단계가 이미지일 때만 사용
     private String findThumbnailUrl(CommunityPost post) {
-        return post.getSections().stream()
+        return post.getSteps().stream()
                 .findFirst()
-                .filter(section -> section.getMediaType() == CommunityPostSection.MediaType.IMAGE)
-                .map(CommunityPostSection::getMediaUrl)
+                .filter(step -> step.getMediaType() == CommunityPostStep.MediaType.IMAGE)
+                .map(CommunityPostStep::getMediaUrl)
                 .orElse(null);
     }
 }

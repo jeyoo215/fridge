@@ -160,28 +160,22 @@ export default function CommunityPostDetail() {
 
       <section className="community-detail-recipe-block">
         <h3 className="community-detail-block-title">조리순서</h3>
-        <ol className="community-detail-step-list">
-          {post.steps.map((step) => (
-            <li key={step.stepOrder}>{step.description}</li>
-          ))}
-        </ol>
+        {post.steps.map((step, index) => (
+          <div className="community-detail-section" key={step.stepOrder}>
+            <span className="community-detail-step-badge">{index + 1}단계</span>
+            {step.mediaUrl && step.mediaType === "VIDEO" && (
+              <video className="community-detail-image" src={toMediaSrc(step.mediaUrl)} controls />
+            )}
+            {step.mediaUrl && step.mediaType === "IMAGE" && (
+              <img className="community-detail-image" src={toMediaSrc(step.mediaUrl)} alt={`${index + 1}단계`} />
+            )}
+            <div
+              className="community-detail-content"
+              dangerouslySetInnerHTML={{ __html: step.description }}
+            />
+          </div>
+        ))}
       </section>
-
-      {post.sections.map((section, index) => (
-        <section className="community-detail-section" key={index}>
-          <h3 className="community-detail-subtitle">{section.subtitle}</h3>
-          {section.mediaUrl && section.mediaType === "VIDEO" && (
-            <video className="community-detail-image" src={toMediaSrc(section.mediaUrl)} controls />
-          )}
-          {section.mediaUrl && section.mediaType === "IMAGE" && (
-            <img className="community-detail-image" src={toMediaSrc(section.mediaUrl)} alt={section.subtitle} />
-          )}
-          <div
-            className="community-detail-content"
-            dangerouslySetInnerHTML={{ __html: section.content }}
-          />
-        </section>
-      ))}
 
       <div className="community-detail-social">
         <button
