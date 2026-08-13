@@ -26,7 +26,7 @@ public class ComboRecommendationScheduler {
     @Value("${combo.batch.python-path:python}")
     private String pythonPath;
 
-    @Value("${combo.batch.script-path:../ml/calculate_combo_recommendation.py}")
+    @Value("${combo.batch.script-path:./ml/calculate_combo_recommendation.py}")
     private String scriptPath;
 
     // 앱 부팅 시 파이썬 실행 파일이 실제로 동작하는지 미리 확인.
