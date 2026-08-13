@@ -2,7 +2,6 @@ package com.example.backend.domain.ingredient.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,10 +17,6 @@ public record UserIngredientRegisterRequest(
         String unit,
         LocalDate purchaseDate,
 
-        @NotNull LocalDate expirationDate,
-
-        // 선택 입력. 입력 안 하면 통계에서 평균 추정치로 대체됨. 입력했다면 0 이상이어야 함(음수 방지).
-        @PositiveOrZero(message = "가격은 0원 이상이어야 합니다.")
-        BigDecimal price
+        @NotNull LocalDate expirationDate
 ) {
 }

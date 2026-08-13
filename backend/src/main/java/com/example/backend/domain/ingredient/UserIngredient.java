@@ -39,10 +39,6 @@ public class UserIngredient {
     @Column(name = "expiration_date", nullable = false)
     private LocalDate expirationDate;
 
-    // 장 볼 때 실제로 지불한 금액 (선택 입력). 있으면 통계에서 추정치 대신 이 값을 그대로 씀.
-    @Column(name = "price", precision = 10, scale = 0)
-    private BigDecimal price;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "VARCHAR(10)")
     private Status status;
@@ -50,20 +46,19 @@ public class UserIngredient {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    // 소진/폐기 처리된 시점 (월별 통계 집계에 사용). 아직 보유중이면 null.
+    // 소진/폐기 처리된 시점 (통계 집계 등에 사용). 아직 보유중이면 null.
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
 
     @Builder
     public UserIngredient(Long userId, Ingredient ingredient, BigDecimal quantity, String unit,
-                           LocalDate purchaseDate, LocalDate expirationDate, BigDecimal price) {
+                           LocalDate purchaseDate, LocalDate expirationDate) {
         this.userId = userId;
         this.ingredient = ingredient;
         this.quantity = quantity;
         this.unit = unit;
         this.purchaseDate = purchaseDate;
         this.expirationDate = expirationDate;
-        this.price = price;
         this.status = Status.보유중;
         this.createdAt = LocalDateTime.now();
     }
@@ -89,10 +84,6 @@ public class UserIngredient {
         this.quantity = quantity;
         this.purchaseDate = purchaseDate;
         this.expirationDate = expirationDate;
-    }
-
-    public void updatePrice(BigDecimal price) {
-        this.price = price;
     }
 
     public enum Status {
