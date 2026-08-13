@@ -92,3 +92,131 @@
   color: #999;
   margin-top: -4px;
 }
+
+.challenge-type-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.challenge-type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+
+.challenge-type-card:not(:disabled):hover {
+  border-color: var(--color-basil);
+  transform: translateY(-1px);
+}
+
+.challenge-type-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.challenge-type-label {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.challenge-type-desc {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.challenge-type-back {
+  align-self: flex-start;
+  background: none !important;
+  border: none;
+  color: var(--color-text-muted) !important;
+  font-size: 13px;
+  padding: 0 !important;
+  cursor: pointer;
+}
+
+.challenge-ingredient-picker {
+  position: relative;
+  text-align: left;
+}
+
+.challenge-ingredient-picker input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 14px;
+  font-family: var(--font-body);
+}
+
+.challenge-ingredient-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 10;
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-menu);
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.challenge-ingredient-results li {
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.challenge-ingredient-results li:hover {
+  background: var(--color-basil-bg);
+  color: var(--color-basil-dark);
+}
+
+.challenge-ingredient-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.challenge-ingredient-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--color-basil-bg);
+  color: var(--color-basil-dark);
+  font-size: 13px;
+}
+
+.challenge-ingredient-chip button {
+  border: none;
+  background: none;
+  color: var(--color-basil-dark);
+  cursor: pointer;
+  padding: 0 !important;
+  font-size: 12px;
+}
+
+.challenge-target-names {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}

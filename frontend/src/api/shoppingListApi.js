@@ -1,4 +1,5 @@
-const BASE_URL = "http://localhost:8080/api/v1";
+// PC에서 열면 localhost, 핸드폰 등 다른 기기에서 열면 그 기기가 접속한 주소(PC의 IP)를 그대로 사용
+const BASE_URL = `http://${window.location.hostname}:8080/api/v1`;
 
 // 레시피 기준 부족한 재료(장보기 리스트) 조회 (FR-30)
 export async function fetchShoppingList(userId, recipeId) {
@@ -49,4 +50,16 @@ export async function deleteShoppingItem(userId, itemId) {
     { method: "DELETE" }
   );
   if (!response.ok) throw new Error("삭제에 실패했습니다.");
+}
+
+export async function addManualShoppingItem(userId, payload) {
+  const response = await fetch(`${BASE_URL}/shopping-list/items/manual?userId=${userId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.message || "재료를 담지 못했습니다.");
+  }
 }
