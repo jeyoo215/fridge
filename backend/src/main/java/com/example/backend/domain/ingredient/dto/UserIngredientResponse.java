@@ -12,7 +12,8 @@ public class UserIngredientResponse {
 
     private final Long userIngredientId;
     private final String ingredientName;
-    private final String categoryName; // 카테고리별 그룹핑용 (없으면 "기타"로 처리)
+    private final String categoryName; // 카테고리별 그룹핑용. 조미료는 "조미료", 그 외 카테고리 없으면 "기타"
+    private final boolean isSeasoning;
     private final BigDecimal quantity;
     private final String unit;
     private final LocalDate purchaseDate;
@@ -24,9 +25,12 @@ public class UserIngredientResponse {
     public UserIngredientResponse(UserIngredient entity) {
         this.userIngredientId = entity.getUserIngredientId();
         this.ingredientName = entity.getIngredient().getIngredientName();
-        this.categoryName = entity.getIngredient().getCategory() != null
-                ? entity.getIngredient().getCategory().getCategoryName()
-                : "기타";
+        this.isSeasoning = entity.getIngredient().isSeasoning();
+        this.categoryName = this.isSeasoning
+                ? "조미료"
+                : (entity.getIngredient().getCategory() != null
+                        ? entity.getIngredient().getCategory().getCategoryName()
+                        : "기타");
         this.quantity = entity.getQuantity();
         this.unit = entity.getUnit();
         this.purchaseDate = entity.getPurchaseDate();

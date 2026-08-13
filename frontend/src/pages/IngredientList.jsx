@@ -72,6 +72,7 @@ const CATEGORY_ICONS = {
   알류: "🥚",
   과일: "🍎",
   "곡물/가공식품": "🍞",
+  조미료: "🧂",
   기타: "🧺",
 };
 
@@ -443,10 +444,16 @@ export default function IngredientList() {
   }
 
   // 임박: 아직 안 지났지만 곧 지나는 것 (0~알림기준일 남음)
+  // 조미료는 보통 유통기한이 훨씬 길고 급하게 신경 쓸 대상이 아니라서 알림 대상에서 제외함
   const upcomingIngredients = ingredients.filter(
-    (item) => item.dDay !== null && item.dDay !== undefined && item.dDay >= 0 && item.dDay <= alertThreshold
+    (item) =>
+      !item.isSeasoning &&
+      item.dDay !== null &&
+      item.dDay !== undefined &&
+      item.dDay >= 0 &&
+      item.dDay <= alertThreshold
   );
-  // 지난 것: 이미 소비기한이 지난 것 (마이너스)
+  // 지난 것: 이미 소비기한이 지난 것 (마이너스) — 이건 조미료도 실제로 상했을 수 있으니 알림 대상 유지
   const expiredIngredients = ingredients.filter(
     (item) => item.dDay !== null && item.dDay !== undefined && item.dDay < 0
   );
