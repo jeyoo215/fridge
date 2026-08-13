@@ -23,10 +23,13 @@ public record RecipeCreateRequest(
     ) {
     }
 
-    // 조리 단계 항목 (순서 + 설명)
+    // 조리 단계 항목 (순서 + 설명 + 선택적 이미지/동영상). mediaType은 "IMAGE"/"VIDEO" 문자열
+    // (CookingStep.MediaType.valueOf로 변환) — 도메인 간 enum 의존을 피하려고 문자열로 받는다.
     public record StepItem(
             Integer stepOrder,
-            String description
+            String description,
+            String mediaUrl,
+            String mediaType
     ) {
     }
 }

@@ -69,10 +69,14 @@ public class RecipeDetailResponse {
     public static class StepItem {
         private final int stepOrder;
         private final String description;
+        private final String mediaUrl;
+        private final CookingStep.MediaType mediaType;
 
         public StepItem(CookingStep entity) {
             this.stepOrder = entity.getStepOrder();
             this.description = entity.getDescription();
+            this.mediaUrl = entity.getMediaUrl();
+            this.mediaType = entity.getMediaType();
         }
     }
 }

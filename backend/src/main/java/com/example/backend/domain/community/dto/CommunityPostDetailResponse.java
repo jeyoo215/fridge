@@ -21,7 +21,6 @@ public class CommunityPostDetailResponse {
     private final Long promotedRecipeId;
     private final List<CommunityPostIngredientResponse> ingredients;
     private final List<CommunityPostStepResponse> steps;
-    private final List<CommunityPostSectionResponse> sections;
 
     public CommunityPostDetailResponse(CommunityPost entity, long likeCount) {
         this.postId = entity.getPostId();
@@ -39,9 +38,6 @@ public class CommunityPostDetailResponse {
         this.steps = entity.getSteps().stream()
                 .sorted(Comparator.comparingInt(step -> step.getStepOrder()))
                 .map(CommunityPostStepResponse::new)
-                .toList();
-        this.sections = entity.getSections().stream()
-                .map(CommunityPostSectionResponse::new)
                 .toList();
     }
 }

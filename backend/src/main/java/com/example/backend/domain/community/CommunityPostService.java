@@ -5,7 +5,6 @@ import com.example.backend.domain.community.dto.CommunityPostDetailResponse;
 import com.example.backend.domain.community.dto.CommunityPostIngredientRequest;
 import com.example.backend.domain.community.dto.CommunityPostListResponse;
 import com.example.backend.domain.community.dto.CommunityPostPageResponse;
-import com.example.backend.domain.community.dto.CommunityPostSectionRequest;
 import com.example.backend.domain.community.dto.CommunityPostStepRequest;
 import com.example.backend.domain.ingredient.Ingredient;
 import com.example.backend.domain.ingredient.IngredientRepository;
@@ -33,7 +32,7 @@ public class CommunityPostService {
     private final RecipeCategoryRepository recipeCategoryRepository;
     private final IngredientRepository ingredientRepository;
 
-    // 게시글 작성 (제목 + 섹션 + 재료/조리순서를 통째로 받아 한 번에 저장)
+    // 게시글 작성 (제목 + 재료/조리순서를 통째로 받아 한 번에 저장)
     @Transactional
     public Long create(Long userId, CommunityPostCreateRequest request) {
         RecipeCategory category = findCategory(request.categoryId());
@@ -46,9 +45,6 @@ public class CommunityPostService {
                 .difficulty(request.difficulty())
                 .build();
 
-        for (CommunityPostSectionRequest section : request.sections()) {
-            post.addSection(section.subtitle(), section.content(), section.mediaUrl(), section.mediaType());
-        }
         addIngredientsAndSteps(post, request);
 
         return communityPostRepository.save(post).getPostId();
@@ -66,7 +62,7 @@ public class CommunityPostService {
             post.addIngredient(ingredient, item.quantity(), item.unit());
         }
         for (CommunityPostStepRequest item : request.steps()) {
-            post.addStep(item.description());
+            post.addStep(item.description(), item.mediaUrl(), item.mediaType());
         }
     }
 
@@ -82,7 +78,7 @@ public class CommunityPostService {
             return new CommunityPostPageResponse(List.of(), page, idPage.getTotalPages(), idPage.getTotalElements());
         }
 
-        Map<Long, CommunityPost> postsById = communityPostRepository.findAllWithSectionsByPostIdIn(postIds)
+        Map<Long, CommunityPost> postsById = communityPostRepository.findAllWithStepsByPostIdIn(postIds)
                 .stream()
                 .collect(Collectors.toMap(CommunityPost::getPostId, post -> post));
 
@@ -97,13 +93,13 @@ public class CommunityPostService {
 
     // 게시글 상세
     public CommunityPostDetailResponse getDetail(Long postId) {
-        CommunityPost post = communityPostRepository.findByIdWithSections(postId)
+        CommunityPost post = communityPostRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다. id=" + postId));
         long likeCount = communityPostLikeRepository.countByPost_PostId(postId);
         return new CommunityPostDetailResponse(post, likeCount);
     }
 
-    // 게시글 수정 (본인 글만 가능, 정식 레시피로 승격된 글은 수정 불가, 제목/섹션/재료/조리순서 전체를
+    // 게시글 수정 (본인 글만 가능, 정식 레시피로 승격된 글은 수정 불가, 제목/재료/조리순서 전체를
     // 새 내용으로 교체)
     @Transactional
     public void update(Long userId, Long postId, CommunityPostCreateRequest request) {
@@ -111,9 +107,6 @@ public class CommunityPostService {
         RecipeCategory category = findCategory(request.categoryId());
 
         post.update(request.title(), category, request.cookingTimeMinutes(), request.difficulty());
-        for (CommunityPostSectionRequest section : request.sections()) {
-            post.addSection(section.subtitle(), section.content(), section.mediaUrl(), section.mediaType());
-        }
         addIngredientsAndSteps(post, request);
     }
 
@@ -129,7 +122,7 @@ public class CommunityPostService {
 
     // 본인 소유의 게시글이 맞는지 확인 후 반환 (다른 사람 글을 못 건드리게 방지)
     private CommunityPost findOwnedPost(Long userId, Long postId) {
-        CommunityPost post = communityPostRepository.findByIdWithSections(postId)
+        CommunityPost post = communityPostRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다. id=" + postId));
 
         if (!post.getUserId().equals(userId)) {

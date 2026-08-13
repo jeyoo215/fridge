@@ -74,6 +74,8 @@ public class RecipeService {
             recipe.addCookingStep(CookingStep.builder()
                     .stepOrder(item.stepOrder())
                     .description(item.description())
+                    .mediaUrl(item.mediaUrl())
+                    .mediaType(item.mediaType() != null ? CookingStep.MediaType.valueOf(item.mediaType()) : null)
                     .build());
         }
 

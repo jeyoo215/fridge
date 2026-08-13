@@ -27,7 +27,7 @@ public class CommunityMediaService {
             throw new IllegalArgumentException("업로드할 파일이 없습니다.");
         }
 
-        CommunityPostSection.MediaType mediaType = detectMediaType(file.getContentType());
+        CommunityPostStep.MediaType mediaType = detectMediaType(file.getContentType());
         validateSize(file.getSize(), mediaType);
 
         String extension = extractExtension(file.getOriginalFilename());
@@ -46,23 +46,23 @@ public class CommunityMediaService {
         return new CommunityMediaUploadResponse(url, mediaType);
     }
 
-    private CommunityPostSection.MediaType detectMediaType(String contentType) {
+    private CommunityPostStep.MediaType detectMediaType(String contentType) {
         if (contentType == null) {
             throw new IllegalArgumentException("파일 형식을 확인할 수 없습니다.");
         }
         if (contentType.startsWith("image/")) {
-            return CommunityPostSection.MediaType.IMAGE;
+            return CommunityPostStep.MediaType.IMAGE;
         }
         if (contentType.startsWith("video/")) {
-            return CommunityPostSection.MediaType.VIDEO;
+            return CommunityPostStep.MediaType.VIDEO;
         }
         throw new IllegalArgumentException("이미지 또는 동영상 파일만 업로드할 수 있습니다.");
     }
 
-    private void validateSize(long size, CommunityPostSection.MediaType mediaType) {
-        long limit = mediaType == CommunityPostSection.MediaType.IMAGE ? MAX_IMAGE_SIZE : MAX_VIDEO_SIZE;
+    private void validateSize(long size, CommunityPostStep.MediaType mediaType) {
+        long limit = mediaType == CommunityPostStep.MediaType.IMAGE ? MAX_IMAGE_SIZE : MAX_VIDEO_SIZE;
         if (size > limit) {
-            String limitLabel = mediaType == CommunityPostSection.MediaType.IMAGE ? "50MB" : "100MB";
+            String limitLabel = mediaType == CommunityPostStep.MediaType.IMAGE ? "50MB" : "100MB";
             throw new IllegalArgumentException(mediaType + " 파일은 " + limitLabel + "를 넘을 수 없습니다.");
         }
     }
