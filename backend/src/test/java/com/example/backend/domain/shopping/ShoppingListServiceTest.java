@@ -66,6 +66,7 @@ class ShoppingListServiceTest {
         when(recipeRepository.findById(10L)).thenReturn(Optional.of(recipe));
         when(userIngredientRepository.findByUserIdAndStatusOrderByExpirationDateAsc(1L, UserIngredient.Status.보유중))
                 .thenReturn(List.of(myEgg)); // 계란만 보유중, 양파는 없음
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.empty());
 
         ShoppingListResponse result = shoppingListService.getShoppingList(1L, 10L);
 
@@ -238,5 +239,26 @@ class ShoppingListServiceTest {
         assertThatThrownBy(() ->
                 shoppingListService.addManualItem(1L, new ManualShoppingItemRequest(999L, BigDecimal.ONE, "개"))
         ).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("이미 장보기 리스트에 담긴 부족한 재료는 inMyList가 true로 내려간다")
+    void getShoppingList_이미담긴재료는_inMyList_true() {
+        Ingredient onion = ingredient(2L, "양파");
+        Recipe recipe = Recipe.builder().recipeName("양파볶음").build();
+        recipe.addRecipeIngredient(RecipeIngredient.builder().ingredient(onion).quantity(BigDecimal.ONE).unit("개").build());
+        ReflectionTestUtils.setField(recipe, "recipeId", 10L);
+
+        ShoppingList existingList = ShoppingList.builder().userId(1L).build();
+        existingList.addItem(ShoppingListItem.builder().ingredient(onion).quantity(BigDecimal.ONE).unit("개").build());
+
+        when(recipeRepository.findById(10L)).thenReturn(Optional.of(recipe));
+        when(userIngredientRepository.findByUserIdAndStatusOrderByExpirationDateAsc(1L, UserIngredient.Status.보유중))
+                .thenReturn(List.of());
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.of(existingList));
+
+        ShoppingListResponse result = shoppingListService.getShoppingList(1L, 10L);
+
+        assertThat(result.getMissingIngredients().get(0).isInMyList()).isTrue();
     }
 }

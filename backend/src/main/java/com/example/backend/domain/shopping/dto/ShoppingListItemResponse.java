@@ -14,14 +14,16 @@ public class ShoppingListItemResponse {
     private final String categoryName;
     private final BigDecimal quantity;
     private final String unit;
+    private final boolean inMyList;
 
-    public ShoppingListItemResponse(RecipeIngredient entity) {
-        this.ingredientId = entity.getIngredient().getIngredientId();
-        this.ingredientName = entity.getIngredient().getIngredientName();
-        this.categoryName = entity.getIngredient().getCategory() != null
-                ? entity.getIngredient().getCategory().getCategoryName()
-                : null;
-        this.quantity = entity.getQuantity();
-        this.unit = entity.getUnit();
+    public ShoppingListItemResponse(RecipeIngredient recipeIngredient, boolean inMyList) {
+        this.ingredientId = recipeIngredient.getIngredient().getIngredientId();
+        this.ingredientName = recipeIngredient.getIngredient().getIngredientName();
+        this.categoryName = recipeIngredient.getIngredient().getCategory() != null
+                ? recipeIngredient.getIngredient().getCategory().getCategoryName()
+                : "기타";
+        this.quantity = recipeIngredient.getQuantity();
+        this.unit = recipeIngredient.getUnit();
+        this.inMyList = inMyList;
     }
 }
