@@ -39,18 +39,16 @@ public class UserIngredientService {
                 .unit(request.unit())
                 .purchaseDate(request.purchaseDate())
                 .expirationDate(request.expirationDate())
-                .price(request.price())
                 .build();
 
         return userIngredientRepository.save(userIngredient).getUserIngredientId();
     }
 
-    // 재료 수정 (수량/구매일/소비기한/가격 변경)
+    // 재료 수정 (수량/구매일/소비기한 변경)
     @Transactional
     public void update(Long userId, Long userIngredientId, UserIngredientUpdateRequest request) {
         UserIngredient userIngredient = findOwnedUserIngredient(userId, userIngredientId);
         userIngredient.updateQuantityAndExpiration(request.quantity(), request.purchaseDate(), request.expirationDate());
-        userIngredient.updatePrice(request.price());
     }
 
     // 재료 소진 처리 ("요리에 다 썼어요")

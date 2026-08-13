@@ -72,6 +72,7 @@ const CATEGORY_ICONS = {
   알류: "🥚",
   과일: "🍎",
   "곡물/가공식품": "🍞",
+  조미료: "🧂",
   기타: "🧺",
 };
 
@@ -101,7 +102,6 @@ export default function IngredientList() {
   const [editQuantity, setEditQuantity] = useState("");
   const [editPurchaseDate, setEditPurchaseDate] = useState("");
   const [editExpirationDate, setEditExpirationDate] = useState("");
-  const [editPrice, setEditPrice] = useState("");
   const [actionError, setActionError] = useState(null);
   const [undoToast, setUndoToast] = useState(null); // { userIngredientId, ingredientName, actionLabel }
 
@@ -241,7 +241,6 @@ export default function IngredientList() {
     setEditQuantity(item.quantity);
     setEditPurchaseDate(item.purchaseDate || "");
     setEditExpirationDate(item.expirationDate);
-    setEditPrice(item.price != null ? item.price : "");
   };
 
   const cancelEdit = () => setEditingId(null);
@@ -252,7 +251,6 @@ export default function IngredientList() {
         quantity: Number(editQuantity),
         purchaseDate: editPurchaseDate || null,
         expirationDate: editExpirationDate,
-        price: editPrice ? Number(editPrice) : null,
       });
       setEditingId(null);
       loadIngredients();
@@ -355,18 +353,6 @@ export default function IngredientList() {
                 onChange={(e) => setEditExpirationDate(e.target.value)}
               />
             </label>
-            <label className="edit-field-group">
-              <span className="edit-field-label">가격</span>
-              <input
-                type="number"
-                min="0"
-                step="100"
-                placeholder="선택"
-                className="edit-input edit-input-quantity"
-                value={editPrice}
-                onChange={(e) => setEditPrice(e.target.value.replace(/[^0-9]/g, ""))}
-              />
-            </label>
           </div>
           <div className="edit-actions">
             <button className="edit-save-button" onClick={() => saveEdit(item.userIngredientId)}>
@@ -458,10 +444,16 @@ export default function IngredientList() {
   }
 
   // 임박: 아직 안 지났지만 곧 지나는 것 (0~알림기준일 남음)
+  // 조미료는 보통 유통기한이 훨씬 길고 급하게 신경 쓸 대상이 아니라서 알림 대상에서 제외함
   const upcomingIngredients = ingredients.filter(
-    (item) => item.dDay !== null && item.dDay !== undefined && item.dDay >= 0 && item.dDay <= alertThreshold
+    (item) =>
+      !item.isSeasoning &&
+      item.dDay !== null &&
+      item.dDay !== undefined &&
+      item.dDay >= 0 &&
+      item.dDay <= alertThreshold
   );
-  // 지난 것: 이미 소비기한이 지난 것 (마이너스)
+  // 지난 것: 이미 소비기한이 지난 것 (마이너스) — 이건 조미료도 실제로 상했을 수 있으니 알림 대상 유지
   const expiredIngredients = ingredients.filter(
     (item) => item.dDay !== null && item.dDay !== undefined && item.dDay < 0
   );
