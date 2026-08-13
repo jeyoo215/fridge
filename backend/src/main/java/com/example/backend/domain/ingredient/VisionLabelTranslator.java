@@ -1,13 +1,13 @@
 package com.example.backend.domain.ingredient;
- 
+
 import com.google.cloud.translate.Translate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
- 
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
- 
+
 // Google Vision의 라벨 인식 결과는 거의 항상 영문으로 반환되는데,
 // ingredient 테이블은 한글 재료명(예: "양파")으로 저장돼 있어 그 사이를 이어주는 번역기.
 //
@@ -19,18 +19,18 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 @Slf4j
 public class VisionLabelTranslator {
- 
+
     private final Translate translateClient;
- 
+
     // 같은 영단어를 매번 API로 다시 번역하면 비용/속도 낭비라서, 한 번 번역한 결과는 메모리에 캐싱해둠
     private final Map<String, String> translationCache = new ConcurrentHashMap<>();
- 
+
     // 매칭되는 한글 키워드가 없으면 null (번역 자체가 실패했거나 API 호출 중 오류난 경우)
     public String toKoreanKeyword(String englishLabel) {
         String key = englishLabel.toLowerCase();
         return translationCache.computeIfAbsent(key, this::translate);
     }
- 
+
     private String translate(String englishLabel) {
         try {
             Translate.TranslateOption sourceLang = Translate.TranslateOption.sourceLanguage("en");
