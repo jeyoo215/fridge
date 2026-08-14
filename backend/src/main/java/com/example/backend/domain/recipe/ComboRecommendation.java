@@ -5,8 +5,8 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-// ERD의 조합추천이력 테이블. Python 배치(ml/calculate_combo_recommendation.py)가 채워넣고
-// Spring은 조회만 한다 (FR-23)
+// ERD의 조합추천이력 테이블. Python 배치(ml/calculate_combo_recommendation.py)가 채워넣음
+// Spring은 조회만
 @Entity
 @Table(name = "combination_recommendation")
 @Getter
