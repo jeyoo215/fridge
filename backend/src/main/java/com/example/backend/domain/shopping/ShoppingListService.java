@@ -31,17 +31,25 @@ public class ShoppingListService {
     private final ShoppingListRepository shoppingListRepository;
     private final IngredientRepository ingredientRepository;
 
-    // 특정 레시피 기준 부족 재료 미리보기 (저장 안 함, 기존 기능 그대로 유지) (FR-30)
+    // 특정 레시피 기준 부족 재료 미리보기
     public ShoppingListResponse getShoppingList(Long userId, Long recipeId) {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 레시피입니다. id=" + recipeId));
 
+        Set<Long> alreadyInListIngredientIds = shoppingListRepository.findByUserId(userId)
+                .map(shoppingList -> shoppingList.getItems().stream()
+                        .map(item -> item.getIngredient().getIngredientId())
+                        .collect(Collectors.toSet()))
+                .orElse(Set.of());
+
         List<ShoppingListItemResponse> missingIngredients = findMissingRecipeIngredients(userId, recipe).stream()
-                .map(ShoppingListItemResponse::new)
+                .map(recipeIngredient -> new ShoppingListItemResponse(
+                        recipeIngredient,
+                        alreadyInListIngredientIds.contains(recipeIngredient.getIngredient().getIngredientId())))
                 .toList();
 
         return new ShoppingListResponse(recipe.getRecipeId(), recipe.getRecipeName(), missingIngredients);
-    }
+        }
 
     // 레시피의 부족한 재료를 내 장보기 리스트에 담기 (이미 담긴 재료는 중복으로 안 담음)
     @Transactional
