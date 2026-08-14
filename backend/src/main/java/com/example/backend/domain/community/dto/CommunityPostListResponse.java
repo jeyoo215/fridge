@@ -20,12 +20,12 @@ public class CommunityPostListResponse {
     private final long likeCount;
     private final Long promotedRecipeId;
 
-    public CommunityPostListResponse(CommunityPost entity, long likeCount) {
+    public CommunityPostListResponse(CommunityPost entity) {
         this.postId = entity.getPostId();
         this.userId = entity.getUserId();
         this.title = entity.getTitle();
         this.createdAt = entity.getCreatedAt();
-        this.likeCount = likeCount;
+        this.likeCount = entity.getLikeCount();
         this.promotedRecipeId = entity.isPromoted() ? entity.getPromotedRecipe().getRecipeId() : null;
 
         CommunityPostStep firstStep = entity.getSteps().isEmpty() ? null : entity.getSteps().get(0);
