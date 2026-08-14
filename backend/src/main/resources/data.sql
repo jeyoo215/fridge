@@ -1,12 +1,18 @@
 -- 개발 중 서버를 재시작해도 중복 저장되지 않도록, 매번 지우고 다시 넣음 (개발 전용, 운영에서는 사용 금지)
+--
+-- 주의: 커뮤니티 게시글 추천이 임계치를 넘어 정식 레시피로 승격된 recipe(= community_post.promoted_recipe_id가
+-- 가리키는 row)는 절대 지우면 안 된다. 예전엔 FOREIGN_KEY_CHECKS=0으로 켜놓고 recipe를 통째로 지워서,
+-- 이미 승격된 레시피까지 통째로 사라지고 그 게시글의 promoted_recipe_id는 존재하지 않는 레시피를 가리키는
+-- 좀비 참조로 남는 버그가 있었다 (레시피 상세/추천 화면에서 안 보이는 원인). 승격된 recipe_id는 항상
+-- 이 서브쿼리로 제외하고 지운다.
 SET FOREIGN_KEY_CHECKS = 0;
 
-DELETE FROM recipe_review;
-DELETE FROM recipe_ingredient;
-DELETE FROM cooking_step;
+DELETE FROM recipe_review WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
+DELETE FROM recipe_ingredient WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
+DELETE FROM cooking_step WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
 DELETE FROM user_ingredient;
-DELETE FROM combination_recommendation;
-DELETE FROM recipe;
+DELETE FROM combination_recommendation WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
+DELETE FROM recipe WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
 DELETE FROM ingredient;
 DELETE FROM ingredient_category;
 DELETE FROM user_tool;

@@ -9,4 +9,7 @@ public interface CommunityPostCommentRepository extends JpaRepository<CommunityP
 
     // 마이페이지 "내 활동 > 댓글 단 게시글" 목록 (최신 댓글순, 같은 글에 여러 댓글을 달았으면 서비스단에서 중복 제거)
     List<CommunityPostComment> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+    // 게시글 삭제 시 먼저 호출: FK 제약 때문에 댓글을 먼저 지워야 게시글을 지울 수 있음
+    void deleteByPost_PostId(Long postId);
 }

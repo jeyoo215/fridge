@@ -29,3 +29,10 @@ export async function fetchComboRecommendations(userId) {
   if (!response.ok) throw new Error("의외의 조합 추천을 불러오지 못했습니다.");
   return response.json();
 }
+
+// 레시피 카테고리 전체 목록 (커뮤니티 글쓰기 화면 드롭다운용)
+export async function fetchRecipeCategories() {
+  const response = await fetch(`${BASE_URL}/recipes/categories`);
+  if (!response.ok) throw new Error("카테고리 목록을 불러오지 못했습니다.");
+  return response.json();
+}

@@ -9,12 +9,16 @@ import {
   uploadCommunityMedia,
   toMediaSrc,
 } from "../api/communityApi";
+import { searchIngredients } from "../api/ingredientApi";
+import { fetchRecipeCategories } from "../api/recipeApi";
 import "./CommunityPostForm.css";
 
 const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
 
 const MAX_IMAGE_SIZE = 50 * 1024 * 1024;  // 50MB
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
+
+const DIFFICULTY_OPTIONS = ["쉬움", "보통", "어려움"];
 
 // Quill 자체 드롭다운 툴바(크기/색상)가 이 환경에서 클릭하자마자 닫혀버리는 문제가 있어서,
 // 크기/색상은 Quill 툴바 대신 별도의 숫자 입력창 + 적용 버튼으로 직접 만든다.
@@ -34,15 +38,15 @@ const QUILL_MODULES = {
   ],
 };
 
-function emptySection() {
-  return { key: crypto.randomUUID(), subtitle: "", content: "", mediaUrl: "", mediaType: null, uploading: false };
+function emptyStep() {
+  return { key: crypto.randomUUID(), description: "", mediaUrl: "", mediaType: null, uploading: false };
 }
 
 export default function CommunityPostForm() {
   const { postId } = useParams(); // 있으면 수정 모드, 없으면 새 글 작성 모드
   const isEditMode = Boolean(postId);
 
-  // 섹션별 Quill 인스턴스 / 크기·색상 입력창을 key로 찾아가기 위한 저장소 (렌더링과 무관해서 ref로 관리)
+  // 조리순서 단계별 Quill 인스턴스 / 크기·색상 입력창을 key로 찾아가기 위한 저장소 (렌더링과 무관해서 ref로 관리)
   const editorRefs = useRef({});
   const getBucket = (key) => {
     if (!editorRefs.current[key]) {
@@ -52,40 +56,117 @@ export default function CommunityPostForm() {
   };
 
   const [title, setTitle] = useState("");
-  const [sections, setSections] = useState([emptySection()]);
   const [loading, setLoading] = useState(isEditMode);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [locked, setLocked] = useState(false); // 정식 레시피로 승격된 글 (수정 불가)
   const navigate = useNavigate();
+
+  // 레시피 기본 정보
+  const [categories, setCategories] = useState([]);
+  const [categoryId, setCategoryId] = useState("");
+  const [cookingTimeMinutes, setCookingTimeMinutes] = useState("");
+  const [difficulty, setDifficulty] = useState(DIFFICULTY_OPTIONS[0]);
+
+  // 재료 목록 + 재료 검색
+  const [ingredients, setIngredients] = useState([]); // { key, ingredientId, ingredientName, quantity, unit }
+  const [ingredientKeyword, setIngredientKeyword] = useState("");
+  const [ingredientResults, setIngredientResults] = useState([]);
+
+  // 조리순서 목록 (번호 + 리치텍스트 본문 + 이미지/동영상 첨부, 예전의 "섹션" 기능을 겸함)
+  const [steps, setSteps] = useState([emptyStep()]);
+
+  // 카테고리 목록이 나중에 도착해도 이름 매칭이 되도록 별도 상태로 들고 있다가 반영한다.
+  const [pendingCategoryName, setPendingCategoryName] = useState(null);
+
+  useEffect(() => {
+    fetchRecipeCategories().then(setCategories).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!isEditMode) return;
     fetchCommunityPost(postId)
       .then((post) => {
+        if (post.promotedRecipeId) {
+          setLocked(true);
+          return;
+        }
         setTitle(post.title);
-        setSections(
-          post.sections.map((s) => ({
+        setCookingTimeMinutes(String(post.cookingTimeMinutes ?? ""));
+        setDifficulty(post.difficulty || DIFFICULTY_OPTIONS[0]);
+        setIngredients(
+          post.ingredients.map((item) => ({
             key: crypto.randomUUID(),
-            subtitle: s.subtitle,
-            content: s.content,
-            mediaUrl: s.mediaUrl || "",
-            mediaType: s.mediaType,
-            uploading: false,
+            ingredientId: item.ingredientId,
+            ingredientName: item.ingredientName,
+            quantity: item.quantity ?? "",
+            unit: item.unit || "",
           }))
         );
+        setSteps(
+          post.steps.length > 0
+            ? post.steps.map((step) => ({
+                key: crypto.randomUUID(),
+                description: step.description,
+                mediaUrl: step.mediaUrl || "",
+                mediaType: step.mediaType,
+                uploading: false,
+              }))
+            : [emptyStep()]
+        );
+        // categoryId는 상세 응답에 이름만 내려와서, 카테고리 목록에서 이름으로 찾아 채운다.
+        setPendingCategoryName(post.categoryName);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [isEditMode, postId]);
 
-  const updateSection = (key, patch) => {
-    setSections((prev) => prev.map((s) => (s.key === key ? { ...s, ...patch } : s)));
+  useEffect(() => {
+    if (!pendingCategoryName || categories.length === 0) return;
+    const matched = categories.find((c) => c.categoryName === pendingCategoryName);
+    if (matched) setCategoryId(String(matched.categoryId));
+    setPendingCategoryName(null);
+  }, [pendingCategoryName, categories]);
+
+  // 재료 검색어 입력하고 300ms 있다가 검색 (IngredientRegisterForm과 동일한 디바운스 패턴)
+  useEffect(() => {
+    if (!ingredientKeyword) {
+      setIngredientResults([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      searchIngredients(ingredientKeyword)
+        .then(setIngredientResults)
+        .catch(() => setIngredientResults([]));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [ingredientKeyword]);
+
+  const addIngredientRow = (ingredient) => {
+    setIngredients((prev) => [
+      ...prev,
+      { key: crypto.randomUUID(), ingredientId: ingredient.ingredientId, ingredientName: ingredient.ingredientName, quantity: "", unit: "" },
+    ]);
+    setIngredientKeyword("");
+    setIngredientResults([]);
   };
 
-  const addSection = () => setSections((prev) => [...prev, emptySection()]);
+  const updateIngredientRow = (key, patch) => {
+    setIngredients((prev) => prev.map((row) => (row.key === key ? { ...row, ...patch } : row)));
+  };
 
-  const removeSection = (key) => {
-    setSections((prev) => (prev.length > 1 ? prev.filter((s) => s.key !== key) : prev));
+  const removeIngredientRow = (key) => {
+    setIngredients((prev) => prev.filter((row) => row.key !== key));
+  };
+
+  const updateStep = (key, patch) => {
+    setSteps((prev) => prev.map((step) => (step.key === key ? { ...step, ...patch } : step)));
+  };
+
+  const addStep = () => setSteps((prev) => [...prev, emptyStep()]);
+
+  const removeStep = (key) => {
+    setSteps((prev) => (prev.length > 1 ? prev.filter((step) => step.key !== key) : prev));
   };
 
   // 적용 버튼은 에디터 바깥에 있어서 클릭하는 순간 에디터가 포커스를 잃는데,
@@ -134,13 +215,13 @@ export default function CommunityPostForm() {
     }
 
     setError(null);
-    updateSection(key, { uploading: true });
+    updateStep(key, { uploading: true });
     try {
       const { url, mediaType } = await uploadCommunityMedia(file);
-      updateSection(key, { mediaUrl: url, mediaType, uploading: false });
+      updateStep(key, { mediaUrl: url, mediaType, uploading: false });
     } catch (err) {
       setError(err.message);
-      updateSection(key, { uploading: false });
+      updateStep(key, { uploading: false });
     }
   };
 
@@ -150,11 +231,23 @@ export default function CommunityPostForm() {
       setError("제목을 입력해주세요.");
       return;
     }
-    if (sections.some((s) => !s.subtitle.trim() || !s.content.trim() || s.content === "<p><br></p>")) {
-      setError("모든 섹션의 소제목과 내용을 입력해주세요.");
+    if (!categoryId) {
+      setError("카테고리를 선택해주세요.");
       return;
     }
-    if (sections.some((s) => s.uploading)) {
+    if (!cookingTimeMinutes || Number(cookingTimeMinutes) <= 0) {
+      setError("조리시간을 입력해주세요.");
+      return;
+    }
+    if (ingredients.length === 0) {
+      setError("재료를 1개 이상 추가해주세요.");
+      return;
+    }
+    if (steps.some((s) => !s.description.trim() || s.description === "<p><br></p>")) {
+      setError("모든 조리순서의 내용을 입력해주세요.");
+      return;
+    }
+    if (steps.some((s) => s.uploading)) {
       setError("파일 업로드가 끝날 때까지 기다려주세요.");
       return;
     }
@@ -163,9 +256,16 @@ export default function CommunityPostForm() {
     setError(null);
     const payload = {
       title,
-      sections: sections.map(({ subtitle, content, mediaUrl, mediaType }) => ({
-        subtitle,
-        content,
+      categoryId: Number(categoryId),
+      cookingTimeMinutes: Number(cookingTimeMinutes),
+      difficulty,
+      ingredients: ingredients.map(({ ingredientId, quantity, unit }) => ({
+        ingredientId,
+        quantity: quantity === "" ? null : Number(quantity),
+        unit: unit || null,
+      })),
+      steps: steps.map(({ description, mediaUrl, mediaType }) => ({
+        description,
         mediaUrl: mediaUrl || null,
         mediaType,
       })),
@@ -187,6 +287,17 @@ export default function CommunityPostForm() {
 
   if (loading) return <p className="community-form-status">불러오는 중...</p>;
 
+  if (locked) {
+    return (
+      <div className="community-form-status">
+        <p>정식 레시피로 등록된 게시글은 수정할 수 없습니다.</p>
+        <button type="button" onClick={() => navigate(`/community/${postId}`)}>
+          게시글로 돌아가기
+        </button>
+      </div>
+    );
+  }
+
   return (
     <form className="community-form" onSubmit={handleSubmit}>
       <h2 className="community-form-title">{isEditMode ? "레시피 글 수정" : "레시피 글쓰기"}</h2>
@@ -201,44 +312,114 @@ export default function CommunityPostForm() {
         />
       </label>
 
-      {sections.map((section, index) => (
-        <div className="community-form-section" key={section.key}>
+      <div className="community-form-recipe-meta">
+        <label className="community-form-label">
+          카테고리
+          <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+            <option value="">선택</option>
+            {categories.map((category) => (
+              <option key={category.categoryId} value={category.categoryId}>
+                {category.categoryName}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="community-form-label">
+          조리시간(분)
+          <input
+            type="number"
+            min="1"
+            value={cookingTimeMinutes}
+            onChange={(e) => setCookingTimeMinutes(e.target.value)}
+          />
+        </label>
+        <label className="community-form-label">
+          난이도
+          <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+            {DIFFICULTY_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="community-form-recipe-block">
+        <h3 className="community-form-block-title">재료</h3>
+        {ingredients.length > 0 && (
+          <ul className="community-form-ingredient-list">
+            {ingredients.map((row) => (
+              <li key={row.key} className="community-form-ingredient-row">
+                <span className="community-form-ingredient-name">{row.ingredientName}</span>
+                <input
+                  type="number"
+                  placeholder="수량"
+                  value={row.quantity}
+                  onChange={(e) => updateIngredientRow(row.key, { quantity: e.target.value })}
+                />
+                <input
+                  type="text"
+                  placeholder="단위 (예: 개)"
+                  value={row.unit}
+                  onChange={(e) => updateIngredientRow(row.key, { unit: e.target.value })}
+                />
+                <button type="button" onClick={() => removeIngredientRow(row.key)}>
+                  삭제
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="community-form-ingredient-search">
+          <input
+            type="text"
+            placeholder="재료 이름으로 검색해서 추가"
+            value={ingredientKeyword}
+            onChange={(e) => setIngredientKeyword(e.target.value)}
+          />
+          {ingredientResults.length > 0 && (
+            <ul className="community-form-ingredient-search-results">
+              {ingredientResults.map((ingredient) => (
+                <li key={ingredient.ingredientId}>
+                  <button type="button" onClick={() => addIngredientRow(ingredient)}>
+                    {ingredient.ingredientName}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      {steps.map((step, index) => (
+        <div className="community-form-section" key={step.key}>
           <div className="community-form-section-header">
-            <span>섹션 {index + 1}</span>
-            {sections.length > 1 && (
-              <button type="button" className="community-form-remove" onClick={() => removeSection(section.key)}>
+            <span className="community-form-step-badge">{index + 1}단계</span>
+            {steps.length > 1 && (
+              <button type="button" className="community-form-remove" onClick={() => removeStep(step.key)}>
                 삭제
               </button>
             )}
           </div>
 
           <label className="community-form-label">
-            소제목
-            <input
-              className="community-form-input"
-              value={section.subtitle}
-              onChange={(e) => updateSection(section.key, { subtitle: e.target.value })}
-              placeholder="예: 재료 준비"
-            />
-          </label>
-
-          <label className="community-form-label">
             사진/동영상 첨부 (선택, 이미지 50MB / 동영상 100MB까지)
             <input
               type="file"
               accept="image/*,video/*"
-              onChange={(e) => handleFileSelected(section.key, e.target.files?.[0])}
+              onChange={(e) => handleFileSelected(step.key, e.target.files?.[0])}
             />
           </label>
 
-          {section.uploading && <p className="community-form-upload-status">업로드 중...</p>}
+          {step.uploading && <p className="community-form-upload-status">업로드 중...</p>}
 
-          {section.mediaUrl && !section.uploading && (
+          {step.mediaUrl && !step.uploading && (
             <div className="community-form-preview">
-              {section.mediaType === "VIDEO" ? (
-                <video src={toMediaSrc(section.mediaUrl)} controls />
+              {step.mediaType === "VIDEO" ? (
+                <video src={toMediaSrc(step.mediaUrl)} controls />
               ) : (
-                <img src={toMediaSrc(section.mediaUrl)} alt="첨부 미리보기" />
+                <img src={toMediaSrc(step.mediaUrl)} alt="첨부 미리보기" />
               )}
             </div>
           )}
@@ -251,10 +432,10 @@ export default function CommunityPostForm() {
                 min="5"
                 max="50"
                 defaultValue="16"
-                ref={(el) => (getBucket(section.key).sizeInput = el)}
+                ref={(el) => (getBucket(step.key).sizeInput = el)}
               />
             </label>
-            <button type="button" onClick={() => applyFontSize(section.key)}>
+            <button type="button" onClick={() => applyFontSize(step.key)}>
               크기 적용
             </button>
             <label>
@@ -262,10 +443,10 @@ export default function CommunityPostForm() {
               <input
                 type="color"
                 defaultValue="#000000"
-                ref={(el) => (getBucket(section.key).colorInput = el)}
+                ref={(el) => (getBucket(step.key).colorInput = el)}
               />
             </label>
-            <button type="button" onClick={() => applyColor(section.key)}>
+            <button type="button" onClick={() => applyColor(step.key)}>
               색상 적용
             </button>
           </div>
@@ -274,22 +455,22 @@ export default function CommunityPostForm() {
           </p>
 
           <label className="community-form-label">
-            내용
+            {index + 1}단계 설명
             <ReactQuill
               ref={(el) => {
-                getBucket(section.key).quillComponent = el;
+                getBucket(step.key).quillComponent = el;
               }}
               theme="snow"
-              value={section.content}
-              onChange={(value) => updateSection(section.key, { content: value })}
+              value={step.description}
+              onChange={(value) => updateStep(step.key, { description: value })}
               modules={QUILL_MODULES}
             />
           </label>
         </div>
       ))}
 
-      <button type="button" className="community-form-add-section" onClick={addSection}>
-        + 섹션 추가
+      <button type="button" className="community-form-add-section" onClick={addStep}>
+        + 조리순서 추가
       </button>
 
       {error && <p className="community-form-error">{error}</p>}

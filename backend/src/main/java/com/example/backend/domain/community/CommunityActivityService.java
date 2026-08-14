@@ -50,14 +50,14 @@ public class CommunityActivityService {
             return List.of();
         }
 
-        Map<Long, CommunityPost> postsById = communityPostRepository.findAllWithSectionsByPostIdIn(postIds)
+        Map<Long, CommunityPost> postsById = communityPostRepository.findAllWithStepsByPostIdIn(postIds)
                 .stream()
                 .collect(Collectors.toMap(CommunityPost::getPostId, post -> post, (a, b) -> a, LinkedHashMap::new));
 
         return postIds.stream()
                 .map(postsById::get)
                 .filter(post -> post != null) // 스크랩/좋아요/댓글 이후 삭제된 글은 건너뜀
-                .map(post -> new CommunityPostListResponse(post, communityPostLikeRepository.countByPost_PostId(post.getPostId())))
+                .map(CommunityPostListResponse::new)
                 .toList();
     }
 }
