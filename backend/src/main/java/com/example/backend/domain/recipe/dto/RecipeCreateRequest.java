@@ -12,7 +12,8 @@ public record RecipeCreateRequest(
         String imageUrl,                  // 대표 이미지 url
         List<IngredientItem> ingredients, // 필요 재료 목록
         List<StepItem> steps,             // 조리 순서 목록
-        List<Long> toolIds                // 필요 조리도구 id 목록 (FR-22, cooking_tool 참조)
+        List<Long> toolIds,               // 필요 조리도구 id 목록 (FR-22, cooking_tool 참조)
+        String source                     // 출처 (예: "커뮤니티" — 커뮤니티 글 승격으로 생성된 경우)
 ) {
     // 재료 항목 (재료 id + 수량 + 단위)
     public record IngredientItem(
@@ -22,10 +23,13 @@ public record RecipeCreateRequest(
     ) {
     }
 
-    // 조리 단계 항목 (순서 + 설명)
+    // 조리 단계 항목 (순서 + 설명 + 선택적 이미지/동영상). mediaType은 "IMAGE"/"VIDEO" 문자열
+    // (CookingStep.MediaType.valueOf로 변환) — 도메인 간 enum 의존을 피하려고 문자열로 받는다.
     public record StepItem(
             Integer stepOrder,
-            String description
+            String description,
+            String mediaUrl,
+            String mediaType
     ) {
     }
 }

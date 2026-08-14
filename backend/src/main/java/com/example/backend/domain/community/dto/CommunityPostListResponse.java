@@ -1,13 +1,13 @@
 package com.example.backend.domain.community.dto;
 
 import com.example.backend.domain.community.CommunityPost;
-import com.example.backend.domain.community.CommunityPostSection;
+import com.example.backend.domain.community.CommunityPostStep;
 import lombok.Getter;
 import org.springframework.web.util.HtmlUtils;
 
 import java.time.LocalDateTime;
 
-// 게시판 목록 화면 카드 하나. 첫 섹션의 이미지/본문에서 썸네일과 미리보기 텍스트를 뽑아 보여준다.
+// 게시판 목록 화면 카드 하나. 첫 조리순서 단계의 이미지/본문에서 썸네일과 미리보기 텍스트를 뽑아 보여준다.
 @Getter
 public class CommunityPostListResponse {
 
@@ -18,20 +18,22 @@ public class CommunityPostListResponse {
     private final String previewText;
     private final LocalDateTime createdAt;
     private final long likeCount;
+    private final Long promotedRecipeId;
 
-    public CommunityPostListResponse(CommunityPost entity, long likeCount) {
+    public CommunityPostListResponse(CommunityPost entity) {
         this.postId = entity.getPostId();
         this.userId = entity.getUserId();
         this.title = entity.getTitle();
         this.createdAt = entity.getCreatedAt();
-        this.likeCount = likeCount;
+        this.likeCount = entity.getLikeCount();
+        this.promotedRecipeId = entity.isPromoted() ? entity.getPromotedRecipe().getRecipeId() : null;
 
-        CommunityPostSection firstSection = entity.getSections().isEmpty() ? null : entity.getSections().get(0);
+        CommunityPostStep firstStep = entity.getSteps().isEmpty() ? null : entity.getSteps().get(0);
         // 목록 카드 썸네일은 이미지일 때만 보여준다 (동영상은 재생 없이 정지 프레임을 뽑을 방법이 없어서 생략).
-        this.thumbnailUrl = firstSection != null && firstSection.getMediaType() == CommunityPostSection.MediaType.IMAGE
-                ? firstSection.getMediaUrl()
+        this.thumbnailUrl = firstStep != null && firstStep.getMediaType() == CommunityPostStep.MediaType.IMAGE
+                ? firstStep.getMediaUrl()
                 : null;
-        this.previewText = firstSection != null ? toPreviewText(firstSection.getContent()) : "";
+        this.previewText = firstStep != null ? toPreviewText(firstStep.getDescription()) : "";
     }
 
     // 목록 카드엔 HTML 서식 없이 순수 텍스트 미리보기만 필요해서 태그를 제거하고 길이를 제한한다.

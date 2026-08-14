@@ -71,7 +71,10 @@ export default function RecipeDetail() {
         ← 목록으로
       </button>
 
-      <h2 className="recipe-detail-title">{recipe.recipeName}</h2>
+      <h2 className="recipe-detail-title">
+        {recipe.recipeName}
+        {recipe.userCreated && <span className="recipe-user-badge">👑 유저 제작 레시피</span>}
+      </h2>
       <div className="recipe-detail-meta">
         <span>⏱ {recipe.cookingTimeMinutes}분</span>
         <span>· {recipe.difficulty}</span>

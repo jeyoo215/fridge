@@ -1,25 +1,30 @@
 -- 개발 중 서버를 재시작해도 중복 저장되지 않도록, 매번 지우고 다시 넣음 (개발 전용, 운영에서는 사용 금지)
+--
+-- 주의: 커뮤니티 게시글 추천이 임계치를 넘어 정식 레시피로 승격된 recipe(= community_post.promoted_recipe_id가
+-- 가리키는 row)는 절대 지우면 안 된다. 예전엔 FOREIGN_KEY_CHECKS=0으로 켜놓고 recipe를 통째로 지워서,
+-- 이미 승격된 레시피까지 통째로 사라지고 그 게시글의 promoted_recipe_id는 존재하지 않는 레시피를 가리키는
+-- 좀비 참조로 남는 버그가 있었다 (레시피 상세/추천 화면에서 안 보이는 원인). 승격된 recipe_id는 항상
+-- 이 서브쿼리로 제외하고 지운다.
 SET FOREIGN_KEY_CHECKS = 0;
 
-DELETE FROM recipe_review;
-DELETE FROM recipe_ingredient;
-DELETE FROM cooking_step;
+DELETE FROM recipe_review WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
+DELETE FROM recipe_ingredient WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
+DELETE FROM cooking_step WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
 DELETE FROM user_ingredient;
-DELETE FROM combination_recommendation;
-DELETE FROM recipe;
+DELETE FROM combination_recommendation WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
+DELETE FROM recipe WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
 DELETE FROM ingredient;
 DELETE FROM ingredient_category;
 DELETE FROM user_tool;
 DELETE FROM cooking_tool;
 DELETE FROM user_allergy_ingredient;
 DELETE FROM recipe_category;
-DELETE FROM user;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- 프론트/다른 더미 데이터가 공통으로 참조하는 임시 유저(user_id=1). 회원가입 기능은 아직 없음.
-INSERT INTO user (user_id, email, password, nickname, created_at) VALUES
-  (1, 'test@example.com', NULL, '테스트유저', NOW());
+-- INSERT INTO user (user_id, email, password, nickname, created_at) VALUES
+--  (1, 'test@example.com', NULL, '테스트유저', NOW());
 
 -- 조리도구 마스터 (마이페이지에서 사용자가 다중선택하는 목록, 개발자가 직접 시드)
 INSERT INTO cooking_tool (tool_id, tool_name) VALUES

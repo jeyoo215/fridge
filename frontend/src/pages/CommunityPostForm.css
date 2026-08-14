@@ -60,6 +60,20 @@
   color: var(--color-basil);
 }
 
+.community-form-step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--color-basil);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .community-form-remove {
   border: none;
   background: none;
@@ -192,4 +206,183 @@
 .community-form-submit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.community-form-status button {
+  margin-top: 12px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-basil);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.community-form-recipe-meta {
+  display: flex;
+  gap: 12px;
+}
+
+.community-form-recipe-meta .community-form-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.community-form-recipe-meta select,
+.community-form-recipe-meta input {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 14px;
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+.community-form-recipe-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.community-form-block-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.community-form-ingredient-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.community-form-ingredient-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.community-form-ingredient-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.community-form-ingredient-row input {
+  width: 72px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  font-size: 13px;
+}
+
+.community-form-ingredient-row button {
+  border: none;
+  background: none;
+  color: var(--color-tomato);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.community-form-ingredient-search {
+  position: relative;
+}
+
+.community-form-ingredient-search input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  font-size: 14px;
+  font-family: var(--font-body);
+  box-sizing: border-box;
+}
+
+.community-form-ingredient-search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 5;
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-menu);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.community-form-ingredient-search-results button {
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.community-form-ingredient-search-results button:hover {
+  background: var(--color-basil-bg);
+}
+
+.community-form-step-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.community-form-step-number {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-basil);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.community-form-step-row textarea {
+  flex: 1;
+  min-width: 0;
+  min-height: 56px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  font-size: 14px;
+  font-family: var(--font-body);
+  resize: vertical;
+}
+
+.community-form-step-row button {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: var(--color-tomato);
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 8px;
 }
