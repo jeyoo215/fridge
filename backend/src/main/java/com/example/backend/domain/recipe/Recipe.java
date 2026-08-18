@@ -38,6 +38,11 @@ public class Recipe {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
+    
+    // 레시피 출처. null이면 관리자/공식 등록, "커뮤니티"면 커뮤니티 게시글이 승격되어 생성된 것.
+    @Column(name = "source", length = 50)
+    private String source;
+
     @CurrentTimestamp
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -91,10 +96,6 @@ public class Recipe {
     // 원본 재료 문자열 보존
     @Column(name = "raw_ingredients", columnDefinition = "TEXT")
     private String rawIngredients;
-
-    // 출처 추적
-    @Column(name = "source", length = 50)
-    private String source; // 예: "식약처"
 
     // 외부 API 고유번호 (RCP_SEQ) — 중복 수집 방지
     @Column(name = "external_id", length = 50)

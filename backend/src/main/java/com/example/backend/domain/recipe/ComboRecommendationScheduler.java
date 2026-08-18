@@ -12,10 +12,9 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
-// ml/calculate_combo_recommendation.py(Apriori 연관 규칙 배치)를 자동으로 재실행해서
-// combination_recommendation 테이블을 최신 상태로 유지한다 (FR-23).
-// 실제 계산/저장은 Python 쪽이 다 하고, 여기서는 그 프로세스를 실행만 시켜준다.
 @Slf4j
 @Component
 public class ComboRecommendationScheduler {
@@ -26,11 +25,12 @@ public class ComboRecommendationScheduler {
     @Value("${combo.batch.python-path:python}")
     private String pythonPath;
 
-    @Value("${combo.batch.script-path:../ml/calculate_combo_recommendation.py}")
+    @Value("${combo.batch.script-path:./ml/calculate_combo_recommendation.py}")
     private String scriptPath;
 
-    // 앱 부팅 시 파이썬 실행 파일이 실제로 동작하는지 미리 확인.
-    // 여기서 실패해도 앱을 죽이진 않음 - 그냥 "이대로 두면 새벽마다 조용히 실패한다"고 미리 경고만 함.
+    @Value("${combo.batch.run-on-startup:true}")
+    private boolean runOnStartup;
+
     @PostConstruct
     public void checkPythonAvailable() {
         if (!enabled) {
@@ -47,21 +47,17 @@ public class ComboRecommendationScheduler {
         }
     }
 
-    // 매일 새벽에 자동 실행 (cron은 application.properties의 combo.batch.cron 에서 설정)
+    // 매일 새벽에 자동 실행 (전체 유저 대상, 새 레시피 반영용)
     @Scheduled(cron = "${combo.batch.cron:0 0 3 * * *}")
     public void runScheduled() {
         if (!enabled) {
             log.info("combo.batch.enabled=false 라서 조합 추천 배치를 건너뜀");
             return;
         }
-        executeBatch();
+        executeBatch(null);
     }
 
-    @Value("${combo.batch.run-on-startup:true}")
-    private boolean runOnStartup;
-
-    // 서버가 완전히 뜬 직후 한 번 자동 실행. data.sql을 새로 넣고 재시작했을 때
-    // 새벽 3시까지 기다리지 않고 바로 최신 조합 추천을 볼 수 있게 해줌.
+    // 서버 시작 직후 1회 전체 실행
     @Async
     @EventListener(ApplicationReadyEvent.class)
     public void runOnStartupBatch() {
@@ -70,21 +66,33 @@ public class ComboRecommendationScheduler {
             return;
         }
         log.info("서버 시작 시 조합 추천 배치 자동 실행");
-        executeBatch();
+        executeBatch(null);
     }
 
-    // 관리자가 수동으로 지금 바로 재계산하고 싶을 때 호출 (ComboRecommendationController).
-    // @Async라서 배치가 끝날 때까지 HTTP 응답을 붙잡고 있지 않음.
+    // 관리자용 수동 전체 재계산
     @Async
     public void runNowAsync() {
-        log.info("관리자 요청으로 조합 추천 배치 수동 실행");
-        executeBatch();
+        log.info("관리자 요청으로 조합 추천 배치 전체 재계산");
+        executeBatch(null);
     }
 
-    private void executeBatch() {
-        log.info("의외의 재료 조합 추천 배치 시작 (python={}, script={})", pythonPath, scriptPath);
+    // 리뷰 등록 등으로 특정 유저만 재계산하고 싶을 때
+    @Async
+    public void runNowAsync(Long userId) {
+        log.info("유저별 조합 추천 재계산 트리거 (userId={})", userId);
+        executeBatch(userId);
+    }
+
+    // 실제 배치 실행 - userId가 null이면 전체, 있으면 그 유저만 (calculate_combo_recommendation.py 인자로 전달)
+    private void executeBatch(Long userId) {
+        log.info("의외의 재료 조합 추천 배치 시작 (python={}, script={}, userId={})", pythonPath, scriptPath, userId);
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder(pythonPath, scriptPath);
+            List<String> command = new ArrayList<>(List.of(pythonPath, scriptPath));
+            if (userId != null) {
+                command.add(String.valueOf(userId));
+            }
+
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
 
@@ -103,7 +111,6 @@ public class ComboRecommendationScheduler {
                 log.error("의외의 재료 조합 추천 배치 실패 (exitCode={})", exitCode);
             }
         } catch (Exception e) {
-            // 배치가 실패해도 서버 자체는 절대 죽으면 안 됨 - 로그만 남기고 다음 스케줄에 재시도
             log.error("의외의 재료 조합 추천 배치 실행 중 오류 발생", e);
         }
     }

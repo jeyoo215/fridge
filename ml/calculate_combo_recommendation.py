@@ -2,6 +2,7 @@ import pandas as pd
 import mysql.connector
 from mlxtend.frequent_patterns import apriori, association_rules
 from mlxtend.preprocessing import TransactionEncoder
+import sys
 
 from db import load_db_config
 
@@ -15,6 +16,7 @@ def fetch_df(conn, query):
     return pd.read_sql(query, conn)
 
 
+# 모든 레시피의 재료 구성
 def build_recipe_baskets(conn):
     # 조미료는 거의 모든 레시피에 들어가서 규칙을 왜곡시키므로 제외
     df = fetch_df(conn, """
@@ -26,6 +28,7 @@ def build_recipe_baskets(conn):
     return df.groupby("recipe_id")["ingredient_name"].apply(list)
 
 
+# 그 레시피 장바구니들 기반 Apriori 연관 규칙
 def mine_pairwise_rules(baskets):
     te = TransactionEncoder()
     te_array = te.fit(baskets.tolist()).transform(baskets.tolist())
@@ -45,6 +48,7 @@ def mine_pairwise_rules(baskets):
     return pairwise[["ingredient_a", "ingredient_b", "lift"]]
 
 
+# reviewed_ids → 사용자의 리뷰 기록
 def fetch_user_tried_pairs(conn, user_id):
     # 사용자가 리뷰를 남긴 레시피 = 이미 만들어본 레시피로 간주, 그 안의 재료쌍은 "이미 먹어본 조합"
     df = fetch_df(conn, f"""
@@ -103,6 +107,8 @@ def save_scores(conn, user_id, scores):
     cursor.close()
 
 
+
+
 def main():
     conn = mysql.connector.connect(**load_db_config())
 
@@ -110,7 +116,12 @@ def main():
     pairwise_rules = mine_pairwise_rules(baskets)
     print(f"연관 규칙 {len(pairwise_rules)}개 발견")
 
-    user_ids = fetch_df(conn, "SELECT DISTINCT user_id FROM user")["user_id"].tolist()
+    # 인자로 user_id가 오면 그 유저만, 안 오면 전체 유저
+    if len(sys.argv) > 1:
+        user_ids = [int(sys.argv[1])]
+    else:
+        user_ids = fetch_df(conn, "SELECT DISTINCT user_id FROM user")["user_id"].tolist()
+
     for user_id in user_ids:
         tried_pairs = fetch_user_tried_pairs(conn, user_id)
         scores = compute_recipe_scores(conn, user_id, baskets, pairwise_rules, tried_pairs)

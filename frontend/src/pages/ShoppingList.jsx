@@ -16,7 +16,13 @@ export default function ShoppingList() {
 
   useEffect(() => {
     fetchShoppingList(TEMP_USER_ID, recipeId)
-      .then(setList)
+      .then((data) => {
+        setList(data);
+        // 이미 전부 담겨있으면 처음부터 '담음' 상태로 표시
+        if (data.missingIngredients.length > 0 && data.missingIngredients.every((i) => i.inMyList)) {
+          setAdded(true);
+        }
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [recipeId]);
@@ -52,7 +58,10 @@ export default function ShoppingList() {
           <ul className="shopping-list-items">
             {list.missingIngredients.map((item) => (
               <li key={item.ingredientId} className="shopping-list-item">
-                <span className="shopping-list-item-name">{item.ingredientName}</span>
+                <span className="shopping-list-item-name">
+                  {item.ingredientName}
+                  {item.inMyList && <span className="shopping-list-item-check"> ✓ 담음</span>}
+                </span>
                 <span className="shopping-list-item-amount">
                   {item.quantity} {item.unit}
                 </span>

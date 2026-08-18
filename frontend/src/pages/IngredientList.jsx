@@ -36,7 +36,11 @@ function saveSeenAlertIds(idSet) {
 function loadAlertThreshold() {
   const raw = localStorage.getItem(ALERT_THRESHOLD_STORAGE_KEY);
   const parsed = Number(raw);
-  return raw && !Number.isNaN(parsed) ? parsed : DEFAULT_ALERT_THRESHOLD;
+  // 0 이하이거나 너무 큰 값(30일 넘음)이면 저장된 값이 손상된 걸로 보고 기본값 사용
+  if (!raw || Number.isNaN(parsed) || parsed <= 0 || parsed > 30) {
+    return DEFAULT_ALERT_THRESHOLD;
+  }
+  return parsed;
 }
 
 function getFreshness(dDay, threshold) {
@@ -68,6 +72,7 @@ const CATEGORY_ICONS = {
   알류: "🥚",
   과일: "🍎",
   "곡물/가공식품": "🍞",
+  조미료: "🧂",
   기타: "🧺",
 };
 
@@ -97,7 +102,6 @@ export default function IngredientList() {
   const [editQuantity, setEditQuantity] = useState("");
   const [editPurchaseDate, setEditPurchaseDate] = useState("");
   const [editExpirationDate, setEditExpirationDate] = useState("");
-  const [editPrice, setEditPrice] = useState("");
   const [actionError, setActionError] = useState(null);
   const [undoToast, setUndoToast] = useState(null); // { userIngredientId, ingredientName, actionLabel }
 
@@ -237,7 +241,6 @@ export default function IngredientList() {
     setEditQuantity(item.quantity);
     setEditPurchaseDate(item.purchaseDate || "");
     setEditExpirationDate(item.expirationDate);
-    setEditPrice(item.price != null ? item.price : "");
   };
 
   const cancelEdit = () => setEditingId(null);
@@ -248,7 +251,6 @@ export default function IngredientList() {
         quantity: Number(editQuantity),
         purchaseDate: editPurchaseDate || null,
         expirationDate: editExpirationDate,
-        price: editPrice ? Number(editPrice) : null,
       });
       setEditingId(null);
       loadIngredients();
@@ -279,20 +281,34 @@ export default function IngredientList() {
 
     setBulkProcessing(true);
     setActionError(null);
-    try {
-      for (const id of selectedIds) {
+
+    const targetIds = Array.from(selectedIds);
+    const succeededIds = [];
+    const failedNames = [];
+
+    // 하나씩 처리하되, 중간에 실패해도 나머지는 계속 시도 (기존엔 하나 실패하면 전부 멈췄음)
+    for (const id of targetIds) {
+      try {
         await actionFn(TEMP_USER_ID, id);
+        succeededIds.push(id);
+      } catch (err) {
+        const target = ingredients.find((item) => item.userIngredientId === id);
+        failedNames.push(target?.ingredientName || `#${id}`);
       }
-      setIngredients((prev) => prev.filter((item) => !selectedIds.has(item.userIngredientId)));
-      setSelectedIds(new Set());
-      setSelectMode(false);
-    } catch (err) {
-      setActionError(`일부 처리에 실패했어요: ${err.message}`);
-      loadIngredients();
-    } finally {
-      setBulkProcessing(false);
+    }
+
+    setIngredients((prev) => prev.filter((item) => !succeededIds.includes(item.userIngredientId)));
+    setSelectedIds(new Set());
+    setSelectMode(false);
+    setBulkProcessing(false);
+
+    if (failedNames.length > 0) {
+      setActionError(
+        `${succeededIds.length}개는 "${label}" 처리됐지만, ${failedNames.length}개는 실패했어요: ${failedNames.join(", ")}`
+      );
     }
   };
+
 
   // 재료 카드 하나를 렌더링 (카테고리별 뷰/임박순 뷰/구매일순 뷰 다 재사용)
   const renderCard = (item) => {
@@ -335,18 +351,6 @@ export default function IngredientList() {
                 className="edit-input edit-input-date"
                 value={editExpirationDate}
                 onChange={(e) => setEditExpirationDate(e.target.value)}
-              />
-            </label>
-            <label className="edit-field-group">
-              <span className="edit-field-label">가격</span>
-              <input
-                type="number"
-                min="0"
-                step="100"
-                placeholder="선택"
-                className="edit-input edit-input-quantity"
-                value={editPrice}
-                onChange={(e) => setEditPrice(e.target.value.replace(/[^0-9]/g, ""))}
               />
             </label>
           </div>
@@ -440,10 +444,16 @@ export default function IngredientList() {
   }
 
   // 임박: 아직 안 지났지만 곧 지나는 것 (0~알림기준일 남음)
+  // 조미료는 보통 유통기한이 훨씬 길고 급하게 신경 쓸 대상이 아니라서 알림 대상에서 제외함
   const upcomingIngredients = ingredients.filter(
-    (item) => item.dDay !== null && item.dDay !== undefined && item.dDay >= 0 && item.dDay <= alertThreshold
+    (item) =>
+      !item.isSeasoning &&
+      item.dDay !== null &&
+      item.dDay !== undefined &&
+      item.dDay >= 0 &&
+      item.dDay <= alertThreshold
   );
-  // 지난 것: 이미 소비기한이 지난 것 (마이너스)
+  // 지난 것: 이미 소비기한이 지난 것 (마이너스) — 이건 조미료도 실제로 상했을 수 있으니 알림 대상 유지
   const expiredIngredients = ingredients.filter(
     (item) => item.dDay !== null && item.dDay !== undefined && item.dDay < 0
   );

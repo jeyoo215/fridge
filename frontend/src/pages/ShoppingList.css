@@ -83,3 +83,10 @@
   opacity: 0.7;
   cursor: default;
 }
+
+.shopping-list-item-check {
+  color: var(--color-basil-dark);
+  font-size: 12px;
+  font-weight: 700;
+  margin-left: 4px;
+}

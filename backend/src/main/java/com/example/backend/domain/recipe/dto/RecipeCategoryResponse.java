@@ -1,13 +1,16 @@
 package com.example.backend.domain.recipe.dto;
 
 import com.example.backend.domain.recipe.RecipeCategory;
+import lombok.Getter;
 
-// 레시피 카테고리 응답 DTO (등록 화면 드롭다운용)
-public record RecipeCategoryResponse(
-        Long categoryId,
-        String categoryName
-) {
-    public RecipeCategoryResponse(RecipeCategory category) {
-        this(category.getCategoryId(), category.getCategoryName());
+@Getter
+public class RecipeCategoryResponse {
+
+    private final Long categoryId;
+    private final String categoryName;
+
+    public RecipeCategoryResponse(RecipeCategory entity) {
+        this.categoryId = entity.getCategoryId();
+        this.categoryName = entity.getCategoryName();
     }
 }

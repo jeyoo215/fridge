@@ -25,13 +25,13 @@ export default function IngredientRegisterForm() {
   const [unit, setUnit] = useState("");
   const [purchaseDate, setPurchaseDate] = useState(todayDateString); // 기본값: 오늘
   const [expirationDate, setExpirationDate] = useState("");
-  const [price, setPrice] = useState(""); // 선택 입력 (안 넣으면 통계에서 평균 추정치로 계산됨)
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
   // 새 재료 등록(재료 마스터에 없는 경우) 관련 상태
   const [categories, setCategories] = useState([]);
   const [showNewIngredientForm, setShowNewIngredientForm] = useState(false);
+  const [newIngredientType, setNewIngredientType] = useState("ingredient"); // "ingredient"(재료) | "seasoning"(조미료)
   const [newIngredientCategoryId, setNewIngredientCategoryId] = useState("");
   const [newIngredientStorageMethod, setNewIngredientStorageMethod] = useState("");
   const [creatingIngredient, setCreatingIngredient] = useState(false);
@@ -91,7 +91,8 @@ export default function IngredientRegisterForm() {
   };
 
   const handleCreateNewIngredient = async () => {
-    if (!newIngredientCategoryId) {
+    const isSeasoning = newIngredientType === "seasoning";
+    if (!isSeasoning && !newIngredientCategoryId) {
       setError("카테고리를 선택해주세요.");
       return;
     }
@@ -100,8 +101,9 @@ export default function IngredientRegisterForm() {
     try {
       const created = await createIngredient({
         ingredientName: keyword.trim(),
-        categoryId: Number(newIngredientCategoryId),
+        categoryId: isSeasoning ? null : Number(newIngredientCategoryId),
         storageMethod: newIngredientStorageMethod || null,
+        isSeasoning,
       });
       // 새로 만든 재료를 바로 선택된 상태로 이어감 (수량/구매일/소비기한 입력만 남음)
       handleSelectIngredient(created);
@@ -206,7 +208,6 @@ export default function IngredientRegisterForm() {
         unit,
         purchaseDate,
         expirationDate,
-        price: price ? Number(price) : null,
       });
       navigate("/");
     } catch (err) {
@@ -319,18 +320,45 @@ export default function IngredientRegisterForm() {
 
         {showNewIngredientForm && (
           <div className="new-ingredient-panel">
-            <label>카테고리 선택</label>
-            <select
-              value={newIngredientCategoryId}
-              onChange={(e) => setNewIngredientCategoryId(e.target.value)}
-            >
-              <option value="">카테고리를 선택하세요</option>
-              {categories.map((c) => (
-                <option key={c.categoryId} value={c.categoryId}>
-                  {c.categoryName}
-                </option>
-              ))}
-            </select>
+            <div className="new-ingredient-type-radio">
+              <label>
+                <input
+                  type="radio"
+                  name="newIngredientType"
+                  value="ingredient"
+                  checked={newIngredientType === "ingredient"}
+                  onChange={() => setNewIngredientType("ingredient")}
+                />
+                재료
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="newIngredientType"
+                  value="seasoning"
+                  checked={newIngredientType === "seasoning"}
+                  onChange={() => setNewIngredientType("seasoning")}
+                />
+                조미료
+              </label>
+            </div>
+
+            {newIngredientType === "ingredient" && (
+              <>
+                <label>카테고리 선택</label>
+                <select
+                  value={newIngredientCategoryId}
+                  onChange={(e) => setNewIngredientCategoryId(e.target.value)}
+                >
+                  <option value="">카테고리를 선택하세요</option>
+                  {categories.map((c) => (
+                    <option key={c.categoryId} value={c.categoryId}>
+                      {c.categoryName}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
             <label>보관법 (선택)</label>
             <select
               value={newIngredientStorageMethod}
@@ -391,18 +419,6 @@ export default function IngredientRegisterForm() {
           type="date"
           value={expirationDate}
           onChange={(e) => setExpirationDate(e.target.value)}
-        />
-      </div>
-
-      <div className="ingredient-form-field">
-        <label>가격 (선택) · 입력 안 하면 통계에서 평균값으로 계산돼요</label>
-        <input
-          type="number"
-          min="0"
-          step="100"
-          placeholder="예: 2500"
-          value={price}
-          onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
         />
       </div>
 

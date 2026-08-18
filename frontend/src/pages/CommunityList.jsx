@@ -69,7 +69,10 @@ export default function CommunityList() {
           >
             <div className="community-post-card-body">
               <div className="community-post-card-author">사용자 {post.userId}</div>
-              <div className="community-post-card-title">{post.title}</div>
+              <div className="community-post-card-title">
+                {post.title}
+                {post.promotedRecipeId && <span className="community-post-card-badge">🏅 정식 레시피</span>}
+              </div>
               <p className="community-post-card-preview">{post.previewText}</p>
               <div className="community-post-card-meta">
                 <span>{post.createdAt?.slice(0, 10)}</span>

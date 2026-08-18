@@ -35,6 +35,19 @@
   color: var(--color-text);
 }
 
+.recipe-user-badge {
+  display: inline-block;
+  margin-left: 10px;
+  vertical-align: middle;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-basil-dark);
+  background: var(--color-basil-bg);
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
 .recipe-detail-meta {
   font-size: 13px;
   color: var(--color-text-muted);
