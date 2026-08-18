@@ -8,10 +8,7 @@ import com.example.backend.domain.ingredient.Ingredient;
 import com.example.backend.domain.ingredient.IngredientRepository;
 import com.example.backend.domain.ingredient.UserIngredient;
 import com.example.backend.domain.ingredient.UserIngredientRepository;
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/develop
 import com.example.backend.domain.recipe.dto.RecipeCategoryResponse;
 import com.example.backend.domain.recipe.dto.RecipeCreateRequest;
 import com.example.backend.domain.recipe.dto.RecipeDetailResponse;
@@ -182,10 +179,5 @@ public class RecipeService {
         return new RecipeDetailResponse(recipe);
     }
 
-    // 레시피 카테고리 목록 조회 (등록 화면 드롭다운용)
-    public List<RecipeCategoryResponse> getCategories() {
-        return recipeCategoryRepository.findAll().stream()
-                .map(RecipeCategoryResponse::new)
-                .toList();
-    }
+
 }

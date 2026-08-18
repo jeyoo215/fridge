@@ -19,7 +19,7 @@ public class RecipeImportRunner implements CommandLineRunner {
         // 이미 레시피가 있으면 수집 건너뜀 (서버 껐다 켤 때마다 재수집 방지)
         long count = recipeRepository.count();
         if (count > 0) {
-            log.info("레시피가 이미 {}건 존재하여 수집을 건너뜁니다.", count);
+            log.info("레시피가 이미 {}건 존재합니다 수집을 건너뜁니다.", count);
             return;
         }
 

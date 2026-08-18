@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-DELETE FROM cooking_step;
-DELETE FROM recipe_ingredient;
-DELETE FROM recipe_tool;
-DELETE FROM recipe;
-DELETE FROM recipe_category;
-=======
 -- 개발 중 서버를 재시작해도 중복 저장되지 않도록, 매번 지우고 다시 넣음 (개발 전용, 운영에서는 사용 금지)
 --
 -- 주의: 커뮤니티 게시글 추천이 임계치를 넘어 정식 레시피로 승격된 recipe(= community_post.promoted_recipe_id가
@@ -17,7 +10,6 @@ SET FOREIGN_KEY_CHECKS = 0;
 DELETE FROM recipe_review WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
 DELETE FROM recipe_ingredient WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
 DELETE FROM cooking_step WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
->>>>>>> origin/develop
 DELETE FROM user_ingredient;
 DELETE FROM combination_recommendation WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
 DELETE FROM recipe WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
@@ -221,14 +213,6 @@ INSERT INTO cooking_step (step_id, recipe_id, step_order, description) VALUES
   (5, 4, 2, '팬에 양파와 함께 볶아 소금으로 간한다.'),
   (6, 6, 1, '콩나물을 데친 뒤 찬물에 헹궈 물기를 뺀다.'),
   (7, 6, 2, '마늘, 참기름, 소금을 넣고 무친다.');
-
--- 레시피별 필요 조리도구 (cooking_tool 마스터 테이블 없어서 tool_id는 임시 숫자만 사용)
-INSERT INTO recipe_tool (id, recipe_id, tool_id) VALUES
-  (1, 1, 1),
-  (2, 1, 2),
-  (3, 2, 1),
-  (4, 3, 1),
-  (5, 3, 3);
 
 INSERT IGNORE INTO badge (badge_name, description, condition_type, condition_value) VALUES
 ('첫 걸음', '첫 챌린지 성공', 'CHALLENGE_SUCCESS_COUNT', 1),

@@ -120,9 +120,9 @@ export default function RecipeDetail() {
           {recipe.steps.map((step) => (
             <li key={step.stepOrder}>
               <p>{step.description}</p>
-              {step.imageUrl && (
+                {step.mediaUrl && (
                 <img
-                  src={step.imageUrl}
+                  src={step.mediaUrl}
                   alt={`조리순서 ${step.stepOrder}`}
                   className="recipe-detail-step-image"
                 />

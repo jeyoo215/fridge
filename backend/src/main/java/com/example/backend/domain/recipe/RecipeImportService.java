@@ -44,6 +44,7 @@ public class RecipeImportService {
             // 요청 URL: {base}/{key}/COOKRCP01/json/{start}/{end}
             String url = String.format("%s/%s/%s/json/%d/%d",
                     baseUrl, apiKey, SERVICE_ID, start, end);
+            log.info("수집 URL: {}", url); // 이 줄 추가
 
             CookRcpResponse response = restClient.get()
                     .uri(url)
@@ -147,6 +148,7 @@ public class RecipeImportService {
             }
 
             var rows = response.getCookRcp01().getRow();
+            log.info("import-steps: rows={}", rows == null ? "null" : rows.size());
             for (var row : rows) {
                 try {
                     if (worker.saveSteps(row.getRcpSeq(), row.getSteps())) {

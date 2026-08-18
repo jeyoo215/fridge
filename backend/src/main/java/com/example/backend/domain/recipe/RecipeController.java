@@ -1,10 +1,7 @@
 package com.example.backend.domain.recipe;
 
 import com.example.backend.domain.recipe.dto.RecipeCategoryResponse;
-<<<<<<< HEAD
 import com.example.backend.domain.recipe.dto.RecipeCreateRequest;
-=======
->>>>>>> origin/develop
 import com.example.backend.domain.recipe.dto.RecipeDetailResponse;
 import com.example.backend.domain.recipe.dto.RecipeRecommendResponse;
 import lombok.RequiredArgsConstructor;
@@ -44,18 +41,14 @@ public class RecipeController {
         return recipeService.recommendRecipes(userId);
     }
 
-<<<<<<< HEAD
-    // 레시피 카테고리 목록 조회 (등록 화면 드롭다운용)
-=======
+
     // 커뮤니티 글쓰기 화면의 카테고리 선택 드롭다운용
     // 예: GET /api/v1/recipes/categories
->>>>>>> origin/develop
     @GetMapping("/categories")
     public List<RecipeCategoryResponse> getCategories() {
         return recipeService.getCategories();
     }
 
-<<<<<<< HEAD
     // 레시피 재료 LLM 파싱 (임시 관리용 - limit건만 파싱)
     // 예: POST /api/v1/recipes/parse?limit=10
     @PostMapping("/parse")
@@ -67,11 +60,6 @@ public class RecipeController {
     @PostMapping("/import-steps")
     public int importSteps() {
         return recipeImportService.importCookingSteps();
-=======
-    // 예: GET /api/v1/recipes/1
-    @GetMapping("/{recipeId}")
-    public RecipeDetailResponse getRecipeDetail(@PathVariable Long recipeId) {
-        return recipeService.getRecipeDetail(recipeId);
->>>>>>> origin/develop
+
     }
 }
