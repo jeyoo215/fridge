@@ -5,6 +5,9 @@
   background: var(--color-surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
+  /* #root의 전역 text-align:center를 물려받으면 제목/본문(특히 Quill 기본 정렬 문단은 class가
+     안 붙어서 이 상속값을 그대로 따름)까지 가운데 정렬돼 보인다. 게시글 영역 전체를 왼쪽 정렬로 고정. */
+  text-align: left;
 }
 
 .community-detail-status {
@@ -16,6 +19,22 @@
 
 .community-detail-status.error {
   color: var(--color-danger-text);
+}
+
+.community-detail-back {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 0;
+  margin-bottom: 14px;
+  cursor: pointer;
+}
+
+.community-detail-back:hover {
+  color: var(--color-basil-dark);
 }
 
 .community-detail-top {
@@ -58,6 +77,18 @@
   font-weight: 700;
   color: var(--color-text);
   margin: 0 0 6px;
+}
+
+.community-detail-prefix {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--color-basil-bg);
+  color: var(--color-basil-dark, var(--color-basil));
+  font-size: 13px;
+  font-weight: 700;
+  vertical-align: middle;
 }
 
 .community-detail-date {
@@ -208,6 +239,7 @@
   margin-top: 32px;
   padding-top: 20px;
   border-top: 1px solid var(--color-border);
+  text-align: left;
 }
 
 .community-detail-comments-title {

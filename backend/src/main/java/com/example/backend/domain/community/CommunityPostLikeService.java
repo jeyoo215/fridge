@@ -44,7 +44,10 @@ public class CommunityPostLikeService {
             communityPostLikeRepository.save(CommunityPostLike.builder().post(post).userId(userId).build());
             post.increaseLikeCount();
 
-            if (post.getLikeCount() >= PROMOTION_LIKE_THRESHOLD && !post.isPromoted()) {
+            // 승격은 레시피 게시판 글에만 적용된다. 챌린지/잡담 게시글은 카테고리/재료/조리순서가
+            // 없어서 그대로 승격을 시도하면 CommunityPostPromotionService에서 NPE가 난다.
+            boolean isRecipeBoard = post.getEffectiveBoardType() == CommunityPost.BoardType.RECIPE;
+            if (isRecipeBoard && post.getLikeCount() >= PROMOTION_LIKE_THRESHOLD && !post.isPromoted()) {
                 communityPostPromotionService.promote(post);
             }
         }

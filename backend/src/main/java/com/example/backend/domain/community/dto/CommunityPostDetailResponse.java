@@ -19,6 +19,8 @@ public class CommunityPostDetailResponse {
     private final LocalDateTime createdAt;
     private final long likeCount;
     private final Long promotedRecipeId;
+    private final String boardType;
+    private final String prefix;
     private final List<CommunityPostIngredientResponse> ingredients;
     private final List<CommunityPostStepResponse> steps;
 
@@ -32,6 +34,8 @@ public class CommunityPostDetailResponse {
         this.createdAt = entity.getCreatedAt();
         this.likeCount = entity.getLikeCount();
         this.promotedRecipeId = entity.isPromoted() ? entity.getPromotedRecipe().getRecipeId() : null;
+        this.boardType = entity.getEffectiveBoardType().name();
+        this.prefix = entity.getPrefix();
         this.ingredients = entity.getIngredients().stream()
                 .map(CommunityPostIngredientResponse::new)
                 .toList();
