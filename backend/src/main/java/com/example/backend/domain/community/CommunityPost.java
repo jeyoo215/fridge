@@ -56,6 +56,11 @@ public class CommunityPost {
     @JoinColumn(name = "promoted_recipe_id")
     private Recipe promotedRecipe;
 
+    // 공감(좋아요) 개수. community_post_like row 수를 매번 COUNT하지 않도록 여기에 캐싱해서 들고 있는다
+    // (좋아요 토글 시 CommunityPostLikeService가 increaseLikeCount/decreaseLikeCount로 갱신).
+    @Column(name = "like_count", nullable = false, columnDefinition = "INT NOT NULL DEFAULT 0")
+    private int likeCount;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -107,6 +112,21 @@ public class CommunityPost {
 
     public boolean isPromoted() {
         return promotedRecipe != null;
+    }
+
+    // 승격된 recipe row가 사라진(끊어진) 상태를 감지했을 때 복구용 (CommunityPostService/CommunityPostLikeService 전용).
+    // 다시 null로 돌려놓으면 좋아요 임계치를 이미 넘긴 상태이므로 다음 토글 때 자연스럽게 재승격된다.
+    public void clearPromotion() {
+        this.promotedRecipe = null;
+    }
+
+    // 좋아요 토글 시 CommunityPostLikeService 전용
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        this.likeCount = Math.max(0, this.likeCount - 1);
     }
 
     // 좋아요 임계치를 넘었을 때 호출 (CommunityPostPromotionService 전용)

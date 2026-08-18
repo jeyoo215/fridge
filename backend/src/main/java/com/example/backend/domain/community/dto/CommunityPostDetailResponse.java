@@ -22,7 +22,7 @@ public class CommunityPostDetailResponse {
     private final List<CommunityPostIngredientResponse> ingredients;
     private final List<CommunityPostStepResponse> steps;
 
-    public CommunityPostDetailResponse(CommunityPost entity, long likeCount) {
+    public CommunityPostDetailResponse(CommunityPost entity) {
         this.postId = entity.getPostId();
         this.userId = entity.getUserId();
         this.title = entity.getTitle();
@@ -30,7 +30,7 @@ public class CommunityPostDetailResponse {
         this.cookingTimeMinutes = entity.getCookingTimeMinutes();
         this.difficulty = entity.getDifficulty();
         this.createdAt = entity.getCreatedAt();
-        this.likeCount = likeCount;
+        this.likeCount = entity.getLikeCount();
         this.promotedRecipeId = entity.isPromoted() ? entity.getPromotedRecipe().getRecipeId() : null;
         this.ingredients = entity.getIngredients().stream()
                 .map(CommunityPostIngredientResponse::new)

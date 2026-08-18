@@ -57,7 +57,7 @@ public class CommunityActivityService {
         return postIds.stream()
                 .map(postsById::get)
                 .filter(post -> post != null) // 스크랩/좋아요/댓글 이후 삭제된 글은 건너뜀
-                .map(post -> new CommunityPostListResponse(post, communityPostLikeRepository.countByPost_PostId(post.getPostId())))
+                .map(CommunityPostListResponse::new)
                 .toList();
     }
 }

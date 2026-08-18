@@ -10,6 +10,7 @@ import com.example.backend.domain.ingredient.Ingredient;
 import com.example.backend.domain.ingredient.IngredientRepository;
 import com.example.backend.domain.recipe.RecipeCategory;
 import com.example.backend.domain.recipe.RecipeCategoryRepository;
+import com.example.backend.domain.recipe.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,8 +30,11 @@ public class CommunityPostService {
 
     private final CommunityPostRepository communityPostRepository;
     private final CommunityPostLikeRepository communityPostLikeRepository;
+    private final CommunityPostCommentRepository communityPostCommentRepository;
+    private final CommunityPostScrapRepository communityPostScrapRepository;
     private final RecipeCategoryRepository recipeCategoryRepository;
     private final IngredientRepository ingredientRepository;
+    private final RecipeRepository recipeRepository;
 
     // 게시글 작성 (제목 + 재료/조리순서를 통째로 받아 한 번에 저장)
     @Transactional
@@ -67,6 +71,7 @@ public class CommunityPostService {
     }
 
     // 게시판 목록 (기본 최신순, sortBy="popular"면 좋아요 많은 순)
+    @Transactional
     public CommunityPostPageResponse getList(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Long> idPage = "popular".equals(sortBy)
@@ -81,22 +86,34 @@ public class CommunityPostService {
         Map<Long, CommunityPost> postsById = communityPostRepository.findAllWithStepsByPostIdIn(postIds)
                 .stream()
                 .collect(Collectors.toMap(CommunityPost::getPostId, post -> post));
+        postsById.values().forEach(this::repairDanglingPromotion);
 
         // id 목록의 정렬(최신순 또는 인기순)을 그대로 유지하기 위해 IN 조회 결과를 postIds 순서에 맞춰 다시 매핑한다.
         List<CommunityPostListResponse> content = postIds.stream()
                 .map(postsById::get)
-                .map(post -> new CommunityPostListResponse(post, communityPostLikeRepository.countByPost_PostId(post.getPostId())))
+                .map(CommunityPostListResponse::new)
                 .toList();
 
         return new CommunityPostPageResponse(content, page, idPage.getTotalPages(), idPage.getTotalElements());
     }
 
     // 게시글 상세
+    @Transactional
     public CommunityPostDetailResponse getDetail(Long postId) {
         CommunityPost post = communityPostRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다. id=" + postId));
-        long likeCount = communityPostLikeRepository.countByPost_PostId(postId);
-        return new CommunityPostDetailResponse(post, likeCount);
+        repairDanglingPromotion(post);
+        return new CommunityPostDetailResponse(post);
+    }
+
+    // 승격 표시(promotedRecipe)는 있는데 실제 recipe row가 없는 좀비 참조를 감지해서 풀어준다.
+    // data.sql처럼 FK 체크를 끄고 recipe를 지우는 개발용 스크립트가 실수로 승격된 레시피까지 지워버리면
+    // 이 상태가 될 수 있다 (data.sql 자체도 승격된 recipe_id는 보존하도록 고쳤지만, 방어적으로 한 번 더 확인).
+    // 여기서 풀어두면 좋아요 임계치는 이미 넘긴 상태라 다음 토글 때 자동으로 재승격된다.
+    private void repairDanglingPromotion(CommunityPost post) {
+        if (post.isPromoted() && !recipeRepository.existsById(post.getPromotedRecipe().getRecipeId())) {
+            post.clearPromotion();
+        }
     }
 
     // 게시글 수정 (본인 글만 가능, 정식 레시피로 승격된 글은 수정 불가, 제목/재료/조리순서 전체를
@@ -110,13 +127,18 @@ public class CommunityPostService {
         addIngredientsAndSteps(post, request);
     }
 
-    // 게시글 삭제 (본인 글만 가능, 정식 레시피로 승격된 글은 삭제 불가)
+    // 게시글 삭제 (본인 글만 가능, 정식 레시피로 승격된 글은 삭제 불가).
+    // 좋아요/댓글/스크랩은 CommunityPost와 JPA 연관관계로 묶여있지 않아 cascade 삭제가 안 되므로
+    // (재료/조리순서와 달리 별도 서비스가 관리), FK 제약 위반을 피하려면 먼저 직접 지워야 한다.
     @Transactional
     public void delete(Long userId, Long postId) {
         CommunityPost post = findOwnedPost(userId, postId);
         if (post.isPromoted()) {
             throw new IllegalStateException("정식 레시피로 등록된 게시글은 삭제할 수 없습니다.");
         }
+        communityPostLikeRepository.deleteByPost_PostId(postId);
+        communityPostCommentRepository.deleteByPost_PostId(postId);
+        communityPostScrapRepository.deleteByPost_PostId(postId);
         communityPostRepository.delete(post);
     }
 
