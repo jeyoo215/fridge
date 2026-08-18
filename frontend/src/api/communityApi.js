@@ -23,20 +23,27 @@ export async function uploadCommunityMedia(file) {
   return response.json();
 }
 
-// 커뮤니티 게시글 목록 (최신순, 페이지당 10개)
-export async function fetchCommunityPosts(page = 0, size = 10, sortBy = "latest") {
-  const response = await fetch(`${BASE_URL}/community/posts?page=${page}&size=${size}&sortBy=${sortBy}`);
+// 커뮤니티 게시글 목록 (최신순, 페이지당 10개). boardType 생략하면 레시피 게시판(기존과 동일 동작).
+// userId는 챌린지 게시판 접근 자격 확인용, prefix는 잡담 게시판 말머리 필터용 (둘 다 선택값).
+export async function fetchCommunityPosts(page = 0, size = 10, sortBy = "latest", boardType = "RECIPE", { prefix, userId } = {}) {
+  const params = new URLSearchParams({ page, size, sortBy, boardType });
+  if (prefix) params.set("prefix", prefix);
+  if (userId) params.set("userId", userId);
+  const response = await fetch(`${BASE_URL}/community/posts?${params.toString()}`);
   if (!response.ok) {
-    throw new Error("게시글 목록을 불러오지 못했습니다.");
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || "게시글 목록을 불러오지 못했습니다.");
   }
   return response.json();
 }
 
-// 게시글 상세
-export async function fetchCommunityPost(postId) {
-  const response = await fetch(`${BASE_URL}/community/posts/${postId}`);
+// 게시글 상세. userId는 챌린지 게시판 글일 때 접근 자격 확인용(선택).
+export async function fetchCommunityPost(postId, userId) {
+  const params = userId ? `?userId=${userId}` : "";
+  const response = await fetch(`${BASE_URL}/community/posts/${postId}${params}`);
   if (!response.ok) {
-    throw new Error("게시글을 불러오지 못했습니다.");
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || "게시글을 불러오지 못했습니다.");
   }
   return response.json();
 }

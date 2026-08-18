@@ -1,5 +1,7 @@
 package com.example.backend.domain.community;
 
+import com.example.backend.domain.challenge.Challenge;
+import com.example.backend.domain.challenge.ChallengeRepository;
 import com.example.backend.domain.community.dto.CommunityPostCreateRequest;
 import com.example.backend.domain.community.dto.CommunityPostDetailResponse;
 import com.example.backend.domain.community.dto.CommunityPostIngredientRequest;
@@ -28,6 +30,9 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class CommunityPostService {
 
+    // 전체 잡담 게시판(FREE_TALK) 글쓰기 시 반드시 하나를 골라야 하는 말머리 화이트리스트.
+    static final List<String> FREE_TALK_PREFIXES = List.of("다이어터", "20대", "30대", "40대", "50대");
+
     private final CommunityPostRepository communityPostRepository;
     private final CommunityPostLikeRepository communityPostLikeRepository;
     private final CommunityPostCommentRepository communityPostCommentRepository;
@@ -35,11 +40,20 @@ public class CommunityPostService {
     private final RecipeCategoryRepository recipeCategoryRepository;
     private final IngredientRepository ingredientRepository;
     private final RecipeRepository recipeRepository;
+    private final ChallengeRepository challengeRepository;
 
     // 게시글 작성 (제목 + 재료/조리순서를 통째로 받아 한 번에 저장)
     @Transactional
     public Long create(Long userId, CommunityPostCreateRequest request) {
-        RecipeCategory category = findCategory(request.categoryId());
+        assertChallengeBoardAccess(userId, request.boardType());
+
+        RecipeCategory category = null;
+        if (request.boardType() == CommunityPost.BoardType.RECIPE) {
+            assertRecipeFieldsPresent(request);
+            category = findCategory(request.categoryId());
+        } else if (request.boardType() == CommunityPost.BoardType.FREE_TALK) {
+            assertValidPrefix(request.prefix());
+        }
 
         CommunityPost post = CommunityPost.builder()
                 .userId(userId)
@@ -47,11 +61,53 @@ public class CommunityPostService {
                 .category(category)
                 .cookingTimeMinutes(request.cookingTimeMinutes())
                 .difficulty(request.difficulty())
+                .boardType(request.boardType())
+                .prefix(request.boardType() == CommunityPost.BoardType.FREE_TALK ? request.prefix() : null)
                 .build();
 
         addIngredientsAndSteps(post, request);
 
         return communityPostRepository.save(post).getPostId();
+    }
+
+    private void assertRecipeFieldsPresent(CommunityPostCreateRequest request) {
+        if (request.categoryId() == null || request.cookingTimeMinutes() == null
+                || request.difficulty() == null || request.difficulty().isBlank()
+                || request.ingredients() == null || request.ingredients().isEmpty()) {
+            throw new IllegalArgumentException("레시피 게시판 글은 카테고리/조리시간/난이도/재료를 모두 입력해야 합니다.");
+        }
+    }
+
+    private void assertValidPrefix(String prefix) {
+        if (prefix == null || !FREE_TALK_PREFIXES.contains(prefix)) {
+            throw new IllegalArgumentException("말머리는 다음 중 하나를 선택해야 합니다: " + FREE_TALK_PREFIXES);
+        }
+    }
+
+    // 챌린지 게시판은 "지금 그 종류의 챌린지를 진행 중인 유저"만 들어올 수 있다.
+    // 진행중 챌린지는 유저당 최대 1개라는 규칙(ChallengeService.startChallenge)을 그대로 이용한다.
+    private void assertChallengeBoardAccess(Long userId, CommunityPost.BoardType boardType) {
+        Challenge.ChallengeType requiredType = toChallengeType(boardType);
+        if (requiredType == null) {
+            return;
+        }
+        if (userId == null) {
+            throw new IllegalArgumentException("챌린지 게시판은 로그인한 유저만 접근할 수 있습니다.");
+        }
+        boolean matches = challengeRepository.findByUserIdAndStatus(userId, Challenge.Status.진행중)
+                .map(challenge -> challenge.getType() == requiredType)
+                .orElse(false);
+        if (!matches) {
+            throw new IllegalArgumentException("이 챌린지를 진행 중이어야 게시판에 들어갈 수 있습니다.");
+        }
+    }
+
+    private Challenge.ChallengeType toChallengeType(CommunityPost.BoardType boardType) {
+        return switch (boardType) {
+            case CHALLENGE_FRIDGE_CLEAN -> Challenge.ChallengeType.FRIDGE_CLEAN;
+            case CHALLENGE_TARGET_INGREDIENT -> Challenge.ChallengeType.TARGET_INGREDIENT;
+            default -> null;
+        };
     }
 
     private RecipeCategory findCategory(Long categoryId) {
@@ -70,13 +126,26 @@ public class CommunityPostService {
         }
     }
 
-    // 게시판 목록 (기본 최신순, sortBy="popular"면 좋아요 많은 순)
+    // 게시판 목록 (기본 최신순, sortBy="popular"면 좋아요 많은 순).
+    // boardType이 챌린지 게시판이면 userId로 접근 자격을 먼저 확인한다. prefix는 FREE_TALK 게시판의
+    // 말머리 필터(선택)로만 쓰인다.
     @Transactional
-    public CommunityPostPageResponse getList(int page, int size, String sortBy) {
+    public CommunityPostPageResponse getList(int page, int size, String sortBy,
+                                              CommunityPost.BoardType boardType, String prefix, Long userId) {
+        assertChallengeBoardAccess(userId, boardType);
+
         Pageable pageable = PageRequest.of(page, size);
-        Page<Long> idPage = "popular".equals(sortBy)
-                ? communityPostRepository.findPostIdsOrderByLikeCountDesc(pageable)
-                : communityPostRepository.findPostIdsOrderByCreatedAtDesc(pageable);
+        boolean popular = "popular".equals(sortBy);
+        Page<Long> idPage;
+        if (boardType == CommunityPost.BoardType.FREE_TALK && prefix != null) {
+            idPage = popular
+                    ? communityPostRepository.findPostIdsByBoardTypeAndPrefixOrderByLikeCountDesc(boardType, prefix, pageable)
+                    : communityPostRepository.findPostIdsByBoardTypeAndPrefixOrderByCreatedAtDesc(boardType, prefix, pageable);
+        } else {
+            idPage = popular
+                    ? communityPostRepository.findPostIdsByBoardTypeOrderByLikeCountDesc(boardType, pageable)
+                    : communityPostRepository.findPostIdsByBoardTypeOrderByCreatedAtDesc(boardType, pageable);
+        }
 
         List<Long> postIds = idPage.getContent();
         if (postIds.isEmpty()) {
@@ -97,11 +166,12 @@ public class CommunityPostService {
         return new CommunityPostPageResponse(content, page, idPage.getTotalPages(), idPage.getTotalElements());
     }
 
-    // 게시글 상세
+    // 게시글 상세. 챌린지 게시판 글이면(직링크로 우회 접근하는 것을 막기 위해) userId로 자격을 확인한다.
     @Transactional
-    public CommunityPostDetailResponse getDetail(Long postId) {
+    public CommunityPostDetailResponse getDetail(Long postId, Long userId) {
         CommunityPost post = communityPostRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다. id=" + postId));
+        assertChallengeBoardAccess(userId, post.getEffectiveBoardType());
         repairDanglingPromotion(post);
         return new CommunityPostDetailResponse(post);
     }
@@ -117,13 +187,24 @@ public class CommunityPostService {
     }
 
     // 게시글 수정 (본인 글만 가능, 정식 레시피로 승격된 글은 수정 불가, 제목/재료/조리순서 전체를
-    // 새 내용으로 교체)
+    // 새 내용으로 교체). 게시판(boardType)은 요청 값을 무시하고 기존 게시글의 것을 그대로 유지한다
+    // (다른 게시판으로 바꿔치기해서 접근 제어를 우회하는 걸 막기 위함).
     @Transactional
     public void update(Long userId, Long postId, CommunityPostCreateRequest request) {
         CommunityPost post = findOwnedPost(userId, postId);
-        RecipeCategory category = findCategory(request.categoryId());
+        CommunityPost.BoardType boardType = post.getEffectiveBoardType();
 
-        post.update(request.title(), category, request.cookingTimeMinutes(), request.difficulty());
+        RecipeCategory category = null;
+        String prefix = null;
+        if (boardType == CommunityPost.BoardType.RECIPE) {
+            assertRecipeFieldsPresent(request);
+            category = findCategory(request.categoryId());
+        } else if (boardType == CommunityPost.BoardType.FREE_TALK) {
+            assertValidPrefix(request.prefix());
+            prefix = request.prefix();
+        }
+
+        post.update(request.title(), category, request.cookingTimeMinutes(), request.difficulty(), prefix);
         addIngredientsAndSteps(post, request);
     }
 

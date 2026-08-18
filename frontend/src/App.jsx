@@ -25,8 +25,14 @@ function App() {
         <Route path="/recipes/:recipeId/shopping-list" element={<ShoppingList />} />
         <Route path="/shopping-list" element={<MyShoppingList />} />
         <Route path="/challenge" element={<Challenge />} />
-        <Route path="/community" element={<CommunityList />} />
-        <Route path="/community/new" element={<CommunityPostForm />} />
+        <Route path="/community" element={<CommunityList key="RECIPE" boardType="RECIPE" />} />
+        <Route path="/community/new" element={<CommunityPostForm boardType="RECIPE" />} />
+        <Route path="/community/challenge/fridge-clean" element={<CommunityList key="CHALLENGE_FRIDGE_CLEAN" boardType="CHALLENGE_FRIDGE_CLEAN" />} />
+        <Route path="/community/challenge/fridge-clean/new" element={<CommunityPostForm boardType="CHALLENGE_FRIDGE_CLEAN" />} />
+        <Route path="/community/challenge/target-ingredient" element={<CommunityList key="CHALLENGE_TARGET_INGREDIENT" boardType="CHALLENGE_TARGET_INGREDIENT" />} />
+        <Route path="/community/challenge/target-ingredient/new" element={<CommunityPostForm boardType="CHALLENGE_TARGET_INGREDIENT" />} />
+        <Route path="/community/free-talk" element={<CommunityList key="FREE_TALK" boardType="FREE_TALK" />} />
+        <Route path="/community/free-talk/new" element={<CommunityPostForm boardType="FREE_TALK" />} />
         <Route path="/community/:postId/edit" element={<CommunityPostForm />} />
         <Route path="/community/:postId" element={<CommunityPostDetail />} />
         <Route path="/mypage" element={<MyPage />} />

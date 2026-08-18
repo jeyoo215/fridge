@@ -12,6 +12,7 @@ import {
   deleteCommunityPostComment,
   toMediaSrc,
 } from "../api/communityApi";
+import { getBoardConfig } from "./communityBoards";
 import "./CommunityPostDetail.css";
 
 const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
@@ -33,7 +34,7 @@ export default function CommunityPostDetail() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetchCommunityPost(postId),
+      fetchCommunityPost(postId, TEMP_USER_ID),
       fetchCommunityPostLikeStatus(TEMP_USER_ID, postId),
       fetchCommunityPostScrapStatus(TEMP_USER_ID, postId),
       fetchCommunityPostComments(postId),
@@ -75,7 +76,7 @@ export default function CommunityPostDetail() {
     if (!window.confirm("이 글을 삭제할까요? 되돌릴 수 없습니다.")) return;
     try {
       await deleteCommunityPost(TEMP_USER_ID, postId);
-      navigate("/community");
+      navigate(getBoardConfig(post.boardType).listPath);
     } catch (err) {
       setError(err.message);
     }
@@ -110,8 +111,15 @@ export default function CommunityPostDetail() {
   if (error) return <p className="community-detail-status error">{error}</p>;
   if (!post) return null;
 
+  const board = getBoardConfig(post.boardType);
+  const isRecipeBoard = post.boardType === "RECIPE";
+
   return (
     <article className="community-detail-container">
+      <button type="button" className="community-detail-back" onClick={() => navigate(board.listPath)}>
+        ← 목록으로
+      </button>
+
       <div className="community-detail-top">
         <div className="community-detail-author">사용자 {post.userId}</div>
         {!post.promotedRecipeId && (
@@ -125,7 +133,10 @@ export default function CommunityPostDetail() {
           </div>
         )}
       </div>
-      <h2 className="community-detail-title">{post.title}</h2>
+      <h2 className="community-detail-title">
+        {post.prefix && <span className="community-detail-prefix">{post.prefix}</span>}
+        {post.title}
+      </h2>
       <div className="community-detail-date">{post.createdAt?.slice(0, 10)}</div>
 
       {post.promotedRecipeId && (
@@ -138,31 +149,35 @@ export default function CommunityPostDetail() {
         </button>
       )}
 
-      <div className="community-detail-recipe-meta">
-        <span>🏷 {post.categoryName}</span>
-        <span>⏱ {post.cookingTimeMinutes}분</span>
-        <span>· {post.difficulty}</span>
-      </div>
+      {isRecipeBoard && (
+        <>
+          <div className="community-detail-recipe-meta">
+            <span>🏷 {post.categoryName}</span>
+            <span>⏱ {post.cookingTimeMinutes}분</span>
+            <span>· {post.difficulty}</span>
+          </div>
+
+          <section className="community-detail-recipe-block">
+            <h3 className="community-detail-block-title">재료</h3>
+            <ul className="community-detail-ingredient-list">
+              {post.ingredients.map((item) => (
+                <li key={item.ingredientId}>
+                  <span>{item.ingredientName}</span>
+                  <span className="community-detail-ingredient-amount">
+                    {item.quantity ?? ""} {item.unit || ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </>
+      )}
 
       <section className="community-detail-recipe-block">
-        <h3 className="community-detail-block-title">재료</h3>
-        <ul className="community-detail-ingredient-list">
-          {post.ingredients.map((item) => (
-            <li key={item.ingredientId}>
-              <span>{item.ingredientName}</span>
-              <span className="community-detail-ingredient-amount">
-                {item.quantity ?? ""} {item.unit || ""}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="community-detail-recipe-block">
-        <h3 className="community-detail-block-title">조리순서</h3>
+        {isRecipeBoard && <h3 className="community-detail-block-title">조리순서</h3>}
         {post.steps.map((step, index) => (
           <div className="community-detail-section" key={step.stepOrder}>
-            <span className="community-detail-step-badge">{index + 1}단계</span>
+            {isRecipeBoard && <span className="community-detail-step-badge">{index + 1}단계</span>}
             {step.mediaUrl && step.mediaType === "VIDEO" && (
               <video className="community-detail-image" src={toMediaSrc(step.mediaUrl)} controls />
             )}

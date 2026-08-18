@@ -44,6 +44,17 @@ public class CommunityPost {
     @Column(name = "difficulty", length = 20)
     private String difficulty;
 
+    // 게시판 구분. 예전 글(리팩터링 전)엔 값이 없을 수 있어 nullable로 두되, null은 RECIPE로 취급한다
+    // (data.sql이 재시작 시 기존 글을 RECIPE로 백필하지만, 방어적으로 애플리케이션 레벨에서도 처리).
+    @Enumerated(EnumType.STRING)
+    @Column(name = "board_type", length = 30)
+    private BoardType boardType;
+
+    // 전체 잡담 게시판(FREE_TALK) 전용 말머리. 그 외 게시판은 항상 null.
+    // difficulty와 동일하게, 고정된 한글 옵션 목록이라 enum이 아니라 문자열 + 화이트리스트 검증 방식.
+    @Column(name = "prefix", length = 20)
+    private String prefix;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private final List<CommunityPostIngredient> ingredients = new ArrayList<>();
 
@@ -66,12 +77,15 @@ public class CommunityPost {
 
     @Builder
     public CommunityPost(Long userId, String title, RecipeCategory category,
-                          Integer cookingTimeMinutes, String difficulty) {
+                          Integer cookingTimeMinutes, String difficulty,
+                          BoardType boardType, String prefix) {
         this.userId = userId;
         this.title = title;
         this.category = category;
         this.cookingTimeMinutes = cookingTimeMinutes;
         this.difficulty = difficulty;
+        this.boardType = boardType;
+        this.prefix = prefix;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -98,7 +112,9 @@ public class CommunityPost {
 
     // 게시글 수정: 제목/재료/조리순서를 통째로 새 내용으로 교체
     // (orphanRemoval=true라 컬렉션이 비워지는 순간 기존 값은 삭제됨)
-    public void update(String title, RecipeCategory category, Integer cookingTimeMinutes, String difficulty) {
+    // boardType은 파라미터로 받지 않는다: 글 작성 후엔 게시판을 옮길 수 없다 (접근 제어 우회 방지).
+    public void update(String title, RecipeCategory category, Integer cookingTimeMinutes,
+                        String difficulty, String prefix) {
         if (isPromoted()) {
             throw new IllegalStateException("정식 레시피로 등록된 게시글은 수정할 수 없습니다.");
         }
@@ -106,12 +122,23 @@ public class CommunityPost {
         this.category = category;
         this.cookingTimeMinutes = cookingTimeMinutes;
         this.difficulty = difficulty;
+        this.prefix = prefix;
         this.ingredients.clear();
         this.steps.clear();
     }
 
     public boolean isPromoted() {
         return promotedRecipe != null;
+    }
+
+    // 예전 글은 boardType이 null일 수 있어서, 그런 경우 RECIPE로 취급한다 (아직 있는 게시판은 그때 하나뿐이었음).
+    public BoardType getEffectiveBoardType() {
+        return boardType != null ? boardType : BoardType.RECIPE;
+    }
+
+    public boolean isChallengeBoard() {
+        return getEffectiveBoardType() == BoardType.CHALLENGE_FRIDGE_CLEAN
+                || getEffectiveBoardType() == BoardType.CHALLENGE_TARGET_INGREDIENT;
     }
 
     // 승격된 recipe row가 사라진(끊어진) 상태를 감지했을 때 복구용 (CommunityPostService/CommunityPostLikeService 전용).
@@ -132,5 +159,14 @@ public class CommunityPost {
     // 좋아요 임계치를 넘었을 때 호출 (CommunityPostPromotionService 전용)
     public void promote(Recipe recipe) {
         this.promotedRecipe = recipe;
+    }
+
+    // 챌린지 게시판 2종류는 challenge 도메인의 ChallengeType과 1:1로 대응한다
+    // (CommunityPostService.assertChallengeBoardAccess에서 매핑해서 사용).
+    public enum BoardType {
+        RECIPE,
+        CHALLENGE_FRIDGE_CLEAN,
+        CHALLENGE_TARGET_INGREDIENT,
+        FREE_TALK
     }
 }
