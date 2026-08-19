@@ -2,9 +2,11 @@ const HOST_URL = `http://${window.location.hostname}:8080`;
 const BASE_URL = `${HOST_URL}/api/v1`;
 
 // 업로드 응답의 url은 상대경로("/media/community/...")라서, <img>/<video> src로 쓰려면 호스트를 붙여야 함
-export function toMediaSrc(relativeUrl) {
-  if (!relativeUrl) return "";
-  return `${HOST_URL}${relativeUrl}`;
+// 단, 레시피 승격/외부 데이터(식약처 등)는 이미 절대경로 URL이라 그대로 써야 함
+export function toMediaSrc(url) {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return `${HOST_URL}${url}`;
 }
 
 // 게시글 섹션에 첨부할 이미지/동영상 업로드. 성공하면 { url, mediaType } 반환.

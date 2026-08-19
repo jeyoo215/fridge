@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { fetchRecipeDetail } from "../api/recipeApi";
 import { fetchLikeStatus, toggleLike, fetchScrapStatus, toggleScrap } from "../api/socialApi";
+import { toMediaSrc } from "../api/communityApi";
 import RecipeReviewSection from "../component/RecipeReviewSection";
 import "./RecipeDetail.css";
 
@@ -118,7 +119,15 @@ export default function RecipeDetail() {
         <h3>조리 순서</h3>
         <ol className="recipe-detail-step-list">
           {recipe.steps.map((step) => (
-            <li key={step.stepOrder}>{step.description}</li>
+            <li key={step.stepOrder}>
+              {step.mediaUrl && step.mediaType === "VIDEO" && (
+                <video className="recipe-detail-step-media" src={toMediaSrc(step.mediaUrl)} controls />
+              )}
+              {step.mediaUrl && step.mediaType === "IMAGE" && (
+                <img className="recipe-detail-step-media" src={toMediaSrc(step.mediaUrl)} alt={`${step.stepOrder}단계`} />
+              )}
+              {step.description}
+            </li>
           ))}
         </ol>
       </section>
