@@ -19,25 +19,27 @@ export default function CommunitySidebar({ activeBoardType }) {
   }, []);
 
   return (
-    <nav className="community-sidebar">
-      <h3 className="community-sidebar-title">게시판</h3>
-      <ul className="community-sidebar-list">
-        {BOARD_CONFIGS.map((board) => {
-          const locked = board.challengeType != null && activeChallengeType !== board.challengeType;
-          return (
-            <li key={board.boardType}>
-              <button
-                type="button"
-                className={`community-sidebar-item${board.boardType === activeBoardType ? " active" : ""}`}
-                onClick={() => navigate(board.listPath)}
-              >
-                {locked && <span className="community-sidebar-lock">🔒</span>}
-                {board.label}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+    <nav className="community-sidebar-sticky">
+      <div className="community-sidebar">
+        <h3 className="community-sidebar-title">게시판</h3>
+        <ul className="community-sidebar-list">
+          {BOARD_CONFIGS.map((board) => {
+            const locked = board.challengeType != null && activeChallengeType !== board.challengeType;
+            return (
+              <li key={board.boardType}>
+                <button
+                  type="button"
+                  className={`community-sidebar-item${board.boardType === activeBoardType ? " active" : ""}`}
+                  onClick={() => navigate(board.listPath)}
+                >
+                  {locked && <span className="community-sidebar-lock">🔒</span>}
+                  {board.label}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </nav>
   );
 }

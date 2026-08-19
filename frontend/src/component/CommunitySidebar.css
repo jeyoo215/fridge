@@ -1,13 +1,20 @@
-.community-sidebar {
+/* 화면(뷰포트) 높이만큼 sticky 영역을 잡고 그 안에서 세로 중앙 정렬해서,
+   x축은 원래 flex 레이아웃 자리 그대로 두고 y축만 화면 중간에 오도록 함 */
+.community-sidebar-sticky {
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+.community-sidebar {
   width: 200px;
   padding: 18px 14px;
   background: var(--color-surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
-  align-self: flex-start;
-  position: sticky;
-  top: 24px;
 }
 
 .community-sidebar-title {
@@ -55,9 +62,13 @@
 }
 
 @media (max-width: 720px) {
+  .community-sidebar-sticky {
+    position: static;
+    height: auto;
+  }
+
   .community-sidebar {
     width: 100%;
-    position: static;
   }
 
   .community-sidebar-list {

@@ -91,6 +91,31 @@
   cursor: pointer;
 }
 
+/* 목록을 아무리 스크롤해도, 글이 몇 개든 항상 화면의 같은 자리에 떠 있는 글쓰기 버튼.
+   #root가 1126px 고정폭으로 중앙 정렬되므로, 뷰포트 기준 fixed 오프셋도 그 폭 기준으로 맞춘다. */
+.community-write-fab {
+  position: fixed;
+  right: max(20px, calc(50vw - 543px));
+  bottom: 28px;
+  z-index: 30;
+  padding: 14px 22px;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-basil);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+}
+
+@media (max-width: 720px) {
+  .community-write-fab {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
 .community-list-status {
   text-align: center;
   color: var(--color-text-muted);
@@ -126,10 +151,13 @@
 }
 
 .community-post-card-author {
+  flex-shrink: 0;
+  align-self: center;
+  width: 60px;
+  text-align: center;
   font-size: 13px;
   color: var(--color-basil);
   font-weight: 600;
-  margin-bottom: 4px;
 }
 
 .community-post-card-title {

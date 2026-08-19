@@ -122,6 +122,13 @@
   margin-bottom: 10px;
   color: var(--color-text);
 }
+
+.recipe-detail-step-media {
+  width: 100%;
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  display: block;
+}
 .recipe-social-actions {
   display: flex;
   gap: 10px;
