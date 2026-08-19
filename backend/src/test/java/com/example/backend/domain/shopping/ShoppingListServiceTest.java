@@ -27,6 +27,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -260,5 +262,190 @@ class ShoppingListServiceTest {
         ShoppingListResponse result = shoppingListService.getShoppingList(1L, 10L);
 
         assertThat(result.getMissingIngredients().get(0).isInMyList()).isTrue();
+    }
+
+        // ===== reorderItems =====
+
+    @Test
+    @DisplayName("순서를 변경하면 각 항목의 displayOrder가 요청 순서대로 갱신된다")
+    void reorderItems_정상순서변경() {
+        Ingredient onion = ingredient(2L, "양파");
+        Ingredient carrot = ingredient(3L, "당근");
+        ShoppingList list = ShoppingList.builder().userId(1L).build();
+
+        ShoppingListItem item1 = ShoppingListItem.builder().ingredient(onion).quantity(BigDecimal.ONE).unit("개").build();
+        ShoppingListItem item2 = ShoppingListItem.builder().ingredient(carrot).quantity(BigDecimal.ONE).unit("개").build();
+        list.addItem(item1); // displayOrder=1
+        list.addItem(item2); // displayOrder=2
+        ReflectionTestUtils.setField(item1, "itemId", 100L);
+        ReflectionTestUtils.setField(item2, "itemId", 200L);
+
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.of(list));
+
+        // item2를 맨 앞으로
+        shoppingListService.reorderItems(1L, List.of(200L, 100L));
+
+        assertThat(item2.getDisplayOrder()).isEqualTo(1);
+        assertThat(item1.getDisplayOrder()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("본인 소유가 아닌 itemId가 섞여 있으면 예외가 발생한다")
+    void reorderItems_존재하지않는항목포함시_예외() {
+        Ingredient onion = ingredient(2L, "양파");
+        ShoppingList list = ShoppingList.builder().userId(1L).build();
+        ShoppingListItem item = ShoppingListItem.builder().ingredient(onion).quantity(BigDecimal.ONE).unit("개").build();
+        list.addItem(item);
+        ReflectionTestUtils.setField(item, "itemId", 100L);
+
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.of(list));
+
+        assertThatThrownBy(() -> shoppingListService.reorderItems(1L, List.of(100L, 999L)))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("장보기 리스트가 없는 유저가 순서를 변경하려 하면 예외가 발생한다")
+    void reorderItems_리스트없으면_예외() {
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> shoppingListService.reorderItems(1L, List.of(100L)))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    // ===== deleteCheckedItems =====
+
+    @Test
+    @DisplayName("체크된 항목만 일괄 삭제되고 체크 안 된 항목은 남는다")
+    void deleteCheckedItems_체크된것만삭제() {
+        Ingredient onion = ingredient(2L, "양파");
+        Ingredient carrot = ingredient(3L, "당근");
+        ShoppingList list = ShoppingList.builder().userId(1L).build();
+
+        ShoppingListItem checkedItem = ShoppingListItem.builder().ingredient(onion).quantity(BigDecimal.ONE).unit("개").build();
+        ShoppingListItem uncheckedItem = ShoppingListItem.builder().ingredient(carrot).quantity(BigDecimal.ONE).unit("개").build();
+        checkedItem.check();
+        list.addItem(checkedItem);
+        list.addItem(uncheckedItem);
+
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.of(list));
+
+        shoppingListService.deleteCheckedItems(1L);
+
+        assertThat(list.getItems()).hasSize(1);
+        assertThat(list.getItems().get(0).getIngredient().getIngredientName()).isEqualTo("당근");
+    }
+
+    @Test
+    @DisplayName("체크된 항목이 없으면 아무것도 삭제되지 않는다")
+    void deleteCheckedItems_체크된항목없으면_그대로() {
+        Ingredient onion = ingredient(2L, "양파");
+        ShoppingList list = ShoppingList.builder().userId(1L).build();
+        list.addItem(ShoppingListItem.builder().ingredient(onion).quantity(BigDecimal.ONE).unit("개").build());
+
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.of(list));
+
+        shoppingListService.deleteCheckedItems(1L);
+
+        assertThat(list.getItems()).hasSize(1);
+    }
+
+    // ===== deleteAllItems =====
+
+    @Test
+    @DisplayName("전체 삭제하면 리스트의 모든 항목이 제거된다")
+    void deleteAllItems_전체삭제() {
+        Ingredient onion = ingredient(2L, "양파");
+        Ingredient carrot = ingredient(3L, "당근");
+        ShoppingList list = ShoppingList.builder().userId(1L).build();
+        list.addItem(ShoppingListItem.builder().ingredient(onion).quantity(BigDecimal.ONE).unit("개").build());
+        list.addItem(ShoppingListItem.builder().ingredient(carrot).quantity(BigDecimal.ONE).unit("개").build());
+
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.of(list));
+
+        shoppingListService.deleteAllItems(1L);
+
+        assertThat(list.getItems()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("장보기 리스트가 없는 유저가 전체 삭제하려 하면 예외가 발생한다")
+    void deleteAllItems_리스트없으면_예외() {
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> shoppingListService.deleteAllItems(1L))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    // ===== updateQuantity =====
+
+    @Test
+    @DisplayName("수량을 변경하면 값이 갱신된다")
+    void updateQuantity_정상변경() {
+        Ingredient onion = ingredient(2L, "양파");
+        ShoppingList list = ShoppingList.builder().userId(1L).build();
+        ShoppingListItem item = ShoppingListItem.builder().ingredient(onion).quantity(BigDecimal.ONE).unit("개").build();
+        list.addItem(item);
+        ReflectionTestUtils.setField(item, "itemId", 100L);
+
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.of(list));
+
+        shoppingListService.updateQuantity(1L, 100L, BigDecimal.valueOf(3));
+
+        assertThat(item.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(3));
+    }
+
+    @Test
+    @DisplayName("수량을 0 이하로 변경하려 하면 예외가 발생한다")
+    void updateQuantity_0이하면_예외() {
+        Ingredient onion = ingredient(2L, "양파");
+        ShoppingList list = ShoppingList.builder().userId(1L).build();
+        ShoppingListItem item = ShoppingListItem.builder().ingredient(onion).quantity(BigDecimal.ONE).unit("개").build();
+        list.addItem(item);
+        ReflectionTestUtils.setField(item, "itemId", 100L);
+
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.of(list));
+
+        assertThatThrownBy(() -> shoppingListService.updateQuantity(1L, 100L, BigDecimal.ZERO))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("본인 소유가 아닌 항목의 수량을 변경하려 하면 예외가 발생한다")
+    void updateQuantity_존재하지않는항목이면_예외() {
+        ShoppingList list = ShoppingList.builder().userId(1L).build();
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.of(list));
+
+        assertThatThrownBy(() -> shoppingListService.updateQuantity(1L, 999L, BigDecimal.ONE))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // ===== addMissingIngredientsToMyList: 조미료 unit/quantity 제거 =====
+
+    @Test
+    @DisplayName("조미료 재료는 부족 재료로 담길 때 quantity와 unit이 null로 담긴다")
+    void addMissingIngredientsToMyList_조미료는_수량단위없이담김() {
+        Ingredient garlic = Ingredient.builder().ingredientName("마늘").isSeasoning(true).build();
+        ReflectionTestUtils.setField(garlic, "ingredientId", 7L);
+
+        Recipe recipe = Recipe.builder().recipeName("된장찌개").build();
+        recipe.addRecipeIngredient(RecipeIngredient.builder()
+                .ingredient(garlic)
+                .quantity(BigDecimal.ONE)
+                .unit("큰술")
+                .build());
+
+        ShoppingList list = ShoppingList.builder().userId(1L).build();
+
+        when(recipeRepository.findById(anyLong())).thenReturn(Optional.of(recipe));
+        when(userIngredientRepository.findByUserIdAndStatusOrderByExpirationDateAsc(eq(1L), any()))
+                .thenReturn(List.of());
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.of(list));
+
+        shoppingListService.addMissingIngredientsToMyList(1L, 10L);
+
+        assertThat(list.getItems()).hasSize(1);
+        assertThat(list.getItems().get(0).getQuantity()).isNull();
+        assertThat(list.getItems().get(0).getUnit()).isNull();
     }
 }

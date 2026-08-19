@@ -36,6 +36,14 @@ public class ShoppingList {
     }
 
     public void addItem(ShoppingListItem item) {
+        int nextOrder = items.stream()
+                .map(ShoppingListItem::getDisplayOrder)
+                .filter(order -> order != null)
+                .mapToInt(Integer::intValue)
+                .max()
+                .orElse(0) + 1;
+        item.assignDisplayOrder(nextOrder);
+
         items.add(item);
         item.setShoppingList(this);
     }
