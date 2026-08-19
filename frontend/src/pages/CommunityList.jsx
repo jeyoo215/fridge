@@ -68,9 +68,6 @@ export default function CommunityList({ boardType = "RECIPE" }) {
       <div className="community-list-container">
         <div className="community-list-header">
           <h2 className="community-list-title">{board.label}</h2>
-          <button type="button" className="community-write-button" onClick={() => navigate(board.newPath)}>
-            ✏️ 글쓰기
-          </button>
         </div>
 
         <div className="community-sort-toggle">
@@ -116,8 +113,8 @@ export default function CommunityList({ boardType = "RECIPE" }) {
               className="community-post-card"
               onClick={() => navigate(`/community/${post.postId}`)}
             >
+              <div className="community-post-card-author">사용자 {post.userId}</div>
               <div className="community-post-card-body">
-                <div className="community-post-card-author">사용자 {post.userId}</div>
                 <div className="community-post-card-title">
                   {post.prefix && <span className="community-post-card-prefix">{post.prefix}</span>}
                   {post.title}
@@ -169,6 +166,10 @@ export default function CommunityList({ boardType = "RECIPE" }) {
           </div>
         )}
       </div>
+
+      <button type="button" className="community-write-fab" onClick={() => navigate(board.newPath)}>
+        ✏️ 글쓰기
+      </button>
     </div>
   );
 }
