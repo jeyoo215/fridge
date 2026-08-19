@@ -9,6 +9,7 @@ import {
   fetchMadeStatus,
   toggleMade,
 } from "../api/socialApi";
+import { toMediaSrc } from "../api/communityApi";
 import RecipeReviewSection from "../component/RecipeReviewSection";
 import "./RecipeDetail.css";
 
@@ -21,7 +22,7 @@ export default function RecipeDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 좋아요/스크랩 상태 (나경님 파트: social 도메인)
+  // 좋아요/스크랩/만들었어요 상태 (나경님 파트: social 도메인)
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [scraped, setScraped] = useState(false);
@@ -150,7 +151,15 @@ export default function RecipeDetail() {
         <h3>조리 순서</h3>
         <ol className="recipe-detail-step-list">
           {recipe.steps.map((step) => (
-            <li key={step.stepOrder}>{step.description}</li>
+            <li key={step.stepOrder}>
+              {step.mediaUrl && step.mediaType === "VIDEO" && (
+                <video className="recipe-detail-step-media" src={toMediaSrc(step.mediaUrl)} controls />
+              )}
+              {step.mediaUrl && step.mediaType === "IMAGE" && (
+                <img className="recipe-detail-step-media" src={toMediaSrc(step.mediaUrl)} alt={`${step.stepOrder}단계`} />
+              )}
+              {step.description}
+            </li>
           ))}
         </ol>
       </section>
