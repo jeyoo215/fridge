@@ -44,31 +44,7 @@ public class UserIngredientController {
         userIngredientService.update(userId, userIngredientId, request);
     }
 
-    // 소진 처리
-    // 예: PATCH /api/v1/users/me/ingredients/1/consume?userId=1
-    @PatchMapping("/{userIngredientId}/consume")
-    public void consume(@RequestParam("userId") Long userId,
-                         @PathVariable("userIngredientId") Long userIngredientId) {
-        userIngredientService.consume(userId, userIngredientId);
-    }
-
-    // 폐기 처리
-    // 예: PATCH /api/v1/users/me/ingredients/1/discard?userId=1
-    @PatchMapping("/{userIngredientId}/discard")
-    public void discard(@RequestParam("userId") Long userId,
-                         @PathVariable("userIngredientId") Long userIngredientId) {
-        userIngredientService.discard(userId, userIngredientId);
-    }
-
-    // 소진/폐기 되돌리기 (다시 "보유중" 상태로)
-    // 예: PATCH /api/v1/users/me/ingredients/1/restore?userId=1
-    @PatchMapping("/{userIngredientId}/restore")
-    public void restore(@RequestParam("userId") Long userId,
-                         @PathVariable("userIngredientId") Long userIngredientId) {
-        userIngredientService.restore(userId, userIngredientId);
-    }
-
-    // 완전 삭제
+    // 재료 삭제 (사용완료/폐기 구분 없이 "삭제" 하나로 통합)
     // 예: DELETE /api/v1/users/me/ingredients/1?userId=1
     @DeleteMapping("/{userIngredientId}")
     public void delete(@RequestParam("userId") Long userId,

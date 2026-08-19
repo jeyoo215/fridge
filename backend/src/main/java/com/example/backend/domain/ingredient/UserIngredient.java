@@ -8,6 +8,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 // ERD의 user_ingredient 테이블 (사용자가 실제로 냉장고에 갖고 있는 재료)
+// 재료 정리는 "삭제" 하나로만 처리함 (소진/폐기 구분은 화면·API 단에서는 폐지).
+// Status enum 자체는 챌린지 도메인(ChallengeService)이 "보유중" 값을 참조하고 있어서 그대로 유지함.
 @Entity
 @Table(name = "user_ingredient")
 @Getter
@@ -46,10 +48,6 @@ public class UserIngredient {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    // 소진/폐기 처리된 시점 (통계 집계 등에 사용). 아직 보유중이면 null.
-    @Column(name = "resolved_at")
-    private LocalDateTime resolvedAt;
-
     @Builder
     public UserIngredient(Long userId, Ingredient ingredient, BigDecimal quantity, String unit,
                            LocalDate purchaseDate, LocalDate expirationDate) {
@@ -63,29 +61,14 @@ public class UserIngredient {
         this.createdAt = LocalDateTime.now();
     }
 
-    // --- 상태 변경 메서드 (소진/폐기 처리) ---
-    public void consume() {
-        this.status = Status.소진;
-        this.resolvedAt = LocalDateTime.now();
-    }
-
-    public void discard() {
-        this.status = Status.폐기;
-        this.resolvedAt = LocalDateTime.now();
-    }
-
-    // 소진/폐기 처리를 실수로 눌렀을 때 되돌리기용
-    public void restore() {
-        this.status = Status.보유중;
-        this.resolvedAt = null;
-    }
-
     public void updateQuantityAndExpiration(BigDecimal quantity, LocalDate purchaseDate, LocalDate expirationDate) {
         this.quantity = quantity;
         this.purchaseDate = purchaseDate;
         this.expirationDate = expirationDate;
     }
 
+    // 챌린지 도메인(ChallengeService)이 Status.보유중을 조회 조건으로 사용하므로 enum 자체는 유지함.
+    // 소진/폐기 값은 더 이상 화면/API에서 만들지 않지만, 과거 데이터 호환을 위해 값만 남겨둠.
     public enum Status {
         보유중, 소진, 폐기
     }

@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { fetchRecipeDetail } from "../api/recipeApi";
-import { fetchLikeStatus, toggleLike, fetchScrapStatus, toggleScrap } from "../api/socialApi";
+import {
+  fetchLikeStatus,
+  toggleLike,
+  fetchScrapStatus,
+  toggleScrap,
+  fetchMadeStatus,
+  toggleMade,
+} from "../api/socialApi";
 import { toMediaSrc } from "../api/communityApi";
 import RecipeReviewSection from "../component/RecipeReviewSection";
 import "./RecipeDetail.css";
@@ -15,11 +22,13 @@ export default function RecipeDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 좋아요/스크랩 상태 (나경님 파트: social 도메인)
+  // 좋아요/스크랩/만들었어요 상태 (나경님 파트: social 도메인)
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [scraped, setScraped] = useState(false);
   const [scrapCount, setScrapCount] = useState(0);
+  const [made, setMade] = useState(false);
+  const [madeCount, setMadeCount] = useState(0);
 
   useEffect(() => {
     fetchRecipeDetail(recipeId)
@@ -40,6 +49,13 @@ export default function RecipeDetail() {
         setScrapCount(res.count);
       })
       .catch(() => {});
+
+    fetchMadeStatus(recipeId, TEMP_USER_ID)
+      .then((res) => {
+        setMade(res.active);
+        setMadeCount(res.count);
+      })
+      .catch(() => {});
   }, [recipeId]);
 
   const handleToggleLike = async () => {
@@ -57,6 +73,16 @@ export default function RecipeDetail() {
       const res = await toggleScrap(recipeId, TEMP_USER_ID);
       setScraped(res.active);
       setScrapCount(res.count);
+    } catch {
+      // 실패해도 조용히 무시
+    }
+  };
+
+  const handleToggleMade = async () => {
+    try {
+      const res = await toggleMade(recipeId, TEMP_USER_ID);
+      setMade(res.active);
+      setMadeCount(res.count);
     } catch {
       // 실패해도 조용히 무시
     }
@@ -98,6 +124,12 @@ export default function RecipeDetail() {
           onClick={handleToggleScrap}
         >
           {scraped ? "🔖" : "📑"} 스크랩 {scrapCount}
+        </button>
+        <button
+          className={`recipe-social-button ${made ? "active" : ""}`}
+          onClick={handleToggleMade}
+        >
+          {made ? "🍳" : "🥘"} 만들었어요 {madeCount}
         </button>
       </div>
 
