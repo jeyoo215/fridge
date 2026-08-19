@@ -128,16 +128,21 @@ public class CommunityPostService {
 
     // 게시판 목록 (기본 최신순, sortBy="popular"면 좋아요 많은 순).
     // boardType이 챌린지 게시판이면 userId로 접근 자격을 먼저 확인한다. prefix는 FREE_TALK 게시판의
-    // 말머리 필터(선택)로만 쓰인다.
+    // 말머리 필터(선택)로만 쓰인다. keyword가 있으면 제목 검색을 하고, 이때는 prefix 필터를 무시한다.
     @Transactional
     public CommunityPostPageResponse getList(int page, int size, String sortBy,
-                                              CommunityPost.BoardType boardType, String prefix, Long userId) {
+                                              CommunityPost.BoardType boardType, String prefix, String keyword, Long userId) {
         assertChallengeBoardAccess(userId, boardType);
 
         Pageable pageable = PageRequest.of(page, size);
         boolean popular = "popular".equals(sortBy);
+        String trimmedKeyword = keyword == null ? null : keyword.trim();
         Page<Long> idPage;
-        if (boardType == CommunityPost.BoardType.FREE_TALK && prefix != null) {
+        if (trimmedKeyword != null && !trimmedKeyword.isEmpty()) {
+            idPage = popular
+                    ? communityPostRepository.findPostIdsByBoardTypeAndTitleContainingOrderByLikeCountDesc(boardType, trimmedKeyword, pageable)
+                    : communityPostRepository.findPostIdsByBoardTypeAndTitleContainingOrderByCreatedAtDesc(boardType, trimmedKeyword, pageable);
+        } else if (boardType == CommunityPost.BoardType.FREE_TALK && prefix != null) {
             idPage = popular
                     ? communityPostRepository.findPostIdsByBoardTypeAndPrefixOrderByLikeCountDesc(boardType, prefix, pageable)
                     : communityPostRepository.findPostIdsByBoardTypeAndPrefixOrderByCreatedAtDesc(boardType, prefix, pageable);
