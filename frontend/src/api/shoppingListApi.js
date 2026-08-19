@@ -63,3 +63,38 @@ export async function addManualShoppingItem(userId, payload) {
     throw new Error(data?.message || "재료를 담지 못했습니다.");
   }
 }
+
+export async function reorderShoppingItems(userId, itemIds) {
+  const response = await fetch(`${BASE_URL}/shopping-list/items/reorder?userId=${userId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ itemIds }),
+  });
+  if (!response.ok) throw new Error("순서 변경에 실패했습니다.");
+}
+
+export async function deleteCheckedShoppingItems(userId) {
+  const response = await fetch(`${BASE_URL}/shopping-list/items/checked?userId=${userId}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("선택 삭제에 실패했습니다.");
+}
+
+export async function deleteAllShoppingItems(userId) {
+  const response = await fetch(`${BASE_URL}/shopping-list/items?userId=${userId}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("전체 삭제에 실패했습니다.");
+}
+
+export async function updateShoppingItemQuantity(userId, itemId, quantity) {
+  const response = await fetch(
+    `${BASE_URL}/shopping-list/items/${itemId}/quantity?userId=${userId}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ quantity }),
+    }
+  );
+  if (!response.ok) throw new Error("수량 변경에 실패했습니다.");
+}

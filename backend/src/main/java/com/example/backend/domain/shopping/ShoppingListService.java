@@ -17,7 +17,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -61,15 +63,19 @@ public class ShoppingListService {
                 .orElseGet(() -> shoppingListRepository.save(ShoppingList.builder().userId(userId).build()));
 
         for (RecipeIngredient recipeIngredient : findMissingRecipeIngredients(userId, recipe)) {
-            Ingredient ingredient = recipeIngredient.getIngredient();
-            if (shoppingList.containsIngredient(ingredient.getIngredientId())) {
-                continue;
-            }
-            shoppingList.addItem(ShoppingListItem.builder()
-                    .ingredient(ingredient)
-                    .quantity(recipeIngredient.getQuantity())
-                    .unit(recipeIngredient.getUnit())
-                    .build());
+                Ingredient ingredient = recipeIngredient.getIngredient();
+                if (shoppingList.containsIngredient(ingredient.getIngredientId())) {
+                        continue;
+                }
+                ShoppingListItem item = ShoppingListItem.builder()
+                        .ingredient(ingredient)
+                        .quantity(recipeIngredient.getQuantity())
+                        .unit(recipeIngredient.getUnit())
+                        .build();
+                if (ingredient.isSeasoning()) {
+                        item.clearQuantityAndUnit(); // 조미료는 조리용 단위(큰술 등)를 장보기에 그대로 노출하지 않음
+                }
+                shoppingList.addItem(item);
         }
     }
 
@@ -142,4 +148,44 @@ public class ShoppingListService {
                                 .build())
                 );
     }
+
+        // 순서 변경
+        @Transactional
+        public void reorderItems(Long userId, List<Long> orderedItemIds) {
+                ShoppingList shoppingList = shoppingListRepository.findByUserId(userId)
+                        .orElseThrow(() -> new EntityNotFoundException("장보기 리스트가 없습니다."));
+
+                Map<Long, ShoppingListItem> itemsById = shoppingList.getItems().stream()
+                        .collect(Collectors.toMap(ShoppingListItem::getItemId, item -> item));
+
+                for (int i = 0; i < orderedItemIds.size(); i++) {
+                        ShoppingListItem item = itemsById.get(orderedItemIds.get(i));
+                        if (item == null) {
+                        throw new IllegalArgumentException("존재하지 않거나 본인 소유가 아닌 항목이 포함되어 있습니다.");
+                        }
+                        item.assignDisplayOrderPublic(i + 1); // 아래 7번 참고
+                }
+        }
+
+        // 체크된 항목 일괄 삭제
+        @Transactional
+        public void deleteCheckedItems(Long userId) {
+        ShoppingList shoppingList = shoppingListRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("장보기 리스트가 없습니다."));
+        shoppingList.getItems().removeIf(ShoppingListItem::isChecked);
+        }
+
+        // 전체 삭제
+        @Transactional
+        public void deleteAllItems(Long userId) {
+        ShoppingList shoppingList = shoppingListRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("장보기 리스트가 없습니다."));
+        shoppingList.getItems().clear();
+        }
+
+        // 수량 직접 수정
+        @Transactional
+        public void updateQuantity(Long userId, Long itemId, BigDecimal quantity) {
+        findOwnedItem(userId, itemId).updateQuantity(quantity);
+        }
 }
