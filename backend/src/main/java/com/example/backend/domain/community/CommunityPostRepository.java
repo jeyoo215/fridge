@@ -29,6 +29,15 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
     Page<Long> findPostIdsByBoardTypeAndPrefixOrderByLikeCountDesc(@Param("boardType") CommunityPost.BoardType boardType,
                                                                     @Param("prefix") String prefix, Pageable pageable);
 
+    // 제목 검색. 검색어가 있으면 말머리 필터보다 우선한다(둘 다 동시에 적용하지 않음).
+    @Query("SELECT p.postId FROM CommunityPost p WHERE p.boardType = :boardType AND p.title LIKE CONCAT('%', :keyword, '%') ORDER BY p.createdAt DESC")
+    Page<Long> findPostIdsByBoardTypeAndTitleContainingOrderByCreatedAtDesc(@Param("boardType") CommunityPost.BoardType boardType,
+                                                                             @Param("keyword") String keyword, Pageable pageable);
+
+    @Query("SELECT p.postId FROM CommunityPost p WHERE p.boardType = :boardType AND p.title LIKE CONCAT('%', :keyword, '%') ORDER BY p.likeCount DESC, p.createdAt DESC")
+    Page<Long> findPostIdsByBoardTypeAndTitleContainingOrderByLikeCountDesc(@Param("boardType") CommunityPost.BoardType boardType,
+                                                                             @Param("keyword") String keyword, Pageable pageable);
+
     // 위에서 뽑은 id들에 대해서만 조리순서까지 함께 조회 (목록 카드 썸네일/미리보기용, N+1 방지)
     @Query("SELECT DISTINCT p FROM CommunityPost p LEFT JOIN FETCH p.steps WHERE p.postId IN :postIds")
     List<CommunityPost> findAllWithStepsByPostIdIn(@Param("postIds") List<Long> postIds);

@@ -26,10 +26,11 @@ export async function uploadCommunityMedia(file) {
 }
 
 // 커뮤니티 게시글 목록 (최신순, 페이지당 10개). boardType 생략하면 레시피 게시판(기존과 동일 동작).
-// userId는 챌린지 게시판 접근 자격 확인용, prefix는 잡담 게시판 말머리 필터용 (둘 다 선택값).
-export async function fetchCommunityPosts(page = 0, size = 10, sortBy = "latest", boardType = "RECIPE", { prefix, userId } = {}) {
+// userId는 챌린지 게시판 접근 자격 확인용, prefix는 잡담 게시판 말머리 필터용, keyword는 제목 검색용 (모두 선택값).
+export async function fetchCommunityPosts(page = 0, size = 10, sortBy = "latest", boardType = "RECIPE", { prefix, keyword, userId } = {}) {
   const params = new URLSearchParams({ page, size, sortBy, boardType });
   if (prefix) params.set("prefix", prefix);
+  if (keyword) params.set("keyword", keyword);
   if (userId) params.set("userId", userId);
   const response = await fetch(`${BASE_URL}/community/posts?${params.toString()}`);
   if (!response.ok) {

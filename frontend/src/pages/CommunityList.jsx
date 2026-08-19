@@ -16,6 +16,8 @@ export default function CommunityList({ boardType = "RECIPE" }) {
   const [totalPages, setTotalPages] = useState(0);
   const [sortBy, setSortBy] = useState("latest"); // "latest" | "popular"
   const [prefix, setPrefix] = useState(""); // FREE_TALK 게시판 말머리 필터 ("" = 전체)
+  const [keyword, setKeyword] = useState(""); // 실제 검색에 쓰이는 확정된 검색어 (입력 중엔 반영 안 됨)
+  const [keywordInput, setKeywordInput] = useState(""); // 검색창 입력값
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -25,7 +27,11 @@ export default function CommunityList({ boardType = "RECIPE" }) {
     setLoading(true);
     setError(null);
     setAccessDenied(false);
-    fetchCommunityPosts(page, 10, sortBy, boardType, { prefix: prefix || undefined, userId: TEMP_USER_ID })
+    fetchCommunityPosts(page, 10, sortBy, boardType, {
+      prefix: prefix || undefined,
+      keyword: keyword || undefined,
+      userId: TEMP_USER_ID,
+    })
       .then((data) => {
         setPosts(data.content);
         setTotalPages(data.totalPages);
@@ -38,10 +44,16 @@ export default function CommunityList({ boardType = "RECIPE" }) {
         }
       })
       .finally(() => setLoading(false));
-  }, [page, sortBy, boardType, prefix, isChallengeBoard]);
+  }, [page, sortBy, boardType, prefix, keyword, isChallengeBoard]);
 
   const changeSortBy = (value) => {
     setSortBy(value);
+    setPage(0);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setKeyword(keywordInput.trim());
     setPage(0);
   };
 
@@ -69,6 +81,19 @@ export default function CommunityList({ boardType = "RECIPE" }) {
         <div className="community-list-header">
           <h2 className="community-list-title">{board.label}</h2>
         </div>
+
+        <form className="community-search-form" onSubmit={handleSearchSubmit}>
+          <input
+            type="text"
+            className="community-search-input"
+            placeholder="제목으로 검색"
+            value={keywordInput}
+            onChange={(e) => setKeywordInput(e.target.value)}
+          />
+          <button type="submit" className="community-search-button">
+            🔍 검색
+          </button>
+        </form>
 
         <div className="community-sort-toggle">
           <button
@@ -103,7 +128,9 @@ export default function CommunityList({ boardType = "RECIPE" }) {
         {loading && <p className="community-list-status">불러오는 중...</p>}
         {error && <p className="community-list-status error">{error}</p>}
         {!loading && !error && posts.length === 0 && (
-          <p className="community-list-status">아직 등록된 글이 없어요. 첫 글을 남겨보세요!</p>
+          <p className="community-list-status">
+            {keyword ? `"${keyword}"에 대한 검색 결과가 없어요.` : "아직 등록된 글이 없어요. 첫 글을 남겨보세요!"}
+          </p>
         )}
 
         <div className="community-post-cards">
