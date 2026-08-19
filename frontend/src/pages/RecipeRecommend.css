@@ -41,6 +41,8 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1;        /* 추가: 남는 공간을 항상 채워서 폭을 일정하게 */
+  min-width: 0;   /* 추가: 텍스트 넘칠 때 flex 계산 깨지는 것 방지 */
 }
 
 .recipe-name {
@@ -122,4 +124,35 @@
 
 .combo-recipe-card {
   border: 1px dashed var(--color-basil);
+}
+
+.recipe-recommend-tabs {
+  display: inline-flex;
+  padding: 4px;
+  background: var(--color-bg);
+  border-radius: 999px;
+  margin-bottom: 18px;
+}
+
+.recipe-recommend-tabs button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.recipe-recommend-tabs button.active {
+  background: var(--color-basil);
+  color: #fff;
+}
+
+.recipe-recommend-container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+  text-align: left;   /* 추가 */
 }

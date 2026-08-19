@@ -77,9 +77,13 @@ export default function RecipeDetail() {
         {recipe.userCreated && <span className="recipe-user-badge">👑 유저 제작 레시피</span>}
       </h2>
       <div className="recipe-detail-meta">
-        <span>⏱ {recipe.cookingTimeMinutes}분</span>
-        <span>· {recipe.difficulty}</span>
-        <span>· {recipe.categoryName}</span>
+        <span>
+          {[
+            recipe.cookingTimeMinutes > 0 ? `⏱ ${recipe.cookingTimeMinutes}분` : null,
+            recipe.difficulty || null,
+            recipe.categoryName || null,
+          ].filter(Boolean).join(" · ")}
+        </span>
       </div>
 
       <div className="recipe-social-actions">
