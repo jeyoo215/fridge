@@ -58,3 +58,44 @@ export async function fetchPopularRecipes(sortBy = "likes") {
   }
   return response.json();
 }
+
+// --- 만들어본 레시피 ---
+
+// "만들었어요" 상태 + 개수 조회
+export async function fetchMadeStatus(recipeId, userId) {
+  const response = await fetch(`${BASE_URL}/recipes/${recipeId}/cook-records?userId=${userId}`);
+  if (!response.ok) {
+    throw new Error("만들기 기록을 불러오지 못했습니다.");
+  }
+  return response.json();
+}
+
+// "만들었어요" 토글
+export async function toggleMade(recipeId, userId) {
+  const response = await fetch(`${BASE_URL}/recipes/${recipeId}/cook-records?userId=${userId}`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error("만들기 기록 처리에 실패했습니다.");
+  }
+  return response.json();
+}
+
+// 마이페이지: 내가 만들어본 레시피 목록
+export async function fetchMyMadeRecipes(userId) {
+  const response = await fetch(`${BASE_URL}/users/me/made-recipes?userId=${userId}`);
+  if (!response.ok) {
+    throw new Error("만들어본 레시피 목록을 불러오지 못했습니다.");
+  }
+  return response.json();
+}
+
+// 마이페이지: 내가 평가한 레시피 목록 (review 도메인 데이터를 가져옴)
+export async function fetchMyReviewedRecipes(userId) {
+  const response = await fetch(`${BASE_URL}/users/me/recipe-reviews?userId=${userId}`);
+  if (!response.ok) {
+    throw new Error("평가한 레시피 목록을 불러오지 못했습니다.");
+  }
+  return response.json();
+}
+
