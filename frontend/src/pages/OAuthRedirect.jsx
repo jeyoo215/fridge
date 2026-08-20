@@ -17,8 +17,8 @@ export default function OAuthRedirect() {
     }
 
     setTokens(accessToken, refreshToken);
-    navigate("/", { replace: true });
-  }, [searchParams, navigate]);
+    window.location.href = "/"; // navigate 대신 새로고침
+  }, [searchParams]);
 
   if (error) {
     return (

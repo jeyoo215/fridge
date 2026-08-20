@@ -13,14 +13,15 @@ import CommunityPostDetail from "./pages/CommunityPostDetail";
 import MyPage from "./pages/MyPage";
 import Login from "./pages/Login";
 import OAuthRedirect from "./pages/OAuthRedirect";
+import { isLoggedIn } from "./api/authApi";
 import "./App.css";
 
 function App() {
   return (
     <BrowserRouter>
-      <Nav />
+      {isLoggedIn() && <Nav />}
       <Routes>
-        <Route path="/" element={<IngredientList />} />
+        <Route path="/" element={isLoggedIn() ? <IngredientList /> : <Login />} />
         <Route path="/ingredients/new" element={<IngredientRegisterForm />} />
         <Route path="/recipes" element={<RecipeRecommend />} />
         <Route path="/recipes/:recipeId" element={<RecipeDetail />} />

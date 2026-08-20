@@ -23,7 +23,7 @@ export default function Login() {
       } else {
         await login(email, password);
       }
-      navigate("/");
+      window.location.href = "/"; // navigate 대신 새로고침 — App이 다시 마운트되며 로그인 상태 재평가
     } catch (err) {
       setError(err.message);
     } finally {
