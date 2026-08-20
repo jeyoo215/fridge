@@ -45,7 +45,7 @@ export default function MyPage({ onNavigateAway } = {}) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [activityScreen, setActivityScreen] = useState(null); // null | "menu" | "scraps" | "likes" | "comments"
+  const [activityScreen, setActivityScreen] = useState(null); // null | "scraps" | "likes" | "comments" | ...
   const [activityPosts, setActivityPosts] = useState([]);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityError, setActivityError] = useState(null);
@@ -167,51 +167,6 @@ export default function MyPage({ onNavigateAway } = {}) {
 
   if (loading) return <p className="mypage-status">불러오는 중...</p>;
 
-  if (activityScreen === "menu") {
-    return (
-      <div className="mypage-container">
-        <div className="mypage-header">
-          <button type="button" className="mypage-back-button" onClick={() => setActivityScreen(null)}>
-            ← 내 정보
-          </button>
-        </div>
-        <h2 className="mypage-title">내 활동</h2>
-
-        <p className="mypage-activity-group-title">게시판</p>
-        <ul className="mypage-activity-menu">
-          {ACTIVITY_CATEGORIES.map((category) => (
-            <li key={category.key}>
-              <button
-                type="button"
-                className="mypage-activity-menu-item"
-                onClick={() => openActivityCategory(category)}
-              >
-                <span>{category.label}</span>
-                <span className="mypage-activity-menu-arrow">›</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        <p className="mypage-activity-group-title">레시피</p>
-        <ul className="mypage-activity-menu">
-          {RECIPE_ACTIVITY_CATEGORIES.map((category) => (
-            <li key={category.key}>
-              <button
-                type="button"
-                className="mypage-activity-menu-item"
-                onClick={() => openActivityCategory(category)}
-              >
-                <span>{category.label}</span>
-                <span className="mypage-activity-menu-arrow">›</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
-
   if (activityScreen) {
     const category = [...ACTIVITY_CATEGORIES, ...RECIPE_ACTIVITY_CATEGORIES].find(
       (c) => c.key === activityScreen
@@ -219,8 +174,8 @@ export default function MyPage({ onNavigateAway } = {}) {
     return (
       <div className="mypage-container">
         <div className="mypage-header">
-          <button type="button" className="mypage-back-button" onClick={() => setActivityScreen("menu")}>
-            ← 내 활동
+          <button type="button" className="mypage-back-button" onClick={() => setActivityScreen(null)}>
+            ← 내 정보
           </button>
         </div>
         <h2 className="mypage-title">{category.label}</h2>
@@ -422,10 +377,38 @@ export default function MyPage({ onNavigateAway } = {}) {
 
       <section className="mypage-section">
         <h3 className="mypage-section-title">내 활동</h3>
-        <button type="button" className="mypage-activity-entry" onClick={() => setActivityScreen("menu")}>
-          <span>스크랩 · 좋아요 · 댓글 기록 보기</span>
-          <span className="mypage-activity-menu-arrow">›</span>
-        </button>
+
+        <p className="mypage-activity-group-title">게시판</p>
+        <ul className="mypage-activity-menu">
+          {ACTIVITY_CATEGORIES.map((category) => (
+            <li key={category.key}>
+              <button
+                type="button"
+                className="mypage-activity-menu-item"
+                onClick={() => openActivityCategory(category)}
+              >
+                <span>{category.label}</span>
+                <span className="mypage-activity-menu-arrow">›</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        <p className="mypage-activity-group-title">레시피</p>
+        <ul className="mypage-activity-menu">
+          {RECIPE_ACTIVITY_CATEGORIES.map((category) => (
+            <li key={category.key}>
+              <button
+                type="button"
+                className="mypage-activity-menu-item"
+                onClick={() => openActivityCategory(category)}
+              >
+                <span>{category.label}</span>
+                <span className="mypage-activity-menu-arrow">›</span>
+              </button>
+            </li>
+          ))}
+        </ul>
       </section>
     </div>
   );
