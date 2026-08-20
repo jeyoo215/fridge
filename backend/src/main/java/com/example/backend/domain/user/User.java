@@ -5,9 +5,6 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-// ERD의 user 테이블 (회원 기본 정보). 회원가입/로그인 로직은 별도 작업이라 엔티티만 우선 정의.
-// UserIngredient 등 다른 엔티티의 user_id는 아직 이 엔티티에 대한 FK로 연결돼 있지 않고
-// TODO로 남겨둔 상태이니, 나중에 회원 기능을 붙일 때 같이 정리하면 됨.
 @Entity
 @Table(name = "user")
 @Getter
@@ -28,14 +25,24 @@ public class User {
     @Column(name = "nickname", nullable = false, length = 50)
     private String nickname;
 
+    // 소셜 로그인 (FR-01)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "provider", nullable = false, length = 20)
+    private AuthProvider provider;
+
+    @Column(name = "provider_id", length = 100)
+    private String providerId; // 소셜 로그인 공급자가 주는 고유 ID. 이메일 가입자는 null.
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Builder
-    public User(String email, String password, String nickname) {
+    public User(String email, String password, String nickname, AuthProvider provider, String providerId) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
+        this.provider = provider != null ? provider : AuthProvider.LOCAL;
+        this.providerId = providerId;
         this.createdAt = LocalDateTime.now();
     }
 }

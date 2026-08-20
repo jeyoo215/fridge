@@ -11,14 +11,17 @@ import CommunityList from "./pages/CommunityList";
 import CommunityPostForm from "./pages/CommunityPostForm";
 import CommunityPostDetail from "./pages/CommunityPostDetail";
 import MyPage from "./pages/MyPage";
+import Login from "./pages/Login";
+import OAuthRedirect from "./pages/OAuthRedirect";
+import { isLoggedIn } from "./api/authApi";
 import "./App.css";
 
 function App() {
   return (
     <BrowserRouter>
-      <Nav />
+      {isLoggedIn() && <Nav />}
       <Routes>
-        <Route path="/" element={<IngredientList />} />
+        <Route path="/" element={isLoggedIn() ? <IngredientList /> : <Login />} />
         <Route path="/ingredients/new" element={<IngredientRegisterForm />} />
         <Route path="/recipes" element={<RecipeRecommend />} />
         <Route path="/recipes/:recipeId" element={<RecipeDetail />} />
@@ -36,6 +39,8 @@ function App() {
         <Route path="/community/:postId/edit" element={<CommunityPostForm />} />
         <Route path="/community/:postId" element={<CommunityPostDetail />} />
         <Route path="/mypage" element={<MyPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/oauth/redirect" element={<OAuthRedirect />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
