@@ -24,7 +24,9 @@ public class RecipeRecommendResponse {
         this.cookingTimeMinutes = entity.getCookingTimeMinutes();
         this.difficulty = entity.getDifficulty();
         this.matchCount = matchCount;
-        this.totalIngredientCount = entity.getRecipeIngredients().size();
+        this.totalIngredientCount = (int) entity.getRecipeIngredients().stream()
+                .filter(ri -> !ri.getIngredient().isSeasoning())
+                .count();
         this.expiryPriorityScore = expiryPriorityScore;
         this.hasAllTools = hasAllTools;
         this.isUserCreated = "커뮤니티".equals(entity.getSource());

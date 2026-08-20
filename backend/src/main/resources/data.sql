@@ -7,6 +7,17 @@
 -- 이 서브쿼리로 제외하고 지운다.
 SET FOREIGN_KEY_CHECKS = 0;
 
+-- 조리순서-섹션 통합 리팩터링으로 CommunityPostSection 엔티티를 삭제했지만, ddl-auto=update는 기존에
+-- 만들어진 테이블/FK를 자동으로 지우지 않아 community_post_section 테이블이 그대로 남아있는 DB가 있다.
+-- 이 테이블은 이제 어떤 엔티티도 매핑하지 않는 죽은 테이블인데, community_post를 참조하는 FK가 남아있어서
+-- 예전 글(섹션 데이터가 남아있는 글)을 삭제할 때 "부모 행 삭제 불가" 오류가 발생한다. 완전히 제거한다.
+DROP TABLE IF EXISTS community_post_section;
+
+-- 챌린지 게시판/전체 잡담 게시판 추가로 board_type 컬럼이 새로 생겼다. ddl-auto=update는 기존 행에 대해
+-- NOT NULL로 강제하지 않고 그냥 컬럼만 추가하므로, 예전 글(전부 레시피 게시판 글)은 board_type이
+-- null인 채로 남는다. 매 재시작마다 null인 것만 RECIPE로 백필해서, 모든 개발자 DB가 자동으로 맞춰지게 한다.
+UPDATE community_post SET board_type = 'RECIPE' WHERE board_type IS NULL;
+
 DELETE FROM recipe_review WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
 DELETE FROM recipe_ingredient WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);
 DELETE FROM cooking_step WHERE recipe_id NOT IN (SELECT promoted_recipe_id FROM community_post WHERE promoted_recipe_id IS NOT NULL);

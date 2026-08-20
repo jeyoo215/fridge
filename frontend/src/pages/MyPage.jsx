@@ -12,14 +12,22 @@ import {
   fetchMyCommunityComments,
 } from "../api/userApi";
 import { toMediaSrc } from "../api/communityApi";
+import { fetchMyScraps, fetchMyMadeRecipes, fetchMyReviewedRecipes } from "../api/socialApi";
 import "./MyPage.css";
 
 const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
 
 const ACTIVITY_CATEGORIES = [
-  { key: "scraps", label: "📌 스크랩한 게시글", fetcher: fetchMyCommunityScraps },
-  { key: "likes", label: "❤️ 좋아요한 게시글", fetcher: fetchMyCommunityLikes },
-  { key: "comments", label: "💬 댓글단 게시글", fetcher: fetchMyCommunityComments },
+  { key: "scraps", label: "📌 스크랩한 게시글", fetcher: fetchMyCommunityScraps, type: "community" },
+  { key: "likes", label: "❤️ 좋아요한 게시글", fetcher: fetchMyCommunityLikes, type: "community" },
+  { key: "comments", label: "💬 댓글단 게시글", fetcher: fetchMyCommunityComments, type: "community" },
+];
+
+// 레시피 관련 활동 (나경님 파트: 즐겨찾기/만들어본/평가한 레시피)
+const RECIPE_ACTIVITY_CATEGORIES = [
+  { key: "favorite-recipes", label: "⭐ 즐겨찾기 레시피", fetcher: fetchMyScraps, type: "recipe" },
+  { key: "made-recipes", label: "🍳 만들어본 레시피", fetcher: fetchMyMadeRecipes, type: "recipe" },
+  { key: "reviewed-recipes", label: "✍️ 평가한 레시피", fetcher: fetchMyReviewedRecipes, type: "recipe" },
 ];
 
 export default function MyPage({ onNavigateAway } = {}) {
@@ -37,7 +45,7 @@ export default function MyPage({ onNavigateAway } = {}) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [activityScreen, setActivityScreen] = useState(null); // null | "menu" | "scraps" | "likes" | "comments"
+  const [activityScreen, setActivityScreen] = useState(null); // null | "scraps" | "likes" | "comments" | ...
   const [activityPosts, setActivityPosts] = useState([]);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityError, setActivityError] = useState(null);
@@ -148,47 +156,26 @@ export default function MyPage({ onNavigateAway } = {}) {
     }
   };
 
-  const handleActivityPostClick = (postId) => {
+  const handleActivityItemClick = (category, item) => {
     onNavigateAway?.();
-    navigate(`/community/${postId}#comments`);
+    if (category.type === "recipe") {
+      navigate(`/recipes/${item.recipeId}`);
+    } else {
+      navigate(`/community/${item.postId}#comments`);
+    }
   };
 
   if (loading) return <p className="mypage-status">불러오는 중...</p>;
 
-  if (activityScreen === "menu") {
+  if (activityScreen) {
+    const category = [...ACTIVITY_CATEGORIES, ...RECIPE_ACTIVITY_CATEGORIES].find(
+      (c) => c.key === activityScreen
+    );
     return (
       <div className="mypage-container">
         <div className="mypage-header">
           <button type="button" className="mypage-back-button" onClick={() => setActivityScreen(null)}>
             ← 내 정보
-          </button>
-        </div>
-        <h2 className="mypage-title">내 활동</h2>
-        <ul className="mypage-activity-menu">
-          {ACTIVITY_CATEGORIES.map((category) => (
-            <li key={category.key}>
-              <button
-                type="button"
-                className="mypage-activity-menu-item"
-                onClick={() => openActivityCategory(category)}
-              >
-                <span>{category.label}</span>
-                <span className="mypage-activity-menu-arrow">›</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
-
-  if (activityScreen) {
-    const category = ACTIVITY_CATEGORIES.find((c) => c.key === activityScreen);
-    return (
-      <div className="mypage-container">
-        <div className="mypage-header">
-          <button type="button" className="mypage-back-button" onClick={() => setActivityScreen("menu")}>
-            ← 내 활동
           </button>
         </div>
         <h2 className="mypage-title">{category.label}</h2>
@@ -199,29 +186,71 @@ export default function MyPage({ onNavigateAway } = {}) {
           <p className="mypage-empty">아직 기록이 없어요.</p>
         )}
 
-        <ul className="mypage-activity-post-list">
-          {activityPosts.map((post) => (
-            <li
-              key={post.postId}
-              className="mypage-activity-post-card"
-              onClick={() => handleActivityPostClick(post.postId)}
-            >
-              {post.thumbnailUrl && (
-                <div className="mypage-activity-post-thumbnail">
-                  <img src={toMediaSrc(post.thumbnailUrl)} alt="" />
+        {category.type === "community" && (
+          <ul className="mypage-activity-post-list">
+            {activityPosts.map((post) => (
+              <li
+                key={post.postId}
+                className="mypage-activity-post-card"
+                onClick={() => handleActivityItemClick(category, post)}
+              >
+                {post.thumbnailUrl && (
+                  <div className="mypage-activity-post-thumbnail">
+                    <img src={toMediaSrc(post.thumbnailUrl)} alt="" />
+                  </div>
+                )}
+                <div className="mypage-activity-post-body">
+                  <div className="mypage-activity-post-title">{post.title}</div>
+                  <p className="mypage-activity-post-preview">{post.previewText}</p>
+                  <div className="mypage-activity-post-meta">
+                    <span>{post.createdAt?.slice(0, 10)}</span>
+                    <span>공감 {post.likeCount}</span>
+                  </div>
                 </div>
-              )}
-              <div className="mypage-activity-post-body">
-                <div className="mypage-activity-post-title">{post.title}</div>
-                <p className="mypage-activity-post-preview">{post.previewText}</p>
-                <div className="mypage-activity-post-meta">
-                  <span>{post.createdAt?.slice(0, 10)}</span>
-                  <span>공감 {post.likeCount}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {category.type === "recipe" && (
+          <ul className="mypage-activity-post-list">
+            {activityPosts.map((recipe) => (
+              <li
+                key={recipe.recipeId}
+                className="mypage-activity-post-card"
+                onClick={() => handleActivityItemClick(category, recipe)}
+              >
+                {recipe.imageUrl && (
+                  <div className="mypage-activity-post-thumbnail">
+                    <img src={toMediaSrc(recipe.imageUrl)} alt="" />
+                  </div>
+                )}
+                <div className="mypage-activity-post-body">
+                  <div className="mypage-activity-post-title">{recipe.recipeName}</div>
+                  {category.key === "reviewed-recipes" ? (
+                    <>
+                      <p className="mypage-activity-post-preview">
+                        {"⭐".repeat(recipe.rating)} {recipe.content}
+                      </p>
+                      <div className="mypage-activity-post-meta">
+                        <span>{recipe.createdAt?.slice(0, 10)}</span>
+                      </div>
+                    </>
+                  ) : category.key === "made-recipes" ? (
+                    <div className="mypage-activity-post-meta">
+                      <span>{recipe.madeAt?.slice(0, 10)}에 만들었어요</span>
+                    </div>
+                  ) : (
+                    <div className="mypage-activity-post-meta">
+                      <span>⏱ {recipe.cookingTimeMinutes}분</span>
+                      <span>· {recipe.difficulty}</span>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     );
   }
@@ -348,10 +377,38 @@ export default function MyPage({ onNavigateAway } = {}) {
 
       <section className="mypage-section">
         <h3 className="mypage-section-title">내 활동</h3>
-        <button type="button" className="mypage-activity-entry" onClick={() => setActivityScreen("menu")}>
-          <span>스크랩 · 좋아요 · 댓글 기록 보기</span>
-          <span className="mypage-activity-menu-arrow">›</span>
-        </button>
+
+        <p className="mypage-activity-group-title">게시판</p>
+        <ul className="mypage-activity-menu">
+          {ACTIVITY_CATEGORIES.map((category) => (
+            <li key={category.key}>
+              <button
+                type="button"
+                className="mypage-activity-menu-item"
+                onClick={() => openActivityCategory(category)}
+              >
+                <span>{category.label}</span>
+                <span className="mypage-activity-menu-arrow">›</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        <p className="mypage-activity-group-title">레시피</p>
+        <ul className="mypage-activity-menu">
+          {RECIPE_ACTIVITY_CATEGORIES.map((category) => (
+            <li key={category.key}>
+              <button
+                type="button"
+                className="mypage-activity-menu-item"
+                onClick={() => openActivityCategory(category)}
+              >
+                <span>{category.label}</span>
+                <span className="mypage-activity-menu-arrow">›</span>
+              </button>
+            </li>
+          ))}
+        </ul>
       </section>
     </div>
   );

@@ -3,6 +3,7 @@ package com.example.backend.domain.review;
 import com.example.backend.domain.recipe.ComboRecommendationScheduler;
 import com.example.backend.domain.recipe.Recipe;
 import com.example.backend.domain.recipe.RecipeRepository;
+import com.example.backend.domain.review.dto.MyRecipeReviewResponse;
 import com.example.backend.domain.review.dto.RecipeReviewCreateRequest;
 import com.example.backend.domain.review.dto.RecipeReviewListResponse;
 import com.example.backend.domain.review.dto.RecipeReviewResponse;
@@ -50,5 +51,12 @@ public class RecipeReviewService {
         Double average = recipeReviewRepository.findAverageRatingByRecipeId(recipeId);
 
         return new RecipeReviewListResponse(average != null ? average : 0.0, reviews);
+    }
+
+    // 마이페이지 "내가 평가한 레시피" 목록
+    public java.util.List<MyRecipeReviewResponse> getMyReviews(Long userId) {
+        return recipeReviewRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+                .map(MyRecipeReviewResponse::new)
+                .toList();
     }
 }

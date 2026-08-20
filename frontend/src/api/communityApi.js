@@ -2,9 +2,11 @@ const HOST_URL = `http://${window.location.hostname}:8080`;
 const BASE_URL = `${HOST_URL}/api/v1`;
 
 // 업로드 응답의 url은 상대경로("/media/community/...")라서, <img>/<video> src로 쓰려면 호스트를 붙여야 함
-export function toMediaSrc(relativeUrl) {
-  if (!relativeUrl) return "";
-  return `${HOST_URL}${relativeUrl}`;
+// 단, 레시피 승격/외부 데이터(식약처 등)는 이미 절대경로 URL이라 그대로 써야 함
+export function toMediaSrc(url) {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return `${HOST_URL}${url}`;
 }
 
 // 게시글 섹션에 첨부할 이미지/동영상 업로드. 성공하면 { url, mediaType } 반환.
@@ -23,20 +25,28 @@ export async function uploadCommunityMedia(file) {
   return response.json();
 }
 
-// 커뮤니티 게시글 목록 (최신순, 페이지당 10개)
-export async function fetchCommunityPosts(page = 0, size = 10, sortBy = "latest") {
-  const response = await fetch(`${BASE_URL}/community/posts?page=${page}&size=${size}&sortBy=${sortBy}`);
+// 커뮤니티 게시글 목록 (최신순, 페이지당 10개). boardType 생략하면 레시피 게시판(기존과 동일 동작).
+// userId는 챌린지 게시판 접근 자격 확인용, prefix는 잡담 게시판 말머리 필터용, keyword는 제목 검색용 (모두 선택값).
+export async function fetchCommunityPosts(page = 0, size = 10, sortBy = "latest", boardType = "RECIPE", { prefix, keyword, userId } = {}) {
+  const params = new URLSearchParams({ page, size, sortBy, boardType });
+  if (prefix) params.set("prefix", prefix);
+  if (keyword) params.set("keyword", keyword);
+  if (userId) params.set("userId", userId);
+  const response = await fetch(`${BASE_URL}/community/posts?${params.toString()}`);
   if (!response.ok) {
-    throw new Error("게시글 목록을 불러오지 못했습니다.");
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || "게시글 목록을 불러오지 못했습니다.");
   }
   return response.json();
 }
 
-// 게시글 상세
-export async function fetchCommunityPost(postId) {
-  const response = await fetch(`${BASE_URL}/community/posts/${postId}`);
+// 게시글 상세. userId는 챌린지 게시판 글일 때 접근 자격 확인용(선택).
+export async function fetchCommunityPost(postId, userId) {
+  const params = userId ? `?userId=${userId}` : "";
+  const response = await fetch(`${BASE_URL}/community/posts/${postId}${params}`);
   if (!response.ok) {
-    throw new Error("게시글을 불러오지 못했습니다.");
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message || "게시글을 불러오지 못했습니다.");
   }
   return response.json();
 }

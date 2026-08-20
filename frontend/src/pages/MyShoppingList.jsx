@@ -1,10 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   fetchMyShoppingList,
   checkShoppingItem,
   uncheckShoppingItem,
   deleteShoppingItem,
   addManualShoppingItem,
+  reorderShoppingItems,
+  deleteCheckedShoppingItems,
+  deleteAllShoppingItems,
+  updateShoppingItemQuantity,
 } from "../api/shoppingListApi";
 import { searchIngredients } from "../api/ingredientApi";
 import "./MyShoppingList.css";
@@ -16,13 +20,14 @@ export default function MyShoppingList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 셀프 추가 관련 상태
   const [keyword, setKeyword] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("");
   const [adding, setAdding] = useState(false);
+
+  const dragIndexRef = useRef(null);
 
   const loadList = () => {
     fetchMyShoppingList(TEMP_USER_ID)
@@ -35,7 +40,6 @@ export default function MyShoppingList() {
     loadList();
   }, []);
 
-  // 검색어 입력 300ms 후 자동완성
   useEffect(() => {
     if (!keyword || selectedIngredient) {
       setSearchResults([]);
@@ -96,13 +100,85 @@ export default function MyShoppingList() {
     }
   };
 
+  const handleDeleteChecked = async () => {
+    try {
+      await deleteCheckedShoppingItems(TEMP_USER_ID);
+      loadList();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (!window.confirm("장보기 리스트를 전부 삭제할까요?")) return;
+    try {
+      await deleteAllShoppingItems(TEMP_USER_ID);
+      loadList();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleQuantityChange = async (item, delta) => {
+    const current = item.quantity ?? 0;
+    const next = current + delta;
+    if (next <= 0) return;
+    try {
+      await updateShoppingItemQuantity(TEMP_USER_ID, item.itemId, next);
+      loadList();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  // 드래그 정렬
+  const handleDragStart = (index) => {
+    dragIndexRef.current = index;
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async (dropIndex) => {
+    const dragIndex = dragIndexRef.current;
+    dragIndexRef.current = null;
+    if (dragIndex === null || dragIndex === dropIndex) return;
+
+    const reordered = [...items];
+    const [moved] = reordered.splice(dragIndex, 1);
+    reordered.splice(dropIndex, 0, moved);
+
+    setList({ ...list, items: reordered }); // 낙관적 업데이트
+
+    try {
+      await reorderShoppingItems(TEMP_USER_ID, reordered.map((i) => i.itemId));
+    } catch (err) {
+      setError(err.message);
+      loadList(); // 실패 시 서버 상태로 복구
+    }
+  };
+
   if (loading) return <p className="my-shopping-list-status">불러오는 중...</p>;
 
   const items = list?.items ?? [];
+  const hasChecked = items.some((i) => i.checked);
 
   return (
     <div className="my-shopping-list-container">
-      <h2 className="my-shopping-list-title">🛒 내 장보기 리스트</h2>
+      <div className="my-shopping-list-header">
+        <h2 className="my-shopping-list-title">🛒 내 장보기 리스트</h2>
+        {items.length > 0 && (
+          <div className="my-shopping-list-bulk-actions">
+            <button onClick={handleDeleteChecked} disabled={!hasChecked}>
+              선택 삭제
+            </button>
+            <button onClick={handleDeleteAll} className="danger">
+              전체 삭제
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="my-shopping-list-add-form">
         <div className="my-shopping-list-add-search">
@@ -152,15 +228,30 @@ export default function MyShoppingList() {
         </p>
       ) : (
         <ul className="my-shopping-list-items">
-          {items.map((item) => (
-            <li key={item.itemId} className={`my-shopping-list-item${item.checked ? " checked" : ""}`}>
+          {items.map((item, index) => (
+            <li
+              key={item.itemId}
+              className={`my-shopping-list-item${item.checked ? " checked" : ""}`}
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(index)}
+            >
+              <span className="my-shopping-list-item-handle">⠿</span>
               <label className="my-shopping-list-item-label">
                 <input type="checkbox" checked={item.checked} onChange={() => handleToggleCheck(item)} />
                 <span className="my-shopping-list-item-name">{item.ingredientName}</span>
-                <span className="my-shopping-list-item-amount">
-                  {item.quantity} {item.unit}
-                </span>
               </label>
+
+              {item.quantity != null && (
+                <span className="my-shopping-list-item-amount">
+                  <button onClick={() => handleQuantityChange(item, -1)}>-</button>
+                  <span className="my-shopping-list-item-quantity">{item.quantity}</span>
+                  <button onClick={() => handleQuantityChange(item, 1)}>+</button>
+                  {item.unit && <span className="my-shopping-list-item-unit">{item.unit}</span>}
+                </span>
+              )}
+
               <button className="my-shopping-list-item-delete" onClick={() => handleDelete(item)}>
                 ✕
               </button>
