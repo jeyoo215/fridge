@@ -23,7 +23,7 @@ DELETE FROM recipe_category;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- 프론트/다른 더미 데이터가 공통으로 참조하는 임시 유저(user_id=1). 회원가입 기능은 아직 없음.
- INSERT INTO user (user_id, email, password, nickname, created_at) VALUES
+INSERT INTO user (user_id, email, password, nickname, created_at) VALUES
   (1, 'test@example.com', NULL, '테스트유저', NOW());
 
 -- 조리도구 마스터 (마이페이지에서 사용자가 다중선택하는 목록, 개발자가 직접 시드)
