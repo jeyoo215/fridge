@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import MyPage from "../pages/MyPage";
+import { isLoggedIn, logout } from "../api/authApi";
 import "./Nav.css";
 
 const linkClassName = ({ isActive }) => `app-nav-link${isActive ? " active" : ""}`;
 
 export default function Nav() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(isLoggedIn());
   const pushedHistoryRef = useRef(false);
+  const navigate = useNavigate();
 
   // 시트를 열 때 히스토리 항목을 하나 쌓아서, 모바일 기기의 뒤로가기가
   // 브라우저 이전 페이지가 아니라 이 시트를 닫도록 만든다.
@@ -25,12 +28,29 @@ export default function Nav() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, [menuOpen]);
 
+  // 다른 탭에서 로그인/로그아웃했을 때도 상태 동기화
+  useEffect(() => {
+    const syncLoginState = () => setLoggedIn(isLoggedIn());
+    window.addEventListener("storage", syncLoginState);
+    window.addEventListener("focus", syncLoginState);
+    return () => {
+      window.removeEventListener("storage", syncLoginState);
+      window.removeEventListener("focus", syncLoginState);
+    };
+  }, []);
+
   const closeSheet = () => {
     if (pushedHistoryRef.current) {
       window.history.back();
     } else {
       setMenuOpen(false);
     }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setLoggedIn(false);
+    window.location.href = "/"; // navigate 대신 완전 새로고침으로 화면 상태 초기화
   };
 
   return (
@@ -52,6 +72,16 @@ export default function Nav() {
           📝 커뮤니티
         </NavLink>
       </div>
+
+      {loggedIn ? (
+        <button type="button" className="app-nav-auth-button" onClick={handleLogout}>
+          로그아웃
+        </button>
+      ) : (
+        <NavLink to="/login" className="app-nav-auth-button">
+          로그인
+        </NavLink>
+      )}
 
       <button
         type="button"
