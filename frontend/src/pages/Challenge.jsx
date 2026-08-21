@@ -5,6 +5,7 @@ import BadgeSection from "../component/BadgeSection";
 import "./Challenge.css";
 
 const TEMP_USER_ID = 1;
+const HISTORY_PAGE_SIZE = 5;
 
 const CHALLENGE_TYPES = [
   { type: "FRIDGE_CLEAN", label: "🥬 냉장고 파먹기", desc: "기간 동안 장을 안 보고 버텨보세요" },
@@ -21,6 +22,8 @@ export default function Challenge() {
   const [challengeId, setChallengeId] = useState(null);
   const [status, setStatus] = useState(null);
   const [history, setHistory] = useState([]);
+  const [historyPage, setHistoryPage] = useState(0);
+  const [historyTotalPages, setHistoryTotalPages] = useState(0);
   const [aborting, setAborting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -32,8 +35,17 @@ export default function Challenge() {
   const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [starting, setStarting] = useState(false);
 
-  const loadHistory = () => {
-    fetchChallengeHistory(TEMP_USER_ID).then(setHistory).catch(() => {});
+  const loadHistory = (page = 0) => {
+    fetchChallengeHistory(TEMP_USER_ID, page, HISTORY_PAGE_SIZE)
+      .then((data) => {
+        setHistory(data.content ?? []);
+        setHistoryPage(data.page ?? 0);
+        setHistoryTotalPages(data.totalPages ?? 0);
+      })
+      .catch(() => {
+        setHistory([]);
+        setHistoryTotalPages(0);
+      });
   };
 
   useEffect(() => {
@@ -46,7 +58,7 @@ export default function Challenge() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-    loadHistory();
+    loadHistory(0);
   }, []);
 
   useEffect(() => {
@@ -87,7 +99,7 @@ export default function Challenge() {
       setChallengeId(id);
       const active = await fetchActiveChallenge(TEMP_USER_ID);
       setStatus(active);
-      loadHistory();
+      loadHistory(0);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -107,7 +119,7 @@ export default function Challenge() {
       const result = await abortChallenge(challengeId);
       setStatus(result);
       setChallengeId(null);
-      loadHistory();
+      loadHistory(0);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -205,7 +217,7 @@ export default function Challenge() {
 
       {error && <p className="challenge-error">{error}</p>}
 
-      {history.length > 0 && (
+      {history?.length > 0 && (
         <section className="challenge-history">
           <h3 className="challenge-history-title">지난 챌린지 기록</h3>
           <ul className="challenge-history-list">
@@ -217,6 +229,35 @@ export default function Challenge() {
               </li>
             ))}
           </ul>
+
+          {historyTotalPages > 1 && (
+            <div className="challenge-history-pagination">
+              <button
+                type="button"
+                disabled={historyPage === 0}
+                onClick={() => loadHistory(historyPage - 1)}
+              >
+                이전
+              </button>
+              {Array.from({ length: historyTotalPages }, (_, i) => i).map((p) => (
+                <button
+                  type="button"
+                  key={p}
+                  className={p === historyPage ? "active" : ""}
+                  onClick={() => loadHistory(p)}
+                >
+                  {p + 1}
+                </button>
+              ))}
+              <button
+                type="button"
+                disabled={historyPage >= historyTotalPages - 1}
+                onClick={() => loadHistory(historyPage + 1)}
+              >
+                다음
+              </button>
+            </div>
+          )}
         </section>
       )}
 
