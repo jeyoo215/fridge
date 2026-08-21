@@ -16,8 +16,8 @@ export default function CommunityList({ boardType = "RECIPE" }) {
   const [totalPages, setTotalPages] = useState(0);
   const [sortBy, setSortBy] = useState("latest"); // "latest" | "popular"
   const [prefix, setPrefix] = useState(""); // FREE_TALK 게시판 말머리 필터 ("" = 전체)
-  const [keyword, setKeyword] = useState(""); // 실제 검색에 쓰이는 확정된 검색어 (입력 중엔 반영 안 됨)
-  const [keywordInput, setKeywordInput] = useState(""); // 검색창 입력값
+  const [keyword, setKeyword] = useState(""); // 실제 검색에 쓰이는 확정된 검색어 (디바운스 후 반영됨)
+  const [keywordInput, setKeywordInput] = useState(""); // 검색창 입력값 (타이핑마다 즉시 반영)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [accessDenied, setAccessDenied] = useState(false);
@@ -45,6 +45,15 @@ export default function CommunityList({ boardType = "RECIPE" }) {
       })
       .finally(() => setLoading(false));
   }, [page, sortBy, boardType, prefix, keyword, isChallengeBoard]);
+
+  // 검색창에 타이핑하는 동안 매 글자마다 요청을 보내지 않도록, 입력이 잠깐(300ms) 멈췄을 때만 실제 검색어에 반영
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setKeyword(keywordInput.trim());
+      setPage(0);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [keywordInput]);
 
   const changeSortBy = (value) => {
     setSortBy(value);
