@@ -102,7 +102,7 @@ class RecipeServiceTest {
         when(recipeRepository.findRecipesByMatchingNonSeasoningIngredients(List.of(1L)))
                 .thenReturn(List.of(matchResult(50L, 1L)));
         // 이 레시피는 비조미료 재료가 2개(계란+양파) 필요함
-        when(recipeRepository.findNonSeasoningIngredientCountPerRecipe())
+        when(recipeRepository.findNonSeasoningIngredientCountByRecipeIdIn(List.of(50L)))
                 .thenReturn(List.of(matchResult(50L, 2L)));
 
         RecipeRecommendPageResponse result = recipeService.recommendRecipes(1L, 0, 10);
@@ -135,8 +135,8 @@ class RecipeServiceTest {
                 .thenReturn(List.of(myEgg));
         when(recipeRepository.findRecipesByMatchingNonSeasoningIngredients(List.of(1L)))
                 .thenReturn(List.of(matchResult(60L, 1L))); // 비조미료 중 계란 1개 매칭
-        when(recipeRepository.findNonSeasoningIngredientCountPerRecipe())
-                .thenReturn(List.of(matchResult(60L, 1L))); // 비조미료 필요 개수도 1개 (소금은 카운트 안 됨)
+        when(recipeRepository.findNonSeasoningIngredientCountByRecipeIdIn(List.of(60L)))
+                .thenReturn(List.of(matchResult(60L, 1L)));
         when(recipeRepository.findAllWithIngredientsByRecipeIdIn(List.of(60L)))
                 .thenReturn(List.of(recipe));
         when(recipeRepository.findToolIdPairsByRecipeIdIn(List.of(60L)))
@@ -190,8 +190,8 @@ class RecipeServiceTest {
                 .thenReturn(List.of(myEgg, myOnion, myGarlic));
         when(recipeRepository.findRecipesByMatchingNonSeasoningIngredients(List.of(1L, 2L, 3L)))
                 .thenReturn(List.of(matchResult(10L, 1L), matchResult(20L, 2L)));
-        when(recipeRepository.findNonSeasoningIngredientCountPerRecipe())
-                .thenReturn(List.of(matchResult(10L, 1L), matchResult(20L, 2L))); // 둘 다 완전매칭
+        when(recipeRepository.findNonSeasoningIngredientCountByRecipeIdIn(List.of(10L, 20L)))
+                .thenReturn(List.of(matchResult(10L, 1L), matchResult(20L, 2L)));
         when(recipeRepository.findAllWithIngredientsByRecipeIdIn(List.of(10L, 20L)))
                 .thenReturn(List.of(recipeA, recipeB));
         when(recipeRepository.findToolIdPairsByRecipeIdIn(List.of(10L, 20L)))
@@ -242,8 +242,8 @@ class RecipeServiceTest {
                 .thenReturn(List.of(myTofu));
         when(recipeRepository.findRecipesByMatchingNonSeasoningIngredients(List.of(4L)))
                 .thenReturn(List.of(matchResult(30L, 1L), matchResult(40L, 1L)));
-        when(recipeRepository.findNonSeasoningIngredientCountPerRecipe())
-                .thenReturn(List.of(matchResult(30L, 1L), matchResult(40L, 1L))); // 둘 다 완전매칭
+        when(recipeRepository.findNonSeasoningIngredientCountByRecipeIdIn(List.of(30L, 40L)))
+                .thenReturn(List.of(matchResult(30L, 1L), matchResult(40L, 1L)));
         // 일부러 D를 먼저 반환해서, 정렬이 진짜로 도구 여부에 의해 뒤집히는지 검증
         when(recipeRepository.findAllWithIngredientsByRecipeIdIn(List.of(30L, 40L)))
                 .thenReturn(List.of(recipeD, recipeC));
@@ -286,7 +286,7 @@ class RecipeServiceTest {
                 .thenReturn(List.of(myEgg));
         when(recipeRepository.findRecipesByMatchingNonSeasoningIngredients(List.of(1L)))
                 .thenReturn(List.of(matchResult(1L, 1L), matchResult(2L, 1L), matchResult(3L, 1L)));
-        when(recipeRepository.findNonSeasoningIngredientCountPerRecipe())
+        when(recipeRepository.findNonSeasoningIngredientCountByRecipeIdIn(List.of(1L, 2L, 3L)))
                 .thenReturn(List.of(matchResult(1L, 1L), matchResult(2L, 1L), matchResult(3L, 1L)));
         when(recipeRepository.findAllWithIngredientsByRecipeIdIn(List.of(1L, 2L, 3L)))
                 .thenReturn(List.of(recipe1, recipe2, recipe3));
