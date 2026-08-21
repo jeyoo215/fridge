@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { startChallenge, fetchChallengeStatus, fetchActiveChallenge } from "../api/challengeApi";
+import { startChallenge, fetchActiveChallenge, abortChallenge } from "../api/challengeApi";
 import { searchIngredients } from "../api/ingredientApi";
-import BadgeSection from "../component/BadgeSection"; // 기존 컴포넌트 그대로 사용
+import BadgeSection from "../component/BadgeSection";
 import "./Challenge.css";
 
 const TEMP_USER_ID = 1;
@@ -17,8 +17,7 @@ export default function Challenge() {
   const [loading, setLoading] = useState(true);
   const [challengeId, setChallengeId] = useState(null);
   const [status, setStatus] = useState(null);
-  const [checking, setChecking] = useState(false);
-  const [lastCheckedAt, setLastCheckedAt] = useState(null);
+  const [aborting, setAborting] = useState(false);
   const [error, setError] = useState(null);
 
   // 시작 폼 상태
@@ -26,7 +25,7 @@ export default function Challenge() {
   const [daysInput, setDaysInput] = useState("7");
   const [keyword, setKeyword] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [selectedIngredients, setSelectedIngredients] = useState([]); // [{ingredientId, ingredientName}]
+  const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [starting, setStarting] = useState(false);
 
   useEffect(() => {
@@ -41,7 +40,6 @@ export default function Challenge() {
       .finally(() => setLoading(false));
   }, []);
 
-  // 재료 검색 (특정 재료 소진 선택 시)
   useEffect(() => {
     if (!keyword) {
       setSearchResults([]);
@@ -87,19 +85,22 @@ export default function Challenge() {
     }
   };
 
-  const handleCheckStatus = async () => {
-    setChecking(true);
+  const handleAbort = async () => {
+    const confirmed = window.confirm(
+      "정말 챌린지를 중단하시겠어요?\n중단하면 성공 기록에는 포함되지 않고, 중단 기록으로 남아요."
+    );
+    if (!confirmed) return;
+
+    setAborting(true);
+    setError(null);
     try {
-      const result = await fetchChallengeStatus(challengeId);
+      const result = await abortChallenge(challengeId);
       setStatus(result);
-      setLastCheckedAt(new Date());
-      if (result.status !== "진행중") {
-        setChallengeId(null); // 종료됐으면 다시 시작 화면으로
-      }
+      setChallengeId(null); // 중단됐으니 다시 시작 화면으로
     } catch (err) {
       setError(err.message);
     } finally {
-      setChecking(false);
+      setAborting(false);
     }
   };
 
@@ -174,9 +175,6 @@ export default function Challenge() {
       ) : (
         <div className="challenge-status">
           <p>챌린지 진행 중! (id: {challengeId})</p>
-          <button onClick={handleCheckStatus} disabled={checking}>
-            {checking ? "확인 중..." : "상태 확인"}
-          </button>
           {status && (
             <>
               <p className={`challenge-badge status-${status.status}`}>
@@ -187,13 +185,11 @@ export default function Challenge() {
                   소진 대상: {status.targetIngredientNames.join(", ")}
                 </p>
               )}
-              {lastCheckedAt && (
-                <p className="challenge-last-checked">
-                  마지막 확인: {lastCheckedAt.toLocaleTimeString()}
-                </p>
-              )}
             </>
           )}
+          <button className="challenge-abort-btn" onClick={handleAbort} disabled={aborting}>
+            {aborting ? "중단하는 중..." : "챌린지 중단"}
+          </button>
         </div>
       )}
 

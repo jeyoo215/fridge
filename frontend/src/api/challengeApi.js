@@ -31,3 +31,14 @@ export async function fetchActiveChallenge(userId) {
   }
   return response.json();
 }
+
+export async function abortChallenge(challengeId) {
+  const response = await fetch(`${BASE_URL}/challenges/${challengeId}/abort`, {
+    method: "PATCH",
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.message || "챌린지를 중단하지 못했습니다.");
+  }
+  return response.json();
+}

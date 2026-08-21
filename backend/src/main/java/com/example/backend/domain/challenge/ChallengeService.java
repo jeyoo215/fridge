@@ -128,4 +128,20 @@ public class ChallengeService {
                 .toList();
         return new ChallengeResponse(challenge, targetNames);
     }
+
+    // 챌린지 중단 (사용자가 직접 중단, FR-40 확장)
+    @Transactional
+    public ChallengeResponse abortChallenge(Long challengeId) {
+        Challenge challenge = challengeRepository.findById(challengeId)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 챌린지입니다. id=" + challengeId));
+
+        if (challenge.getStatus() != Challenge.Status.진행중) {
+            throw new IllegalStateException("진행중인 챌린지만 중단할 수 있습니다.");
+        }
+
+        challenge.markAborted();
+        badgeService.onChallengeFailed(challenge.getUserId()); // 실패와 동일하게 스트릭 초기화
+
+        return buildResponse(challenge);
+    }
 }

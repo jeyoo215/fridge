@@ -35,4 +35,9 @@ public class ChallengeController {
     public ChallengeResponse getActiveChallenge(@RequestParam("userId") Long userId) {
         return challengeService.getActiveChallenge(userId);
     }
+
+    @PatchMapping("/{challengeId}/abort")
+    public ChallengeResponse abortChallenge(@PathVariable("challengeId") Long challengeId) {
+        return challengeService.abortChallenge(challengeId);
+    }
 }

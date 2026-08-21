@@ -220,3 +220,13 @@
   font-size: 13px;
   color: var(--color-text-muted);
 }
+
+.status-중단 { color: var(--color-text-muted); font-style: italic; }
+
+.challenge-abort-btn {
+  background: var(--color-tomato) !important;
+}
+
+.challenge-abort-btn:hover {
+  background: var(--color-danger-text) !important;
+}
