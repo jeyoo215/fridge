@@ -9,8 +9,6 @@ const TEMP_USER_ID = 1;
 const CHALLENGE_TYPES = [
   { type: "FRIDGE_CLEAN", label: "🥬 냉장고 파먹기", desc: "기간 동안 장을 안 보고 버텨보세요" },
   { type: "TARGET_INGREDIENT", label: "🎯 특정 재료 소진", desc: "고른 재료를 기간 안에 다 써보세요" },
-  { type: "HEALTHY_FOOD", label: "🥗 건강식 챌린지", desc: "준비중이에요", disabled: true },
-  { type: "BUDGET_LIMIT", label: "💰 장보기 예산 챌린지", desc: "준비중이에요", disabled: true },
 ];
 
 export default function Challenge() {
