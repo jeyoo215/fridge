@@ -1,9 +1,13 @@
 package com.example.backend.domain.challenge;
 
+import com.example.backend.domain.challenge.dto.ChallengeHistoryPageResponse;
 import com.example.backend.domain.challenge.dto.ChallengeResponse;
 import com.example.backend.domain.challenge.dto.ChallengeStartRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,5 +38,18 @@ public class ChallengeController {
     // 💡 수정됨: @RequestParam("userId") 로 이름 명시
     public ChallengeResponse getActiveChallenge(@RequestParam("userId") Long userId) {
         return challengeService.getActiveChallenge(userId);
+    }
+
+    // 예: GET /api/v1/challenges/me/history?userId=1&page=0&size=5
+    @GetMapping("/me/history")
+    public ChallengeHistoryPageResponse getHistory(@RequestParam("userId") Long userId,
+                                                    @RequestParam(name = "page", defaultValue = "0") int page,
+                                                    @RequestParam(name = "size", defaultValue = "5") int size) {
+        return challengeService.getHistory(userId, page, size);
+    }
+
+    @PatchMapping("/{challengeId}/abort")
+    public ChallengeResponse abortChallenge(@PathVariable("challengeId") Long challengeId) {
+        return challengeService.abortChallenge(challengeId);
     }
 }
