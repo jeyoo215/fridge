@@ -94,9 +94,14 @@ public class ChallengeService {
     }
 
     // 현재 진행중인 챌린지 조회 (새로고침/재접속 시 상태 복원용)
+    // 수정됨: 만료된 챌린지를 여기서도 자동 판정하도록 변경 (상태확인 버튼이 사라졌기 때문)
+    @Transactional
     public ChallengeResponse getActiveChallenge(Long userId) {
         Challenge challenge = challengeRepository.findByUserIdAndStatus(userId, Challenge.Status.진행중)
                 .orElseThrow(() -> new EntityNotFoundException("진행중인 챌린지가 없습니다."));
+
+        finalizeIfFinished(challenge);
+
         return buildResponse(challenge);
     }
 
@@ -143,5 +148,30 @@ public class ChallengeService {
         badgeService.onChallengeFailed(challenge.getUserId()); // 실패와 동일하게 스트릭 초기화
 
         return buildResponse(challenge);
+    }
+
+    // 지난 챌린지 전체 기록 조회 (성공/실패/중단 전부 포함, 최신순)
+    public List<ChallengeResponse> getHistory(Long userId) {
+        return challengeRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+                .map(this::buildResponse)
+                .toList();
+    }
+
+    // 기간이 끝난 진행중 챌린지를 성공/실패로 판정 (getStatus, getActiveChallenge 공통 사용)
+    private void finalizeIfFinished(Challenge challenge) {
+        if (challenge.getStatus() == Challenge.Status.진행중 && challenge.isFinishedPeriod(LocalDate.now())) {
+            boolean success = switch (challenge.getType()) {
+                case FRIDGE_CLEAN -> judgeFridgeClean(challenge);
+                case TARGET_INGREDIENT -> judgeTargetIngredientConsumed(challenge);
+            };
+
+            if (success) {
+                challenge.markSuccess();
+                badgeService.onChallengeSuccess(challenge.getUserId());
+            } else {
+                challenge.markFailed();
+                badgeService.onChallengeFailed(challenge.getUserId());
+            }
+        }
     }
 }

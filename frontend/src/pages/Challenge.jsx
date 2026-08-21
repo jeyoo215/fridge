@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { startChallenge, fetchActiveChallenge, abortChallenge } from "../api/challengeApi";
+import { startChallenge, fetchActiveChallenge, abortChallenge, fetchChallengeHistory } from "../api/challengeApi";
 import { searchIngredients } from "../api/ingredientApi";
 import BadgeSection from "../component/BadgeSection";
 import "./Challenge.css";
@@ -11,10 +11,16 @@ const CHALLENGE_TYPES = [
   { type: "TARGET_INGREDIENT", label: "🎯 특정 재료 소진", desc: "고른 재료를 기간 안에 다 써보세요" },
 ];
 
+const TYPE_LABELS = {
+  FRIDGE_CLEAN: "🥬 냉장고 파먹기",
+  TARGET_INGREDIENT: "🎯 특정 재료 소진",
+};
+
 export default function Challenge() {
   const [loading, setLoading] = useState(true);
   const [challengeId, setChallengeId] = useState(null);
   const [status, setStatus] = useState(null);
+  const [history, setHistory] = useState([]);
   const [aborting, setAborting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -26,16 +32,21 @@ export default function Challenge() {
   const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [starting, setStarting] = useState(false);
 
+  const loadHistory = () => {
+    fetchChallengeHistory(TEMP_USER_ID).then(setHistory).catch(() => {});
+  };
+
   useEffect(() => {
     fetchActiveChallenge(TEMP_USER_ID)
       .then((active) => {
-        if (active) {
+        if (active && active.status === "진행중") {
           setChallengeId(active.challengeId);
           setStatus(active);
         }
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+    loadHistory();
   }, []);
 
   useEffect(() => {
@@ -76,6 +87,7 @@ export default function Challenge() {
       setChallengeId(id);
       const active = await fetchActiveChallenge(TEMP_USER_ID);
       setStatus(active);
+      loadHistory();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -94,7 +106,8 @@ export default function Challenge() {
     try {
       const result = await abortChallenge(challengeId);
       setStatus(result);
-      setChallengeId(null); // 중단됐으니 다시 시작 화면으로
+      setChallengeId(null);
+      loadHistory();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -116,7 +129,6 @@ export default function Challenge() {
                 <button
                   key={c.type}
                   className="challenge-type-card"
-                  disabled={c.disabled}
                   onClick={() => setSelectedType(c.type)}
                 >
                   <span className="challenge-type-label">{c.label}</span>
@@ -192,6 +204,21 @@ export default function Challenge() {
       )}
 
       {error && <p className="challenge-error">{error}</p>}
+
+      {history.length > 0 && (
+        <section className="challenge-history">
+          <h3 className="challenge-history-title">지난 챌린지 기록</h3>
+          <ul className="challenge-history-list">
+            {history.map((h) => (
+              <li key={h.challengeId} className="challenge-history-item">
+                <span className="challenge-history-type">{TYPE_LABELS[h.type] || h.type}</span>
+                <span className="challenge-history-period">{h.startDate} ~ {h.endDate}</span>
+                <span className={`challenge-history-status status-${h.status}`}>{h.status}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <BadgeSection />
     </div>

@@ -225,3 +225,53 @@
 .challenge-abort-btn:hover {
   background: var(--color-danger-text) !important;
 }
+
+.challenge-history {
+  margin-top: 24px;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+  text-align: left;
+}
+
+.challenge-history-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--color-text);
+}
+
+.challenge-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.challenge-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--color-bg);
+  font-size: 13px;
+  gap: 8px;
+}
+
+.challenge-history-type {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.challenge-history-period {
+  color: var(--color-text-muted);
+}
+
+.challenge-history-status {
+  font-weight: 700;
+}
