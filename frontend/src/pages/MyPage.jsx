@@ -52,9 +52,9 @@ export default function MyPage({ onNavigateAway } = {}) {
 
   useEffect(() => {
     Promise.all([
-      fetchMyAllergyIngredients(TEMP_USER_ID),
+      fetchMyAllergyIngredients(),
       fetchAllCookingTools(),
-      fetchMyTools(TEMP_USER_ID),
+      fetchMyTools(),
     ])
       .then(([allergyList, toolList, myTools]) => {
         setAllergyIngredients(allergyList);
@@ -109,17 +109,17 @@ export default function MyPage({ onNavigateAway } = {}) {
     setSaving(true);
     try {
       await Promise.all([
-        ...pendingDeleteIds.map((id) => deleteAllergyIngredient(TEMP_USER_ID, id)),
+        ...pendingDeleteIds.map((id) => deleteAllergyIngredient(id)),
         ...pendingNewIngredients.map((item) =>
-          registerAllergyIngredient(TEMP_USER_ID, item.ingredientName, item.type)
+          registerAllergyIngredient(item.ingredientName, item.type)
         ),
       ]);
       if (toolsDirty) {
-        await updateMyTools(TEMP_USER_ID, selectedToolIds);
+        await updateMyTools(selectedToolIds);
         setSavedToolIds(selectedToolIds);
       }
 
-      const freshAllergyList = await fetchMyAllergyIngredients(TEMP_USER_ID);
+      const freshAllergyList = await fetchMyAllergyIngredients();
       setAllergyIngredients(freshAllergyList);
       setPendingNewIngredients([]);
       setPendingDeleteIds([]);
