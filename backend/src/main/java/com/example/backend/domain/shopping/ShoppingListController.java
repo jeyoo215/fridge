@@ -2,6 +2,8 @@ package com.example.backend.domain.shopping;
 
 import com.example.backend.domain.shopping.dto.ManualShoppingItemRequest;
 import com.example.backend.domain.shopping.dto.MyShoppingListResponse;
+import com.example.backend.domain.shopping.dto.QuantityUpdateRequest;
+import com.example.backend.domain.shopping.dto.ReorderItemsRequest;
 import com.example.backend.domain.shopping.dto.ShoppingListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -63,5 +65,26 @@ public class ShoppingListController {
     @ResponseStatus(HttpStatus.CREATED)
     public void addManualItem(@RequestParam("userId") Long userId, @RequestBody ManualShoppingItemRequest request) {
         shoppingListService.addManualItem(userId, request);
+    }
+
+    @PatchMapping("/items/reorder")
+    public void reorderItems(@RequestParam("userId") Long userId, @RequestBody ReorderItemsRequest request) {
+        shoppingListService.reorderItems(userId, request.itemIds());
+    }
+
+    @DeleteMapping("/items/checked")
+    public void deleteCheckedItems(@RequestParam("userId") Long userId) {
+        shoppingListService.deleteCheckedItems(userId);
+    }
+
+    @DeleteMapping("/items")
+    public void deleteAllItems(@RequestParam("userId") Long userId) {
+        shoppingListService.deleteAllItems(userId);
+    }
+
+    @PatchMapping("/items/{itemId}/quantity")
+    public void updateQuantity(@RequestParam("userId") Long userId, @PathVariable("itemId") Long itemId,
+                                @RequestBody QuantityUpdateRequest request) {
+        shoppingListService.updateQuantity(userId, itemId, request.quantity());
     }
 }

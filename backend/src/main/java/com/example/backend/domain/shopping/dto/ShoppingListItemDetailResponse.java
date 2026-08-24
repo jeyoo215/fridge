@@ -13,6 +13,7 @@ public class ShoppingListItemDetailResponse {
     private final BigDecimal quantity;
     private final String unit;
     private final boolean checked;
+    private final Integer displayOrder;
 
     public ShoppingListItemDetailResponse(ShoppingListItem entity) {
         this.itemId = entity.getItemId();
@@ -21,5 +22,6 @@ public class ShoppingListItemDetailResponse {
         this.quantity = entity.getQuantity();
         this.unit = entity.getUnit();
         this.checked = entity.isChecked();
+        this.displayOrder = entity.getDisplayOrder();
     }
 }

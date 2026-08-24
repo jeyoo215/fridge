@@ -11,12 +11,32 @@ import java.util.List;
 public interface CommunityPostRepository extends JpaRepository<CommunityPost, Long> {
 
     // 페이지네이션: 컬렉션(join fetch)과 페이징을 동시에 하면 안 되므로, 먼저 이 페이지에 해당하는 id만 뽑는다.
-    @Query("SELECT p.postId FROM CommunityPost p ORDER BY p.createdAt DESC")
-    Page<Long> findPostIdsOrderByCreatedAtDesc(Pageable pageable);
+    // data.sql이 재시작마다 boardType=null인 예전 글을 RECIPE로 백필해두므로, 여기서는 boardType이
+    // 항상 채워져 있다고 가정하고 단순 equals 비교만 한다.
+    @Query("SELECT p.postId FROM CommunityPost p WHERE p.boardType = :boardType ORDER BY p.createdAt DESC")
+    Page<Long> findPostIdsByBoardTypeOrderByCreatedAtDesc(@Param("boardType") CommunityPost.BoardType boardType, Pageable pageable);
 
     // 인기순(좋아요 많은 순) 정렬. likeCount가 CommunityPost에 저장되어 있어 집계 없이 바로 정렬 가능.
-    @Query("SELECT p.postId FROM CommunityPost p ORDER BY p.likeCount DESC, p.createdAt DESC")
-    Page<Long> findPostIdsOrderByLikeCountDesc(Pageable pageable);
+    @Query("SELECT p.postId FROM CommunityPost p WHERE p.boardType = :boardType ORDER BY p.likeCount DESC, p.createdAt DESC")
+    Page<Long> findPostIdsByBoardTypeOrderByLikeCountDesc(@Param("boardType") CommunityPost.BoardType boardType, Pageable pageable);
+
+    // 전체 잡담 게시판(FREE_TALK) 전용: 말머리로도 필터링
+    @Query("SELECT p.postId FROM CommunityPost p WHERE p.boardType = :boardType AND p.prefix = :prefix ORDER BY p.createdAt DESC")
+    Page<Long> findPostIdsByBoardTypeAndPrefixOrderByCreatedAtDesc(@Param("boardType") CommunityPost.BoardType boardType,
+                                                                    @Param("prefix") String prefix, Pageable pageable);
+
+    @Query("SELECT p.postId FROM CommunityPost p WHERE p.boardType = :boardType AND p.prefix = :prefix ORDER BY p.likeCount DESC, p.createdAt DESC")
+    Page<Long> findPostIdsByBoardTypeAndPrefixOrderByLikeCountDesc(@Param("boardType") CommunityPost.BoardType boardType,
+                                                                    @Param("prefix") String prefix, Pageable pageable);
+
+    // 제목 검색. 검색어가 있으면 말머리 필터보다 우선한다(둘 다 동시에 적용하지 않음).
+    @Query("SELECT p.postId FROM CommunityPost p WHERE p.boardType = :boardType AND p.title LIKE CONCAT('%', :keyword, '%') ORDER BY p.createdAt DESC")
+    Page<Long> findPostIdsByBoardTypeAndTitleContainingOrderByCreatedAtDesc(@Param("boardType") CommunityPost.BoardType boardType,
+                                                                             @Param("keyword") String keyword, Pageable pageable);
+
+    @Query("SELECT p.postId FROM CommunityPost p WHERE p.boardType = :boardType AND p.title LIKE CONCAT('%', :keyword, '%') ORDER BY p.likeCount DESC, p.createdAt DESC")
+    Page<Long> findPostIdsByBoardTypeAndTitleContainingOrderByLikeCountDesc(@Param("boardType") CommunityPost.BoardType boardType,
+                                                                             @Param("keyword") String keyword, Pageable pageable);
 
     // 위에서 뽑은 id들에 대해서만 조리순서까지 함께 조회 (목록 카드 썸네일/미리보기용, N+1 방지)
     @Query("SELECT DISTINCT p FROM CommunityPost p LEFT JOIN FETCH p.steps WHERE p.postId IN :postIds")

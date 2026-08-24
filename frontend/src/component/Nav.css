@@ -105,3 +105,22 @@
   background: var(--color-basil);
   color: white;
 }
+
+.app-nav-auth-button {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.app-nav-auth-button:hover {
+  background: var(--color-bg);
+}

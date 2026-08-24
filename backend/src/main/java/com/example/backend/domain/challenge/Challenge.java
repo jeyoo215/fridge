@@ -66,13 +66,17 @@ public class Challenge {
         this.status = Status.실패;
     }
 
+    public void markAborted() {
+        this.status = Status.중단;
+    }
+
     public boolean isFinishedPeriod(LocalDate today) {
         return !today.isBefore(endDate);
     }
 
     public enum Status {
-        진행중, 성공, 실패
-    }
+        진행중, 성공, 실패, 중단
+    }   
 
     public enum ChallengeType {
         FRIDGE_CLEAN,       // 냉장고 파먹기

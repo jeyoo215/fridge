@@ -30,8 +30,9 @@ public class RecipeDetailResponse {
         this.imageUrl = entity.getImageUrl();
         this.cookingTimeMinutes = entity.getCookingTimeMinutes();
         this.difficulty = entity.getDifficulty();
-        this.categoryName = entity.getCategory().getCategoryName();
-        this.isUserCreated = "而ㅻ??덊떚".equals(entity.getSource());
+        this.categoryName = entity.getCategory() != null ? entity.getCategory().getCategoryName() : "미분류";
+        this.isUserCreated = "커뮤니티".equals(entity.getSource());
+
 
         this.ingredients = entity.getRecipeIngredients().stream()
                 .map(IngredientItem::new)

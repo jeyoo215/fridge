@@ -26,18 +26,25 @@ public class CommunityPostController {
         return Map.of("postId", communityPostService.create(userId, request));
     }
 
-    // 예: GET /api/v1/community/posts?page=0&size=10&sortBy=popular  (sortBy 생략하면 최신순)
+    // 예: GET /api/v1/community/posts?page=0&size=10&sortBy=popular&boardType=FREE_TALK&prefix=20대&userId=1
+    // boardType 생략하면 레시피 게시판(RECIPE, 기존과 동일). userId는 챌린지 게시판 접근 자격 확인용(선택).
+    // keyword는 제목 검색(선택)이며, 있으면 prefix 필터보다 우선한다.
     @GetMapping
     public CommunityPostPageResponse getList(@RequestParam(name = "page", defaultValue = "0") int page,
                                               @RequestParam(name = "size", defaultValue = "10") int size,
-                                              @RequestParam(name = "sortBy", defaultValue = "latest") String sortBy) {
-        return communityPostService.getList(page, size, sortBy);
+                                              @RequestParam(name = "sortBy", defaultValue = "latest") String sortBy,
+                                              @RequestParam(name = "boardType", defaultValue = "RECIPE") CommunityPost.BoardType boardType,
+                                              @RequestParam(name = "prefix", required = false) String prefix,
+                                              @RequestParam(name = "keyword", required = false) String keyword,
+                                              @RequestParam(name = "userId", required = false) Long userId) {
+        return communityPostService.getList(page, size, sortBy, boardType, prefix, keyword, userId);
     }
 
-    // 예: GET /api/v1/community/posts/1
+    // 예: GET /api/v1/community/posts/1?userId=1 (userId는 챌린지 게시판 글일 때 접근 자격 확인용, 선택)
     @GetMapping("/{postId}")
-    public CommunityPostDetailResponse getDetail(@PathVariable("postId") Long postId) {
-        return communityPostService.getDetail(postId);
+    public CommunityPostDetailResponse getDetail(@PathVariable("postId") Long postId,
+                                                  @RequestParam(name = "userId", required = false) Long userId) {
+        return communityPostService.getDetail(postId, userId);
     }
 
     // 게시글 수정 (본인 글만). 제목/섹션을 통째로 새 내용으로 교체.

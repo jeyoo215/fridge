@@ -3,6 +3,8 @@ package com.example.backend.domain.recipe;
 import com.example.backend.domain.recipe.dto.RecipeCategoryResponse;
 import com.example.backend.domain.recipe.dto.RecipeCreateRequest;
 import com.example.backend.domain.recipe.dto.RecipeDetailResponse;
+import com.example.backend.domain.recipe.dto.RecipePageResponse;
+import com.example.backend.domain.recipe.dto.RecipeRecommendPageResponse;
 import com.example.backend.domain.recipe.dto.RecipeRecommendResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -37,8 +39,10 @@ public class RecipeController {
     // 지금은 로그인이 아직 없어서, 테스트하기 편하게 쿼리파라미터로 userId를 임시로 받음.
     // 예: GET /api/v1/recipes/recommend?userId=1
     @GetMapping("/recommend")
-    public List<RecipeRecommendResponse> recommendRecipes(@RequestParam("userId") Long userId) {
-        return recipeService.recommendRecipes(userId);
+    public RecipeRecommendPageResponse recommendRecipes(@RequestParam("userId") Long userId,
+                                                        @RequestParam(name = "page", defaultValue = "0") int page,
+                                                        @RequestParam(name = "size", defaultValue = "10") int size) {
+        return recipeService.recommendRecipes(userId, page, size);
     }
 
 
@@ -61,5 +65,14 @@ public class RecipeController {
     public int importSteps() {
         return recipeImportService.importCookingSteps();
 
+    }
+
+    // 레시피 목록/검색 (페이징). 예: GET /api/v1/recipes?page=0&size=20&keyword=김치&ingredientIds=2,5
+    @GetMapping
+    public RecipePageResponse getList(@RequestParam(name = "page", defaultValue = "0") int page,
+                                    @RequestParam(name = "size", defaultValue = "20") int size,
+                                    @RequestParam(name = "keyword", required = false) String keyword,
+                                    @RequestParam(name = "ingredientIds", required = false) List<Long> ingredientIds) {
+        return recipeService.getList(keyword, ingredientIds, page, size);
     }
 }
