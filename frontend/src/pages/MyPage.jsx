@@ -15,8 +15,6 @@ import { toMediaSrc } from "../api/communityApi";
 import { fetchMyScraps, fetchMyMadeRecipes, fetchMyReviewedRecipes } from "../api/socialApi";
 import "./MyPage.css";
 
-const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
-
 const ACTIVITY_CATEGORIES = [
   { key: "scraps", label: "📌 스크랩한 게시글", fetcher: fetchMyCommunityScraps, type: "community" },
   { key: "likes", label: "❤️ 좋아요한 게시글", fetcher: fetchMyCommunityLikes, type: "community" },
@@ -52,9 +50,9 @@ export default function MyPage({ onNavigateAway } = {}) {
 
   useEffect(() => {
     Promise.all([
-      fetchMyAllergyIngredients(TEMP_USER_ID),
+      fetchMyAllergyIngredients(),
       fetchAllCookingTools(),
-      fetchMyTools(TEMP_USER_ID),
+      fetchMyTools(),
     ])
       .then(([allergyList, toolList, myTools]) => {
         setAllergyIngredients(allergyList);
@@ -109,17 +107,17 @@ export default function MyPage({ onNavigateAway } = {}) {
     setSaving(true);
     try {
       await Promise.all([
-        ...pendingDeleteIds.map((id) => deleteAllergyIngredient(TEMP_USER_ID, id)),
+        ...pendingDeleteIds.map((id) => deleteAllergyIngredient(id)),
         ...pendingNewIngredients.map((item) =>
-          registerAllergyIngredient(TEMP_USER_ID, item.ingredientName, item.type)
+          registerAllergyIngredient(item.ingredientName, item.type)
         ),
       ]);
       if (toolsDirty) {
-        await updateMyTools(TEMP_USER_ID, selectedToolIds);
+        await updateMyTools(selectedToolIds);
         setSavedToolIds(selectedToolIds);
       }
 
-      const freshAllergyList = await fetchMyAllergyIngredients(TEMP_USER_ID);
+      const freshAllergyList = await fetchMyAllergyIngredients();
       setAllergyIngredients(freshAllergyList);
       setPendingNewIngredients([]);
       setPendingDeleteIds([]);
@@ -147,7 +145,7 @@ export default function MyPage({ onNavigateAway } = {}) {
     setActivityError(null);
     setActivityLoading(true);
     try {
-      const posts = await category.fetcher(TEMP_USER_ID);
+      const posts = await category.fetcher();
       setActivityPosts(posts);
     } catch (err) {
       setActivityError(err.message);

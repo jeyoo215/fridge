@@ -4,7 +4,6 @@ import { searchIngredients } from "../api/ingredientApi";
 import BadgeSection from "../component/BadgeSection";
 import "./Challenge.css";
 
-const TEMP_USER_ID = 1;
 const HISTORY_PAGE_SIZE = 5;
 
 const CHALLENGE_TYPES = [
@@ -36,7 +35,7 @@ export default function Challenge() {
   const [starting, setStarting] = useState(false);
 
   const loadHistory = (page = 0) => {
-    fetchChallengeHistory(TEMP_USER_ID, page, HISTORY_PAGE_SIZE)
+    fetchChallengeHistory(page, HISTORY_PAGE_SIZE)
       .then((data) => {
         setHistory(data.content ?? []);
         setHistoryPage(data.page ?? 0);
@@ -49,7 +48,7 @@ export default function Challenge() {
   };
 
   useEffect(() => {
-    fetchActiveChallenge(TEMP_USER_ID)
+    fetchActiveChallenge()
       .then((active) => {
         if (active && active.status === "진행중") {
           setChallengeId(active.challengeId);
@@ -91,13 +90,13 @@ export default function Challenge() {
     setStarting(true);
     setError(null);
     try {
-      const id = await startChallenge(TEMP_USER_ID, {
+      const id = await startChallenge({
         days: Number(daysInput),
         type: selectedType,
         targetIngredientIds: selectedIngredients.map((i) => i.ingredientId),
       });
       setChallengeId(id);
-      const active = await fetchActiveChallenge(TEMP_USER_ID);
+      const active = await fetchActiveChallenge();
       setStatus(active);
       loadHistory(0);
     } catch (err) {

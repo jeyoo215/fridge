@@ -13,8 +13,6 @@ import { toMediaSrc } from "../api/communityApi";
 import RecipeReviewSection from "../component/RecipeReviewSection";
 import "./RecipeDetail.css";
 
-const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
-
 export default function RecipeDetail() {
   const { recipeId } = useParams();
   const navigate = useNavigate();
@@ -36,21 +34,21 @@ export default function RecipeDetail() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
 
-    fetchLikeStatus(recipeId, TEMP_USER_ID)
+    fetchLikeStatus(recipeId)
       .then((res) => {
         setLiked(res.active);
         setLikeCount(res.count);
       })
       .catch(() => {});
 
-    fetchScrapStatus(recipeId, TEMP_USER_ID)
+    fetchScrapStatus(recipeId)
       .then((res) => {
         setScraped(res.active);
         setScrapCount(res.count);
       })
       .catch(() => {});
 
-    fetchMadeStatus(recipeId, TEMP_USER_ID)
+    fetchMadeStatus(recipeId)
       .then((res) => {
         setMade(res.active);
         setMadeCount(res.count);
@@ -60,7 +58,7 @@ export default function RecipeDetail() {
 
   const handleToggleLike = async () => {
     try {
-      const res = await toggleLike(recipeId, TEMP_USER_ID);
+      const res = await toggleLike(recipeId);
       setLiked(res.active);
       setLikeCount(res.count);
     } catch {
@@ -70,7 +68,7 @@ export default function RecipeDetail() {
 
   const handleToggleScrap = async () => {
     try {
-      const res = await toggleScrap(recipeId, TEMP_USER_ID);
+      const res = await toggleScrap(recipeId);
       setScraped(res.active);
       setScrapCount(res.count);
     } catch {
@@ -80,7 +78,7 @@ export default function RecipeDetail() {
 
   const handleToggleMade = async () => {
     try {
-      const res = await toggleMade(recipeId, TEMP_USER_ID);
+      const res = await toggleMade(recipeId);
       setMade(res.active);
       setMadeCount(res.count);
     } catch {

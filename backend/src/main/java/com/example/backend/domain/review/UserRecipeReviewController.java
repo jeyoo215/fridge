@@ -2,8 +2,8 @@ package com.example.backend.domain.review;
 
 import com.example.backend.domain.review.dto.MyRecipeReviewResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -17,10 +17,9 @@ public class UserRecipeReviewController {
 
     private final RecipeReviewService recipeReviewService;
 
-    // TODO: 로그인 기능 만들어지면 userId는 토큰에서 꺼내 쓰도록 바꾸기.
-    // 예: GET /api/v1/users/me/recipe-reviews?userId=1
+    // 예: GET /api/v1/users/me/recipe-reviews
     @GetMapping("/api/v1/users/me/recipe-reviews")
-    public List<MyRecipeReviewResponse> getMyReviews(@RequestParam("userId") Long userId) {
+    public List<MyRecipeReviewResponse> getMyReviews(@AuthenticationPrincipal Long userId) {
         return recipeReviewService.getMyReviews(userId);
     }
 }
