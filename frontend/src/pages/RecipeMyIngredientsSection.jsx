@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { fetchRecommendedRecipes } from "../api/recipeApi";
 import "./RecipeCardGrid.css";
 
-const TEMP_USER_ID = 1;
 const PAGE_SIZE = 10;
 
 export default function RecipeMyIngredientsSection() {
@@ -15,7 +14,7 @@ export default function RecipeMyIngredientsSection() {
 
   useEffect(() => {
     setLoading(true);
-    fetchRecommendedRecipes(TEMP_USER_ID, page, PAGE_SIZE)
+    fetchRecommendedRecipes(page, PAGE_SIZE)
       .then(setData)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
