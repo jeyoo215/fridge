@@ -80,8 +80,10 @@ export async function updateMyTools(toolIds) {
 //    아직 userId를 @RequestParam으로 받는 상태라, 그쪽 작업할 때 같이 맞춰서 고칠 예정. 지금은 그대로 둠.
 
 // 마이페이지 "내 활동": 내가 스크랩한 게시글 목록
-export async function fetchMyCommunityScraps(userId) {
-  const response = await fetch(`${BASE_URL}/users/me/community/scraps?userId=${userId}`);
+export async function fetchMyCommunityScraps() {
+  const response = await fetch(`${BASE_URL}/users/me/community/scraps`, {
+    headers: authHeaders(),
+  });
   if (!response.ok) {
     throw new Error("스크랩한 게시글을 불러오지 못했습니다.");
   }
@@ -89,8 +91,10 @@ export async function fetchMyCommunityScraps(userId) {
 }
 
 // 마이페이지 "내 활동": 내가 좋아요한 게시글 목록
-export async function fetchMyCommunityLikes(userId) {
-  const response = await fetch(`${BASE_URL}/users/me/community/likes?userId=${userId}`);
+export async function fetchMyCommunityLikes() {
+  const response = await fetch(`${BASE_URL}/users/me/community/likes`, {
+    headers: authHeaders(),
+  });
   if (!response.ok) {
     throw new Error("좋아요한 게시글을 불러오지 못했습니다.");
   }
@@ -98,8 +102,10 @@ export async function fetchMyCommunityLikes(userId) {
 }
 
 // 마이페이지 "내 활동": 내가 댓글단 게시글 목록
-export async function fetchMyCommunityComments(userId) {
-  const response = await fetch(`${BASE_URL}/users/me/community/comments?userId=${userId}`);
+export async function fetchMyCommunityComments() {
+  const response = await fetch(`${BASE_URL}/users/me/community/comments`, {
+    headers: authHeaders(),
+  });
   if (!response.ok) {
     throw new Error("댓글단 게시글을 불러오지 못했습니다.");
   }

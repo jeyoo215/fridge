@@ -5,7 +5,6 @@ import CommunitySidebar from "../component/CommunitySidebar";
 import { getBoardConfig, FREE_TALK_PREFIXES } from "./communityBoards";
 import "./CommunityList.css";
 
-const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
 
 export default function CommunityList({ boardType = "RECIPE" }) {
   const board = getBoardConfig(boardType);
@@ -30,7 +29,6 @@ export default function CommunityList({ boardType = "RECIPE" }) {
     fetchCommunityPosts(page, 10, sortBy, boardType, {
       prefix: prefix || undefined,
       keyword: keyword || undefined,
-      userId: TEMP_USER_ID,
     })
       .then((data) => {
         setPosts(data.content);
