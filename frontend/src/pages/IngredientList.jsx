@@ -6,16 +6,22 @@ import {
   updateIngredient,
 } from "../api/ingredientApi";
 import { fetchFridgeName, updateFridgeName } from "../api/fridgeApi";
+import { getUserId } from "../api/authApi";
 import "./IngredientList.css";
 
-const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
-const SEEN_ALERTS_STORAGE_KEY = `fridge_seen_alerts_user_${TEMP_USER_ID}`;
-const ALERT_THRESHOLD_STORAGE_KEY = `fridge_alert_threshold_user_${TEMP_USER_ID}`;
 const DEFAULT_ALERT_THRESHOLD = 3;
+
+// localStorage 키는 로그인한 사용자별로 구분해야 하므로, 토큰에서 꺼낸 userId를 그때그때 붙여서 만듦
+function seenAlertsKey() {
+  return `fridge_seen_alerts_user_${getUserId()}`;
+}
+function alertThresholdKey() {
+  return `fridge_alert_threshold_user_${getUserId()}`;
+}
 
 function loadSeenAlertIds() {
   try {
-    const raw = localStorage.getItem(SEEN_ALERTS_STORAGE_KEY);
+    const raw = localStorage.getItem(seenAlertsKey());
     return raw ? new Set(JSON.parse(raw)) : new Set();
   } catch {
     return new Set();
@@ -24,14 +30,14 @@ function loadSeenAlertIds() {
 
 function saveSeenAlertIds(idSet) {
   try {
-    localStorage.setItem(SEEN_ALERTS_STORAGE_KEY, JSON.stringify(Array.from(idSet)));
+    localStorage.setItem(seenAlertsKey(), JSON.stringify(Array.from(idSet)));
   } catch {
     // 저장 실패해도(용량 초과 등) 앱 동작에는 지장 없게 조용히 무시
   }
 }
 
 function loadAlertThreshold() {
-  const raw = localStorage.getItem(ALERT_THRESHOLD_STORAGE_KEY);
+  const raw = localStorage.getItem(alertThresholdKey());
   const parsed = Number(raw);
   // 0 이하이거나 너무 큰 값(30일 넘음)이면 저장된 값이 손상된 걸로 보고 기본값 사용
   if (!raw || Number.isNaN(parsed) || parsed <= 0 || parsed > 30) {
@@ -133,12 +139,12 @@ export default function IngredientList() {
   }, [seenAlertIds]);
 
   useEffect(() => {
-    localStorage.setItem(ALERT_THRESHOLD_STORAGE_KEY, String(alertThreshold));
+    localStorage.setItem(alertThresholdKey(), String(alertThreshold));
   }, [alertThreshold]);
 
   const loadIngredients = () => {
     setLoading(true);
-    fetchMyIngredients(TEMP_USER_ID)
+    fetchMyIngredients()
       .then(setIngredients)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -146,7 +152,7 @@ export default function IngredientList() {
 
   useEffect(() => {
     loadIngredients();
-    fetchFridgeName(TEMP_USER_ID)
+    fetchFridgeName()
       .then(setFridgeName)
       .catch(() => {});
   }, []);
@@ -169,7 +175,7 @@ export default function IngredientList() {
       return;
     }
     try {
-      const saved = await updateFridgeName(TEMP_USER_ID, trimmed);
+      const saved = await updateFridgeName(trimmed);
       setFridgeName(saved);
       setIsEditingTitle(false);
     } catch (err) {
@@ -181,7 +187,7 @@ export default function IngredientList() {
     setOpenMenuId(null);
     if (!window.confirm("이 재료를 삭제할까요? 되돌릴 수 없어요.")) return;
     try {
-      await deleteIngredient(TEMP_USER_ID, userIngredientId);
+      await deleteIngredient(userIngredientId);
       setIngredients((prev) => prev.filter((item) => item.userIngredientId !== userIngredientId));
     } catch (err) {
       setActionError(err.message);
@@ -200,7 +206,7 @@ export default function IngredientList() {
 
   const saveEdit = async (userIngredientId) => {
     try {
-      await updateIngredient(TEMP_USER_ID, userIngredientId, {
+      await updateIngredient(userIngredientId, {
         quantity: Number(editQuantity),
         purchaseDate: editPurchaseDate || null,
         expirationDate: editExpirationDate,
@@ -242,7 +248,7 @@ export default function IngredientList() {
     // 하나씩 처리하되, 중간에 실패해도 나머지는 계속 시도 (기존엔 하나 실패하면 전부 멈췄음)
     for (const id of targetIds) {
       try {
-        await actionFn(TEMP_USER_ID, id);
+        await actionFn(id);
         succeededIds.push(id);
       } catch (err) {
         const target = ingredients.find((item) => item.userIngredientId === id);
