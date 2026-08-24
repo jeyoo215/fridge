@@ -86,17 +86,6 @@ export async function logout() {
   }
 }
 
-export function getUserId() {
-  const token = getAccessToken();
-  if (!token) return null;
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.sub;
-  } catch {
-    return null;
-  }
-}
-
 // 액세스 토큰(JWT) 안에 담긴 userId를 꺼내옴. 서버 인증용은 아니고,
 // localStorage 키 이름을 사용자별로 구분하는 등 프론트에서만 참고하는 용도.
 export function getUserId() {
