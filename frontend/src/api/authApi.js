@@ -23,6 +23,19 @@ export function isLoggedIn() {
   return !!getAccessToken();
 }
 
+// accessToken(JWT)의 exp 클레임이 지났는지 확인. 백엔드가 만료된 토큰을 401로 걸러주지 않으므로
+// (모든 요청이 permitAll이고 userId가 조용히 null로만 빠짐) 프론트에서 직접 만료 여부를 감시해야 함.
+export function isSessionExpired() {
+  const token = getAccessToken();
+  if (!token) return false;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return Date.now() >= payload.exp * 1000;
+  } catch {
+    return true;
+  }
+}
+
 export const KAKAO_LOGIN_URL = `${HOST}/oauth2/authorization/kakao`;
 
 // 이메일 실시간 중복 확인

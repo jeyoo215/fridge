@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import MyPage from "../pages/MyPage";
-import { isLoggedIn, logout } from "../api/authApi";
+import { isLoggedIn, isSessionExpired, clearTokens, logout } from "../api/authApi";
 import "./Nav.css";
 
 const linkClassName = ({ isActive }) => `app-nav-link${isActive ? " active" : ""}`;
@@ -38,6 +38,27 @@ export default function Nav() {
       window.removeEventListener("focus", syncLoginState);
     };
   }, []);
+
+  // 세션(accessToken) 만료 감시. 백엔드가 만료된 토큰을 401로 걸러주지 않으므로
+  // 프론트에서 주기적으로 + 탭 복귀 시 직접 exp를 확인해서 알려줘야 함.
+  useEffect(() => {
+    if (!loggedIn) return undefined;
+
+    const checkSession = () => {
+      if (!isSessionExpired()) return;
+      alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+      clearTokens();
+      window.location.href = "/"; // navigate 대신 완전 새로고침으로 화면 상태 초기화
+    };
+
+    checkSession();
+    const intervalId = setInterval(checkSession, 30_000);
+    window.addEventListener("focus", checkSession);
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("focus", checkSession);
+    };
+  }, [loggedIn]);
 
   const closeSheet = () => {
     if (pushedHistoryRef.current) {
