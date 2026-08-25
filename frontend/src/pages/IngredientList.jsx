@@ -6,9 +6,10 @@ import {
   updateIngredient,
 } from "../api/ingredientApi";
 import { fetchFridgeName, updateFridgeName } from "../api/fridgeApi";
+import { getCurrentUserId } from "../api/authApi";
 import "./IngredientList.css";
 
-const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
+const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 const SEEN_ALERTS_STORAGE_KEY = `fridge_seen_alerts_user_${TEMP_USER_ID}`;
 const ALERT_THRESHOLD_STORAGE_KEY = `fridge_alert_threshold_user_${TEMP_USER_ID}`;
 const DEFAULT_ALERT_THRESHOLD = 3;

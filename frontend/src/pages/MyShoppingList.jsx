@@ -11,9 +11,10 @@ import {
   updateShoppingItemQuantity,
 } from "../api/shoppingListApi";
 import { searchIngredients } from "../api/ingredientApi";
+import { getCurrentUserId } from "../api/authApi";
 import "./MyShoppingList.css";
 
-const TEMP_USER_ID = 1;
+const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 
 export default function MyShoppingList() {
   const [list, setList] = useState(null);

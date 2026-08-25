@@ -13,9 +13,10 @@ import { searchIngredients } from "../api/ingredientApi";
 import { fetchRecipeCategories } from "../api/recipeApi";
 import { fetchActiveChallenge } from "../api/challengeApi";
 import { getBoardConfig, FREE_TALK_PREFIXES } from "./communityBoards";
+import { getCurrentUserId } from "../api/authApi";
 import "./CommunityPostForm.css";
 
-const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
+const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 
 const MAX_IMAGE_SIZE = 50 * 1024 * 1024;  // 50MB
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB

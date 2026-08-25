@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { startChallenge, fetchChallengeStatus, fetchActiveChallenge } from "../api/challengeApi";
 import { searchIngredients } from "../api/ingredientApi";
 import BadgeSection from "../component/BadgeSection"; // 기존 컴포넌트 그대로 사용
+import { getCurrentUserId } from "../api/authApi";
 import "./Challenge.css";
 
-const TEMP_USER_ID = 1;
+const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 
 const CHALLENGE_TYPES = [
   { type: "FRIDGE_CLEAN", label: "🥬 냉장고 파먹기", desc: "기간 동안 장을 안 보고 버텨보세요" },

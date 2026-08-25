@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchShoppingList, addMissingIngredientsToMyList } from "../api/shoppingListApi";
+import { getCurrentUserId } from "../api/authApi";
 import "./ShoppingList.css";
 
-const TEMP_USER_ID = 1;
+const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 
 export default function ShoppingList() {
   const { recipeId } = useParams();

@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { fetchCommunityPosts, toMediaSrc } from "../api/communityApi";
 import CommunitySidebar from "../component/CommunitySidebar";
 import { getBoardConfig, FREE_TALK_PREFIXES } from "./communityBoards";
+import { getCurrentUserId } from "../api/authApi";
 import "./CommunityList.css";
 
-const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
+const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 
 export default function CommunityList({ boardType = "RECIPE" }) {
   const board = getBoardConfig(boardType);

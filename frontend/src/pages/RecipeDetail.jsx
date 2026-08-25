@@ -10,10 +10,11 @@ import {
   toggleMade,
 } from "../api/socialApi";
 import { toMediaSrc } from "../api/communityApi";
+import { getCurrentUserId } from "../api/authApi";
 import RecipeReviewSection from "../component/RecipeReviewSection";
 import "./RecipeDetail.css";
 
-const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
+const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 
 export default function RecipeDetail() {
   const { recipeId } = useParams();

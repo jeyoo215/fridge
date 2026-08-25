@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchRecommendedRecipes } from "../api/recipeApi";
+import { getCurrentUserId } from "../api/authApi";
 import "./RecipeCardGrid.css";
 
-const TEMP_USER_ID = 1;
+const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 const PAGE_SIZE = 10;
 
 export default function RecipeMyIngredientsSection() {
