@@ -118,11 +118,6 @@
   transform: translateY(-1px);
 }
 
-.challenge-type-card:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .challenge-type-label {
   font-family: var(--font-display);
   font-size: 16px;
@@ -219,4 +214,90 @@
 .challenge-target-names {
   font-size: 13px;
   color: var(--color-text-muted);
+}
+
+.status-중단 { color: var(--color-text-muted); font-style: italic; }
+
+.challenge-abort-btn {
+  background: var(--color-tomato) !important;
+}
+
+.challenge-abort-btn:hover {
+  background: var(--color-danger-text) !important;
+}
+
+.challenge-history {
+  margin-top: 24px;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+  text-align: left;
+}
+
+.challenge-history-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--color-text);
+}
+
+.challenge-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.challenge-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--color-bg);
+  font-size: 13px;
+  gap: 8px;
+}
+
+.challenge-history-type {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.challenge-history-period {
+  color: var(--color-text-muted);
+}
+
+.challenge-history-status {
+  font-weight: 700;
+}
+
+.challenge-history-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.challenge-history-pagination button {
+  padding: 6px 12px;
+  font-size: 13px;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.challenge-history-pagination button.active {
+  background: var(--color-basil);
+  color: white;
+}
+
+.challenge-history-pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

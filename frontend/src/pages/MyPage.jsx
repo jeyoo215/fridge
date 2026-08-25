@@ -13,10 +13,8 @@ import {
 } from "../api/userApi";
 import { toMediaSrc } from "../api/communityApi";
 import { fetchMyScraps, fetchMyMadeRecipes, fetchMyReviewedRecipes } from "../api/socialApi";
-import { fetchMyProfile, updateNickname as updateNicknameApi, getCurrentUserId } from "../api/authApi";
+import { fetchMyProfile, updateNickname as updateNicknameApi } from "../api/authApi";
 import "./MyPage.css";
-
-const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 
 const ACTIVITY_CATEGORIES = [
   { key: "scraps", label: "📌 스크랩한 게시글", fetcher: fetchMyCommunityScraps, type: "community" },
@@ -55,9 +53,9 @@ export default function MyPage({ onNavigateAway } = {}) {
 
   useEffect(() => {
     Promise.all([
-      fetchMyAllergyIngredients(TEMP_USER_ID),
+      fetchMyAllergyIngredients(),
       fetchAllCookingTools(),
-      fetchMyTools(TEMP_USER_ID),
+      fetchMyTools(),
       fetchMyProfile().catch(() => null), // 비로그인 등으로 실패해도 나머지 섹션은 정상 동작해야 하므로 조용히 null 처리
     ])
       .then(([allergyList, toolList, myTools, profile]) => {
@@ -118,13 +116,13 @@ export default function MyPage({ onNavigateAway } = {}) {
     setSaving(true);
     try {
       await Promise.all([
-        ...pendingDeleteIds.map((id) => deleteAllergyIngredient(TEMP_USER_ID, id)),
+        ...pendingDeleteIds.map((id) => deleteAllergyIngredient(id)),
         ...pendingNewIngredients.map((item) =>
-          registerAllergyIngredient(TEMP_USER_ID, item.ingredientName, item.type)
+          registerAllergyIngredient(item.ingredientName, item.type)
         ),
       ]);
       if (toolsDirty) {
-        await updateMyTools(TEMP_USER_ID, selectedToolIds);
+        await updateMyTools(selectedToolIds);
         setSavedToolIds(selectedToolIds);
       }
       if (nicknameDirty) {
@@ -132,7 +130,7 @@ export default function MyPage({ onNavigateAway } = {}) {
         setSavedNickname(nickname.trim());
       }
 
-      const freshAllergyList = await fetchMyAllergyIngredients(TEMP_USER_ID);
+      const freshAllergyList = await fetchMyAllergyIngredients();
       setAllergyIngredients(freshAllergyList);
       setPendingNewIngredients([]);
       setPendingDeleteIds([]);
@@ -163,7 +161,7 @@ export default function MyPage({ onNavigateAway } = {}) {
     setActivityError(null);
     setActivityLoading(true);
     try {
-      const posts = await category.fetcher(TEMP_USER_ID);
+      const posts = await category.fetcher();
       setActivityPosts(posts);
     } catch (err) {
       setActivityError(err.message);

@@ -10,11 +10,8 @@ import {
   toggleMade,
 } from "../api/socialApi";
 import { toMediaSrc } from "../api/communityApi";
-import { getCurrentUserId } from "../api/authApi";
 import RecipeReviewSection from "../component/RecipeReviewSection";
 import "./RecipeDetail.css";
-
-const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 
 export default function RecipeDetail() {
   const { recipeId } = useParams();
@@ -37,21 +34,21 @@ export default function RecipeDetail() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
 
-    fetchLikeStatus(recipeId, TEMP_USER_ID)
+    fetchLikeStatus(recipeId)
       .then((res) => {
         setLiked(res.active);
         setLikeCount(res.count);
       })
       .catch(() => {});
 
-    fetchScrapStatus(recipeId, TEMP_USER_ID)
+    fetchScrapStatus(recipeId)
       .then((res) => {
         setScraped(res.active);
         setScrapCount(res.count);
       })
       .catch(() => {});
 
-    fetchMadeStatus(recipeId, TEMP_USER_ID)
+    fetchMadeStatus(recipeId)
       .then((res) => {
         setMade(res.active);
         setMadeCount(res.count);
@@ -61,7 +58,7 @@ export default function RecipeDetail() {
 
   const handleToggleLike = async () => {
     try {
-      const res = await toggleLike(recipeId, TEMP_USER_ID);
+      const res = await toggleLike(recipeId);
       setLiked(res.active);
       setLikeCount(res.count);
     } catch {
@@ -71,7 +68,7 @@ export default function RecipeDetail() {
 
   const handleToggleScrap = async () => {
     try {
-      const res = await toggleScrap(recipeId, TEMP_USER_ID);
+      const res = await toggleScrap(recipeId);
       setScraped(res.active);
       setScrapCount(res.count);
     } catch {
@@ -81,7 +78,7 @@ export default function RecipeDetail() {
 
   const handleToggleMade = async () => {
     try {
-      const res = await toggleMade(recipeId, TEMP_USER_ID);
+      const res = await toggleMade(recipeId);
       setMade(res.active);
       setMadeCount(res.count);
     } catch {

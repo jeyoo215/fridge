@@ -13,10 +13,7 @@ import { searchIngredients } from "../api/ingredientApi";
 import { fetchRecipeCategories } from "../api/recipeApi";
 import { fetchActiveChallenge } from "../api/challengeApi";
 import { getBoardConfig, FREE_TALK_PREFIXES } from "./communityBoards";
-import { getCurrentUserId } from "../api/authApi";
 import "./CommunityPostForm.css";
-
-const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 
 const MAX_IMAGE_SIZE = 50 * 1024 * 1024;  // 50MB
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
@@ -105,7 +102,7 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
   // (수정 모드는 이미 쓴 글이라 다시 자격을 따지지 않는다 — 챌린지가 끝났어도 본인 글은 계속 관리 가능).
   useEffect(() => {
     if (isEditMode || !board.challengeType) return;
-    fetchActiveChallenge(TEMP_USER_ID)
+    fetchActiveChallenge()
       .then((challenge) => {
         if (challenge?.type !== board.challengeType) setAccessDenied(true);
       })
@@ -114,7 +111,7 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
 
   useEffect(() => {
     if (!isEditMode) return;
-    fetchCommunityPost(postId, TEMP_USER_ID)
+    fetchCommunityPost(postId)
       .then((post) => {
         setPostBoardType(post.boardType);
         if (post.promotedRecipeId) {
@@ -315,10 +312,10 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
     };
     try {
       if (isEditMode) {
-        await updateCommunityPost(TEMP_USER_ID, postId, payload);
+        await updateCommunityPost(postId, payload);
         navigate(`/community/${postId}`);
       } else {
-        const { postId: newPostId } = await createCommunityPost(TEMP_USER_ID, payload);
+        const { postId: newPostId } = await createCommunityPost(payload);
         navigate(`/community/${newPostId}`);
       }
     } catch (err) {

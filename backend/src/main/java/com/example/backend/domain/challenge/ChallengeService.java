@@ -3,6 +3,7 @@ package com.example.backend.domain.challenge;
 import com.example.backend.domain.badge.BadgeService;
 import com.example.backend.domain.challenge.dto.ChallengeResponse;
 import com.example.backend.domain.challenge.dto.ChallengeStartRequest;
+import com.example.backend.domain.challenge.dto.ChallengeHistoryPageResponse;
 import com.example.backend.domain.ingredient.Ingredient;
 import com.example.backend.domain.ingredient.IngredientRepository;
 import com.example.backend.domain.ingredient.UserIngredient;
@@ -12,6 +13,10 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -94,10 +99,15 @@ public class ChallengeService {
     }
 
     // 현재 진행중인 챌린지 조회 (새로고침/재접속 시 상태 복원용)
+    // 💡 수정됨: 없으면 예외 대신 null 반환 (204/404 대신 200 + 빈 body)
+    @Transactional
     public ChallengeResponse getActiveChallenge(Long userId) {
-        Challenge challenge = challengeRepository.findByUserIdAndStatus(userId, Challenge.Status.진행중)
-                .orElseThrow(() -> new EntityNotFoundException("진행중인 챌린지가 없습니다."));
-        return buildResponse(challenge);
+        return challengeRepository.findByUserIdAndStatus(userId, Challenge.Status.진행중)
+                .map(challenge -> {
+                    finalizeIfFinished(challenge);
+                    return buildResponse(challenge);
+                })
+                .orElse(null);
     }
 
     // 냉장고 파먹기: 기간 중 새로 구매한 재료가 없어야 성공
@@ -127,5 +137,51 @@ public class ChallengeService {
                         .orElse("삭제된 재료"))
                 .toList();
         return new ChallengeResponse(challenge, targetNames);
+    }
+
+    // 챌린지 중단 (사용자가 직접 중단, FR-40 확장)
+    @Transactional
+    public ChallengeResponse abortChallenge(Long challengeId) {
+        Challenge challenge = challengeRepository.findById(challengeId)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 챌린지입니다. id=" + challengeId));
+
+        if (challenge.getStatus() != Challenge.Status.진행중) {
+            throw new IllegalStateException("진행중인 챌린지만 중단할 수 있습니다.");
+        }
+
+        challenge.markAborted();
+        badgeService.onChallengeFailed(challenge.getUserId()); // 실패와 동일하게 스트릭 초기화
+
+        return buildResponse(challenge);
+    }
+
+    // 지난 챌린지 기록 페이지네이션 조회 (성공/실패/중단 전부 포함, 최신순)
+    public ChallengeHistoryPageResponse getHistory(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Challenge> challengePage = challengeRepository.findByUserId(userId, pageable);
+
+        List<ChallengeResponse> content = challengePage.getContent().stream()
+                .map(this::buildResponse)
+                .toList();
+
+        return new ChallengeHistoryPageResponse(content, page, challengePage.getTotalPages(), challengePage.getTotalElements());
+    }
+
+    // 기간이 끝난 진행중 챌린지를 성공/실패로 판정 (getStatus, getActiveChallenge 공통 사용)
+    private void finalizeIfFinished(Challenge challenge) {
+        if (challenge.getStatus() == Challenge.Status.진행중 && challenge.isFinishedPeriod(LocalDate.now())) {
+            boolean success = switch (challenge.getType()) {
+                case FRIDGE_CLEAN -> judgeFridgeClean(challenge);
+                case TARGET_INGREDIENT -> judgeTargetIngredientConsumed(challenge);
+            };
+
+            if (success) {
+                challenge.markSuccess();
+                badgeService.onChallengeSuccess(challenge.getUserId());
+            } else {
+                challenge.markFailed();
+                badgeService.onChallengeFailed(challenge.getUserId());
+            }
+        }
     }
 }

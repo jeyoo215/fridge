@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchReviews, createReview } from "../api/recipeReviewApi";
-import { getCurrentUserId } from "../api/authApi";
 import "./RecipeReviewSection.css";
-
-const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 
 // RecipeDetail.jsx 안에 <RecipeReviewSection recipeId={recipe.recipeId} /> 형태로 붙여서 사용
 export default function RecipeReviewSection({ recipeId }) {
@@ -24,7 +21,7 @@ export default function RecipeReviewSection({ recipeId }) {
     if (submitting) return;
     setSubmitting(true);
     try {
-      await createReview(TEMP_USER_ID, recipeId, { rating, content });
+      await createReview(recipeId, { rating, content });
       setContent("");
       setRating(5);
       loadReviews();

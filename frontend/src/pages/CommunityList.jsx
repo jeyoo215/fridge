@@ -3,10 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchCommunityPosts, toMediaSrc } from "../api/communityApi";
 import CommunitySidebar from "../component/CommunitySidebar";
 import { getBoardConfig, FREE_TALK_PREFIXES } from "./communityBoards";
-import { getCurrentUserId } from "../api/authApi";
 import "./CommunityList.css";
-
-const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 
 export default function CommunityList({ boardType = "RECIPE" }) {
   const board = getBoardConfig(boardType);
@@ -31,7 +28,6 @@ export default function CommunityList({ boardType = "RECIPE" }) {
     fetchCommunityPosts(page, 10, sortBy, boardType, {
       prefix: prefix || undefined,
       keyword: keyword || undefined,
-      userId: TEMP_USER_ID,
     })
       .then((data) => {
         setPosts(data.content);

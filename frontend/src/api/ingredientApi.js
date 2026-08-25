@@ -1,17 +1,25 @@
+import { getAccessToken } from "./authApi";
+
 // PC에서 열면 localhost, 핸드폰 등 다른 기기에서 열면 그 기기가 접속한 주소(PC의 IP)를 그대로 사용
 const BASE_URL = `http://${window.location.hostname}:8080/api/v1`;
 
+// 로그인 토큰을 담은 요청 헤더. 매번 이렇게 안 쓰려고 헬퍼로 뺌.
+function authHeaders(extra = {}) {
+  return { Authorization: `Bearer ${getAccessToken()}`, ...extra };
+}
+
 // 내 냉장고 재료 목록 조회
-// TODO: 로그인 기능 만들어지면 userId 파라미터 대신 JWT 토큰으로 대체
-export async function fetchMyIngredients(userId) {
-  const response = await fetch(`${BASE_URL}/users/me/ingredients?userId=${userId}`);
+export async function fetchMyIngredients() {
+  const response = await fetch(`${BASE_URL}/users/me/ingredients`, {
+    headers: authHeaders(),
+  });
   if (!response.ok) {
     throw new Error("재료 목록을 불러오지 못했습니다.");
   }
   return response.json();
 }
 
-// 재료 마스터 검색 (등록 화면 자동완성용)
+// 재료 마스터 검색 (등록 화면 자동완성용) — 로그인 여부와 무관한 공용 조회라 토큰 불필요
 export async function searchIngredients(keyword) {
   if (!keyword) return [];
   const response = await fetch(`${BASE_URL}/ingredients?keyword=${encodeURIComponent(keyword)}`);
@@ -22,13 +30,13 @@ export async function searchIngredients(keyword) {
 }
 
 // 카메라로 찍은 재료 사진 인식 요청 (오인식 방지를 위해 등록은 별도로 확정)
-// 가연님(feature/visionAPICamera)이 만든 실제 Vision API 연동 엔드포인트를 그대로 호출함
-export async function recognizeIngredientImage(userId, file) {
+export async function recognizeIngredientImage(file) {
   const formData = new FormData();
   formData.append("image", file);
 
-  const response = await fetch(`${BASE_URL}/users/me/ingredients/recognize?userId=${userId}`, {
+  const response = await fetch(`${BASE_URL}/users/me/ingredients/recognize`, {
     method: "POST",
+    headers: authHeaders(), // FormData 쓸 땐 Content-Type을 직접 안 넣어야 브라우저가 알아서 boundary를 채워줌
     body: formData,
   });
   if (!response.ok) {
@@ -37,7 +45,7 @@ export async function recognizeIngredientImage(userId, file) {
   return response.json();
 }
 
-// 재료 카테고리 전체 목록 (새 재료 등록용 드롭다운)
+// 재료 카테고리 전체 목록 (새 재료 등록용 드롭다운) — 공용 조회, 토큰 불필요
 export async function fetchIngredientCategories() {
   const response = await fetch(`${BASE_URL}/ingredients/categories`);
   if (!response.ok) {
@@ -46,7 +54,7 @@ export async function fetchIngredientCategories() {
   return response.json();
 }
 
-// 재료 마스터에 없는 재료를 새로 등록 (등록된 재료 정보를 반환)
+// 재료 마스터에 없는 재료를 새로 등록 (등록된 재료 정보를 반환) — 공용 마스터 데이터라 토큰 불필요
 export async function createIngredient(payload) {
   const response = await fetch(`${BASE_URL}/ingredients`, {
     method: "POST",
@@ -61,10 +69,10 @@ export async function createIngredient(payload) {
 }
 
 // 재료 수동 등록
-export async function registerIngredient(userId, payload) {
-  const response = await fetch(`${BASE_URL}/users/me/ingredients?userId=${userId}`, {
+export async function registerIngredient(payload) {
+  const response = await fetch(`${BASE_URL}/users/me/ingredients`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
@@ -74,26 +82,23 @@ export async function registerIngredient(userId, payload) {
 }
 
 // 재료 수정 (수량/유통기한)
-export async function updateIngredient(userId, userIngredientId, payload) {
-  const response = await fetch(
-    `${BASE_URL}/users/me/ingredients/${userIngredientId}?userId=${userId}`,
-    {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }
-  );
+export async function updateIngredient(userIngredientId, payload) {
+  const response = await fetch(`${BASE_URL}/users/me/ingredients/${userIngredientId}`, {
+    method: "PATCH",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify(payload),
+  });
   if (!response.ok) {
     throw new Error("재료 수정에 실패했습니다.");
   }
 }
 
 // 재료 삭제 (사용완료/폐기 구분 없이 "삭제" 하나로 통합)
-export async function deleteIngredient(userId, userIngredientId) {
-  const response = await fetch(
-    `${BASE_URL}/users/me/ingredients/${userIngredientId}?userId=${userId}`,
-    { method: "DELETE" }
-  );
+export async function deleteIngredient(userIngredientId) {
+  const response = await fetch(`${BASE_URL}/users/me/ingredients/${userIngredientId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
   if (!response.ok) {
     throw new Error("삭제에 실패했습니다.");
   }

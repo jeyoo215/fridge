@@ -13,10 +13,11 @@ import {
   toMediaSrc,
 } from "../api/communityApi";
 import { getBoardConfig } from "./communityBoards";
-import { getCurrentUserId } from "../api/authApi";
+import { getUserId } from "../api/authApi";
 import "./CommunityPostDetail.css";
 
-const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
+// 댓글 목록에서 "내가 쓴 댓글인지" 비교할 때 씀. 토큰 안 userId는 문자열이라 Number로 맞춰줌.
+const currentUserId = Number(getUserId());
 
 export default function CommunityPostDetail() {
   const { postId } = useParams();
@@ -35,9 +36,9 @@ export default function CommunityPostDetail() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetchCommunityPost(postId, TEMP_USER_ID),
-      fetchCommunityPostLikeStatus(TEMP_USER_ID, postId),
-      fetchCommunityPostScrapStatus(TEMP_USER_ID, postId),
+      fetchCommunityPost(postId),
+      fetchCommunityPostLikeStatus(postId),
+      fetchCommunityPostScrapStatus(postId),
       fetchCommunityPostComments(postId),
     ])
       .then(([postRes, likeRes, scrapRes, commentsRes]) => {
@@ -59,7 +60,7 @@ export default function CommunityPostDetail() {
 
   const handleToggleLike = async () => {
     try {
-      const res = await toggleCommunityPostLike(TEMP_USER_ID, postId);
+      const res = await toggleCommunityPostLike(postId);
       setLiked(res.active);
       setLikeCount(res.count);
     } catch (err) {
@@ -68,7 +69,7 @@ export default function CommunityPostDetail() {
   };
 
   const handleToggleScrap = async () => {
-    const res = await toggleCommunityPostScrap(TEMP_USER_ID, postId);
+    const res = await toggleCommunityPostScrap(postId);
     setScrapped(res.active);
     setScrapCount(res.count);
   };
@@ -76,7 +77,7 @@ export default function CommunityPostDetail() {
   const handleDelete = async () => {
     if (!window.confirm("이 글을 삭제할까요? 되돌릴 수 없습니다.")) return;
     try {
-      await deleteCommunityPost(TEMP_USER_ID, postId);
+      await deleteCommunityPost(postId);
       navigate(getBoardConfig(post.boardType).listPath);
     } catch (err) {
       setError(err.message);
@@ -88,10 +89,10 @@ export default function CommunityPostDetail() {
     const content = newComment.trim();
     if (!content) return;
     try {
-      const { commentId } = await createCommunityPostComment(TEMP_USER_ID, postId, content);
+      const { commentId } = await createCommunityPostComment(postId, content);
       setComments((prev) => [
         ...prev,
-        { commentId, userId: TEMP_USER_ID, content, createdAt: new Date().toISOString() },
+        { commentId, userId: currentUserId, content, createdAt: new Date().toISOString() },
       ]);
       setNewComment("");
     } catch (err) {
@@ -101,7 +102,7 @@ export default function CommunityPostDetail() {
 
   const handleDeleteComment = async (commentId) => {
     try {
-      await deleteCommunityPostComment(TEMP_USER_ID, commentId);
+      await deleteCommunityPostComment(commentId);
       setComments((prev) => prev.filter((comment) => comment.commentId !== commentId));
     } catch (err) {
       setError(err.message);
@@ -225,7 +226,7 @@ export default function CommunityPostDetail() {
                   </div>
                   <p className="community-detail-comment-content">{comment.content}</p>
                 </div>
-                {comment.userId === TEMP_USER_ID && (
+                {comment.userId === currentUserId && (
                   <button
                     type="button"
                     className="community-detail-comment-delete"

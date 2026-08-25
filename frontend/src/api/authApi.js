@@ -23,22 +23,6 @@ export function isLoggedIn() {
   return !!getAccessToken();
 }
 
-// accessToken(JWT)의 payload(sub = userId)를 그대로 읽어옴.
-// 서명 검증은 하지 않음 — 화면에 "내 데이터"를 채워 넣을 대상 userId를 정하는 용도일 뿐이고,
-// 실제 인증/인가는 백엔드가 Authorization 헤더의 토큰으로 다시 검증하므로 안전함.
-// 로그인 전이거나 토큰이 없으면 null.
-export function getCurrentUserId() {
-  const token = getAccessToken();
-  if (!token) return null;
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    const userId = Number(payload.sub);
-    return Number.isFinite(userId) ? userId : null;
-  } catch {
-    return null;
-  }
-}
-
 export const KAKAO_LOGIN_URL = `${HOST}/oauth2/authorization/kakao`;
 
 // 이메일 실시간 중복 확인
@@ -87,7 +71,7 @@ export async function signup(email, password, phone) {
   });
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(err.message || "회원가입에 실패했습니다.");
+    throw new Error(err.message || "Signup failed.");
   }
   return response.json();
 }
@@ -182,7 +166,7 @@ export async function login(email, password) {
   });
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(err.message || "로그인에 실패했습니다.");
+    throw new Error(err.message || "Login failed.");
   }
   const { accessToken, refreshToken } = await response.json();
   setTokens(accessToken, refreshToken);
@@ -191,7 +175,7 @@ export async function login(email, password) {
 
 export async function reissue() {
   const refreshToken = getRefreshToken();
-  if (!refreshToken) throw new Error("로그인이 필요합니다.");
+  if (!refreshToken) throw new Error("Login required.");
 
   const response = await fetch(`${BASE_URL}/auth/reissue`, {
     method: "POST",
@@ -200,7 +184,7 @@ export async function reissue() {
   });
   if (!response.ok) {
     clearTokens();
-    throw new Error("세션이 만료되었습니다. 다시 로그인해주세요.");
+    throw new Error("Session expired. Please log in again.");
   }
   const { accessToken, refreshToken: newRefreshToken } = await response.json();
   setTokens(accessToken, newRefreshToken);
@@ -218,6 +202,19 @@ export async function logout() {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
   } catch {
-    // 서버 로그아웃 실패해도 로컬 토큰은 이미 지웠으니 무시
+    // ignore logout failure on server, local tokens already cleared
+  }
+}
+
+// 액세스 토큰(JWT) 안에 담긴 userId를 꺼내옴. 서버 인증용은 아니고,
+// localStorage 키 이름을 사용자별로 구분하는 등 프론트에서만 참고하는 용도.
+export function getUserId() {
+  const token = getAccessToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.sub;
+  } catch {
+    return null;
   }
 }

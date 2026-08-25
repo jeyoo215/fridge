@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchComboRecommendations } from "../api/recipeApi";
-import { getCurrentUserId } from "../api/authApi";
 import "./RecipeCardGrid.css";
-
-const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 
 export default function RecipeComboSection() {
   const navigate = useNavigate();
@@ -13,7 +10,7 @@ export default function RecipeComboSection() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchComboRecommendations(TEMP_USER_ID)
+    fetchComboRecommendations()
       .then(setRecipes)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));

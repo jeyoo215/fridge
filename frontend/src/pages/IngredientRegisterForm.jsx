@@ -7,10 +7,7 @@ import {
   fetchIngredientCategories,
   createIngredient,
 } from "../api/ingredientApi";
-import { getCurrentUserId } from "../api/authApi";
 import "./IngredientRegisterForm.css";
-
-const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 
 function todayDateString() {
   return new Date().toISOString().slice(0, 10);
@@ -130,7 +127,7 @@ export default function IngredientRegisterForm() {
     setCheckedIds(new Set());
     setSelectedIngredient(null);
     try {
-      const candidates = await recognizeIngredientImage(TEMP_USER_ID, file);
+      const candidates = await recognizeIngredientImage(file);
       if (candidates.length === 0) {
         setRecognizeError("재료를 인식하지 못했어요. 직접 입력해주세요.");
       } else {
@@ -173,7 +170,7 @@ export default function IngredientRegisterForm() {
     setRecognizeError(null);
     try {
       for (const candidate of targets) {
-        await registerIngredient(TEMP_USER_ID, {
+        await registerIngredient({
           ingredientId: candidate.ingredientId,
           quantity: 1,
           unit: "개",
@@ -203,7 +200,7 @@ export default function IngredientRegisterForm() {
     setSubmitting(true);
     setError(null);
     try {
-      await registerIngredient(TEMP_USER_ID, {
+      await registerIngredient({
         ingredientId: selectedIngredient.ingredientId,
         quantity: Number(quantity),
         unit,

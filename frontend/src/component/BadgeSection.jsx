@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchMyBadges, fetchMyStreak } from "../api/badgeApi";
-import { getCurrentUserId } from "../api/authApi";
 import "./BadgeSection.css";
-
-const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
 
 export default function BadgeSection() {
   const [streak, setStreak] = useState(null);
@@ -12,7 +9,7 @@ export default function BadgeSection() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    Promise.all([fetchMyStreak(TEMP_USER_ID), fetchMyBadges(TEMP_USER_ID)])
+    Promise.all([fetchMyStreak(), fetchMyBadges()])
       .then(([streakData, badgeData]) => {
         setStreak(streakData);
         setBadges(badgeData);

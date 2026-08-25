@@ -1,25 +1,29 @@
 import { useEffect, useState } from "react";
-import { startChallenge, fetchChallengeStatus, fetchActiveChallenge } from "../api/challengeApi";
+import { startChallenge, fetchActiveChallenge, abortChallenge, fetchChallengeHistory } from "../api/challengeApi";
 import { searchIngredients } from "../api/ingredientApi";
-import BadgeSection from "../component/BadgeSection"; // 기존 컴포넌트 그대로 사용
-import { getCurrentUserId } from "../api/authApi";
+import BadgeSection from "../component/BadgeSection";
 import "./Challenge.css";
 
-const TEMP_USER_ID = getCurrentUserId() ?? 1; // 로그인 안 했으면 1(seed 계정)로 폴백
+const HISTORY_PAGE_SIZE = 5;
 
 const CHALLENGE_TYPES = [
   { type: "FRIDGE_CLEAN", label: "🥬 냉장고 파먹기", desc: "기간 동안 장을 안 보고 버텨보세요" },
   { type: "TARGET_INGREDIENT", label: "🎯 특정 재료 소진", desc: "고른 재료를 기간 안에 다 써보세요" },
-  { type: "HEALTHY_FOOD", label: "🥗 건강식 챌린지", desc: "준비중이에요", disabled: true },
-  { type: "BUDGET_LIMIT", label: "💰 장보기 예산 챌린지", desc: "준비중이에요", disabled: true },
 ];
+
+const TYPE_LABELS = {
+  FRIDGE_CLEAN: "🥬 냉장고 파먹기",
+  TARGET_INGREDIENT: "🎯 특정 재료 소진",
+};
 
 export default function Challenge() {
   const [loading, setLoading] = useState(true);
   const [challengeId, setChallengeId] = useState(null);
   const [status, setStatus] = useState(null);
-  const [checking, setChecking] = useState(false);
-  const [lastCheckedAt, setLastCheckedAt] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [historyPage, setHistoryPage] = useState(0);
+  const [historyTotalPages, setHistoryTotalPages] = useState(0);
+  const [aborting, setAborting] = useState(false);
   const [error, setError] = useState(null);
 
   // 시작 폼 상태
@@ -27,22 +31,35 @@ export default function Challenge() {
   const [daysInput, setDaysInput] = useState("7");
   const [keyword, setKeyword] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [selectedIngredients, setSelectedIngredients] = useState([]); // [{ingredientId, ingredientName}]
+  const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [starting, setStarting] = useState(false);
 
+  const loadHistory = (page = 0) => {
+    fetchChallengeHistory(page, HISTORY_PAGE_SIZE)
+      .then((data) => {
+        setHistory(data.content ?? []);
+        setHistoryPage(data.page ?? 0);
+        setHistoryTotalPages(data.totalPages ?? 0);
+      })
+      .catch(() => {
+        setHistory([]);
+        setHistoryTotalPages(0);
+      });
+  };
+
   useEffect(() => {
-    fetchActiveChallenge(TEMP_USER_ID)
+    fetchActiveChallenge()
       .then((active) => {
-        if (active) {
+        if (active && active.status === "진행중") {
           setChallengeId(active.challengeId);
           setStatus(active);
         }
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+    loadHistory(0);
   }, []);
 
-  // 재료 검색 (특정 재료 소진 선택 시)
   useEffect(() => {
     if (!keyword) {
       setSearchResults([]);
@@ -73,14 +90,15 @@ export default function Challenge() {
     setStarting(true);
     setError(null);
     try {
-      const id = await startChallenge(TEMP_USER_ID, {
+      const id = await startChallenge({
         days: Number(daysInput),
         type: selectedType,
         targetIngredientIds: selectedIngredients.map((i) => i.ingredientId),
       });
       setChallengeId(id);
-      const active = await fetchActiveChallenge(TEMP_USER_ID);
+      const active = await fetchActiveChallenge();
       setStatus(active);
+      loadHistory(0);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -88,19 +106,23 @@ export default function Challenge() {
     }
   };
 
-  const handleCheckStatus = async () => {
-    setChecking(true);
+  const handleAbort = async () => {
+    const confirmed = window.confirm(
+      "정말 챌린지를 중단하시겠어요?\n중단하면 성공 기록에는 포함되지 않고, 중단 기록으로 남아요."
+    );
+    if (!confirmed) return;
+
+    setAborting(true);
+    setError(null);
     try {
-      const result = await fetchChallengeStatus(challengeId);
+      const result = await abortChallenge(challengeId);
       setStatus(result);
-      setLastCheckedAt(new Date());
-      if (result.status !== "진행중") {
-        setChallengeId(null); // 종료됐으면 다시 시작 화면으로
-      }
+      setChallengeId(null);
+      loadHistory(0);
     } catch (err) {
       setError(err.message);
     } finally {
-      setChecking(false);
+      setAborting(false);
     }
   };
 
@@ -118,7 +140,6 @@ export default function Challenge() {
                 <button
                   key={c.type}
                   className="challenge-type-card"
-                  disabled={c.disabled}
                   onClick={() => setSelectedType(c.type)}
                 >
                   <span className="challenge-type-label">{c.label}</span>
@@ -175,9 +196,6 @@ export default function Challenge() {
       ) : (
         <div className="challenge-status">
           <p>챌린지 진행 중! (id: {challengeId})</p>
-          <button onClick={handleCheckStatus} disabled={checking}>
-            {checking ? "확인 중..." : "상태 확인"}
-          </button>
           {status && (
             <>
               <p className={`challenge-badge status-${status.status}`}>
@@ -188,17 +206,59 @@ export default function Challenge() {
                   소진 대상: {status.targetIngredientNames.join(", ")}
                 </p>
               )}
-              {lastCheckedAt && (
-                <p className="challenge-last-checked">
-                  마지막 확인: {lastCheckedAt.toLocaleTimeString()}
-                </p>
-              )}
             </>
           )}
+          <button className="challenge-abort-btn" onClick={handleAbort} disabled={aborting}>
+            {aborting ? "중단하는 중..." : "챌린지 중단"}
+          </button>
         </div>
       )}
 
       {error && <p className="challenge-error">{error}</p>}
+
+      {history?.length > 0 && (
+        <section className="challenge-history">
+          <h3 className="challenge-history-title">지난 챌린지 기록</h3>
+          <ul className="challenge-history-list">
+            {history.map((h) => (
+              <li key={h.challengeId} className="challenge-history-item">
+                <span className="challenge-history-type">{TYPE_LABELS[h.type] || h.type}</span>
+                <span className="challenge-history-period">{h.startDate} ~ {h.endDate}</span>
+                <span className={`challenge-history-status status-${h.status}`}>{h.status}</span>
+              </li>
+            ))}
+          </ul>
+
+          {historyTotalPages > 1 && (
+            <div className="challenge-history-pagination">
+              <button
+                type="button"
+                disabled={historyPage === 0}
+                onClick={() => loadHistory(historyPage - 1)}
+              >
+                이전
+              </button>
+              {Array.from({ length: historyTotalPages }, (_, i) => i).map((p) => (
+                <button
+                  type="button"
+                  key={p}
+                  className={p === historyPage ? "active" : ""}
+                  onClick={() => loadHistory(p)}
+                >
+                  {p + 1}
+                </button>
+              ))}
+              <button
+                type="button"
+                disabled={historyPage >= historyTotalPages - 1}
+                onClick={() => loadHistory(historyPage + 1)}
+              >
+                다음
+              </button>
+            </div>
+          )}
+        </section>
+      )}
 
       <BadgeSection />
     </div>
