@@ -9,7 +9,6 @@ import {
 } from "../api/ingredientApi";
 import "./IngredientRegisterForm.css";
 
-
 function todayDateString() {
   return new Date().toISOString().slice(0, 10);
 }

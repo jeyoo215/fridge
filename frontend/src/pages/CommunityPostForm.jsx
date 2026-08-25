@@ -15,7 +15,6 @@ import { fetchActiveChallenge } from "../api/challengeApi";
 import { getBoardConfig, FREE_TALK_PREFIXES } from "./communityBoards";
 import "./CommunityPostForm.css";
 
-
 const MAX_IMAGE_SIZE = 50 * 1024 * 1024;  // 50MB
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
 

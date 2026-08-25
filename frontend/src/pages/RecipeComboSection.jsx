@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { fetchComboRecommendations } from "../api/recipeApi";
 import "./RecipeCardGrid.css";
 
-
 export default function RecipeComboSection() {
   const navigate = useNavigate();
   const [recipes, setRecipes] = useState([]);

@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { fetchShoppingList, addMissingIngredientsToMyList } from "../api/shoppingListApi";
 import "./ShoppingList.css";
 
-
 export default function ShoppingList() {
   const { recipeId } = useParams();
   const navigate = useNavigate();

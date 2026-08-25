@@ -5,7 +5,6 @@ import CommunitySidebar from "../component/CommunitySidebar";
 import { getBoardConfig, FREE_TALK_PREFIXES } from "./communityBoards";
 import "./CommunityList.css";
 
-
 export default function CommunityList({ boardType = "RECIPE" }) {
   const board = getBoardConfig(boardType);
   const isChallengeBoard = board.challengeType != null;

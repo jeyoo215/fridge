@@ -13,7 +13,6 @@ import {
 import { searchIngredients } from "../api/ingredientApi";
 import "./MyShoppingList.css";
 
-
 export default function MyShoppingList() {
   const [list, setList] = useState(null);
   const [loading, setLoading] = useState(true);
