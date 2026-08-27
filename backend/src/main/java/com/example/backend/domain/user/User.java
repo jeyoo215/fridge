@@ -62,4 +62,11 @@ public class User {
     public void updatePassword(String encodedPassword) {
         this.password = encodedPassword;
     }
+
+    // 일반(LOCAL) 가입 계정에 카카오 로그인을 연결함 (계정 통합). 비밀번호는 그대로 둬서
+    // 카카오 로그인과 기존 비밀번호 로그인 둘 다 계속 되게 함.
+    public void linkKakao(String providerId) {
+        this.provider = AuthProvider.KAKAO;
+        this.providerId = providerId;
+    }
 }
