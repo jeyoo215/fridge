@@ -13,8 +13,6 @@ import {
 import { searchIngredients } from "../api/ingredientApi";
 import "./MyShoppingList.css";
 
-const TEMP_USER_ID = 1;
-
 export default function MyShoppingList() {
   const [list, setList] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +28,7 @@ export default function MyShoppingList() {
   const dragIndexRef = useRef(null);
 
   const loadList = () => {
-    fetchMyShoppingList(TEMP_USER_ID)
+    fetchMyShoppingList()
       .then(setList)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -61,7 +59,7 @@ export default function MyShoppingList() {
     if (!selectedIngredient) return;
     setAdding(true);
     try {
-      await addManualShoppingItem(TEMP_USER_ID, {
+      await addManualShoppingItem({
         ingredientId: selectedIngredient.ingredientId,
         quantity: quantity ? Number(quantity) : null,
         unit: unit || null,
@@ -81,9 +79,9 @@ export default function MyShoppingList() {
   const handleToggleCheck = async (item) => {
     try {
       if (item.checked) {
-        await uncheckShoppingItem(TEMP_USER_ID, item.itemId);
+        await uncheckShoppingItem(item.itemId);
       } else {
-        await checkShoppingItem(TEMP_USER_ID, item.itemId);
+        await checkShoppingItem(item.itemId);
       }
       loadList();
     } catch (err) {
@@ -93,7 +91,7 @@ export default function MyShoppingList() {
 
   const handleDelete = async (item) => {
     try {
-      await deleteShoppingItem(TEMP_USER_ID, item.itemId);
+      await deleteShoppingItem(item.itemId);
       loadList();
     } catch (err) {
       setError(err.message);
@@ -102,7 +100,7 @@ export default function MyShoppingList() {
 
   const handleDeleteChecked = async () => {
     try {
-      await deleteCheckedShoppingItems(TEMP_USER_ID);
+      await deleteCheckedShoppingItems();
       loadList();
     } catch (err) {
       setError(err.message);
@@ -112,7 +110,7 @@ export default function MyShoppingList() {
   const handleDeleteAll = async () => {
     if (!window.confirm("장보기 리스트를 전부 삭제할까요?")) return;
     try {
-      await deleteAllShoppingItems(TEMP_USER_ID);
+      await deleteAllShoppingItems();
       loadList();
     } catch (err) {
       setError(err.message);
@@ -124,7 +122,7 @@ export default function MyShoppingList() {
     const next = current + delta;
     if (next <= 0) return;
     try {
-      await updateShoppingItemQuantity(TEMP_USER_ID, item.itemId, next);
+      await updateShoppingItemQuantity(item.itemId, next);
       loadList();
     } catch (err) {
       setError(err.message);
@@ -152,7 +150,7 @@ export default function MyShoppingList() {
     setList({ ...list, items: reordered }); // 낙관적 업데이트
 
     try {
-      await reorderShoppingItems(TEMP_USER_ID, reordered.map((i) => i.itemId));
+      await reorderShoppingItems(reordered.map((i) => i.itemId));
     } catch (err) {
       setError(err.message);
       loadList(); // 실패 시 서버 상태로 복구

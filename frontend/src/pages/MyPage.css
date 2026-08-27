@@ -79,6 +79,29 @@
   margin: 0 0 8px;
 }
 
+.mypage-nickname-view {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.mypage-nickname-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  font-size: 14px;
+  color: var(--color-text);
+  background: var(--color-bg);
+  box-sizing: border-box;
+}
+
+.mypage-nickname-input:focus {
+  outline: none;
+  border-color: var(--color-basil);
+}
+
 .mypage-tag-list {
   list-style: none;
   display: flex;

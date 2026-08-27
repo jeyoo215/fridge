@@ -5,6 +5,7 @@ import com.example.backend.domain.review.dto.RecipeReviewListResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,17 +15,16 @@ public class RecipeReviewController {
 
     private final RecipeReviewService recipeReviewService;
 
-    // TODO: 로그인(JWT) 기능이 만들어지면 userId는 토큰에서 꺼내 쓰도록 바꾸기.
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Long createReview(@PathVariable Long recipeId,
-                              @RequestParam Long userId,
+    public Long createReview(@PathVariable("recipeId") Long recipeId,
+                              @AuthenticationPrincipal Long userId,
                               @Valid @RequestBody RecipeReviewCreateRequest request) {
         return recipeReviewService.createReview(userId, recipeId, request);
     }
 
     @GetMapping
-    public RecipeReviewListResponse getReviews(@PathVariable Long recipeId) {
+    public RecipeReviewListResponse getReviews(@PathVariable("recipeId") Long recipeId) {
         return recipeReviewService.getReviews(recipeId);
     }
 }

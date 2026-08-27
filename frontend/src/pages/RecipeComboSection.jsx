@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { fetchComboRecommendations } from "../api/recipeApi";
 import "./RecipeCardGrid.css";
 
-const TEMP_USER_ID = 1;
-
 export default function RecipeComboSection() {
   const navigate = useNavigate();
   const [recipes, setRecipes] = useState([]);
@@ -12,7 +10,7 @@ export default function RecipeComboSection() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchComboRecommendations(TEMP_USER_ID)
+    fetchComboRecommendations()
       .then(setRecipes)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));

@@ -3,8 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { fetchShoppingList, addMissingIngredientsToMyList } from "../api/shoppingListApi";
 import "./ShoppingList.css";
 
-const TEMP_USER_ID = 1;
-
 export default function ShoppingList() {
   const { recipeId } = useParams();
   const navigate = useNavigate();
@@ -15,7 +13,7 @@ export default function ShoppingList() {
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
-    fetchShoppingList(TEMP_USER_ID, recipeId)
+    fetchShoppingList(recipeId)
       .then((data) => {
         setList(data);
         // 이미 전부 담겨있으면 처음부터 '담음' 상태로 표시
@@ -30,7 +28,7 @@ export default function ShoppingList() {
   const handleAddToMyList = async () => {
     setAdding(true);
     try {
-      await addMissingIngredientsToMyList(TEMP_USER_ID, recipeId);
+      await addMissingIngredientsToMyList(recipeId);
       setAdded(true);
     } catch (err) {
       setError(err.message);

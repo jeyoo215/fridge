@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { fetchMyBadges, fetchMyStreak } from "../api/badgeApi";
 import "./BadgeSection.css";
 
-const TEMP_USER_ID = 1;
-
 export default function BadgeSection() {
   const [streak, setStreak] = useState(null);
   const [badges, setBadges] = useState([]);
@@ -11,7 +9,7 @@ export default function BadgeSection() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    Promise.all([fetchMyStreak(TEMP_USER_ID), fetchMyBadges(TEMP_USER_ID)])
+    Promise.all([fetchMyStreak(), fetchMyBadges()])
       .then(([streakData, badgeData]) => {
         setStreak(streakData);
         setBadges(badgeData);
