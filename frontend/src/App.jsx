@@ -14,6 +14,7 @@ import MyPage from "./pages/MyPage";
 import Login from "./pages/Login";
 import OAuthRedirect from "./pages/OAuthRedirect";
 import { isLoggedIn } from "./api/authApi";
+import FridgeDecorate from "./pages/FridgeDecorate";
 import "./App.css";
 
 function App() {
@@ -42,6 +43,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/oauth/redirect" element={<OAuthRedirect />} />
         <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/fridge" element={<FridgeDecorate />} />
       </Routes>
     </BrowserRouter>
   );

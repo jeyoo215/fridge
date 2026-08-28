@@ -10,7 +10,6 @@ import java.util.List;
 import java.math.BigDecimal;
 import java.util.Comparator;
 
-// 레시피 상세 화면용 응답 DTO (FR-24: 재료, 조리순서, 조리시간)
 @Getter
 public class RecipeDetailResponse {
 
@@ -23,7 +22,7 @@ public class RecipeDetailResponse {
     private final List<IngredientItem> ingredients;
     private final List<StepItem> steps;
     private final List<Long> toolIds;
-    private final boolean isUserCreated; // 커뮤니티 게시글이 승격되어 생성된 레시피인지
+    private final boolean isUserCreated;
 
     public RecipeDetailResponse(Recipe entity) {
         this.recipeId = entity.getRecipeId();
@@ -33,6 +32,7 @@ public class RecipeDetailResponse {
         this.difficulty = entity.getDifficulty();
         this.categoryName = entity.getCategory() != null ? entity.getCategory().getCategoryName() : "미분류";
         this.isUserCreated = "커뮤니티".equals(entity.getSource());
+
 
         this.ingredients = entity.getRecipeIngredients().stream()
                 .map(IngredientItem::new)

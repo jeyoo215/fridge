@@ -27,6 +27,7 @@ public class CookingStep {
     @Column(columnDefinition = "LONGTEXT", nullable = false)
     private String description;
 
+
     @Column(name = "media_url", length = 500)
     private String mediaUrl;
 

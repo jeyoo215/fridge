@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -X POST http://localhost:8080/api/v1/recipes -H \"Content-Type: application/json; charset=utf-8\" --data-binary @\"C:\\\\Users\\\\soldesk\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-soldesk-fridge\\\\2f5d7d35-533a-44d6-8bb6-a0a6bcbc861f\\\\scratchpad\\\\recipe_tool_test.json\" -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\")"
+    ]
+  }
+}

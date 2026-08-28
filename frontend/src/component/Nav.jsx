@@ -92,6 +92,9 @@ export default function Nav() {
         <NavLink to="/community" className={linkClassName}>
           📝 커뮤니티
         </NavLink>
+        <NavLink to="/fridge" className={linkClassName}>
+          ✨냉꾸
+        </NavLink>
       </div>
 
       {loggedIn ? (
