@@ -156,12 +156,12 @@ export async function fetchCommunityPostComments(postId) {
   return response.json();
 }
 
-// 댓글 등록
-export async function createCommunityPostComment(postId, content) {
+// 댓글/대댓글 등록. parentCommentId를 주면 그 댓글에 대한 대댓글로 등록됨.
+export async function createCommunityPostComment(postId, content, parentCommentId = null) {
   const response = await fetch(`${BASE_URL}/community/posts/${postId}/comments`, {
     method: "POST",
     headers: authHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify({ content }),
+    body: JSON.stringify({ content, parentCommentId }),
   });
   if (!response.ok) {
     const body = await response.json().catch(() => null);

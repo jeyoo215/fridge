@@ -28,14 +28,20 @@ public class CommunityPostComment {
     @Column(nullable = false, length = 500)
     private String content;
 
+    // 대댓글이면 원댓글(최상위 댓글)의 id, 일반 댓글이면 null.
+    // 대댓글에는 다시 대댓글을 못 달게 해서(CommunityPostCommentService.create) 항상 1단계 깊이만 존재한다.
+    @Column(name = "parent_comment_id")
+    private Long parentCommentId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Builder
-    public CommunityPostComment(CommunityPost post, Long userId, String content) {
+    public CommunityPostComment(CommunityPost post, Long userId, String content, Long parentCommentId) {
         this.post = post;
         this.userId = userId;
         this.content = content;
+        this.parentCommentId = parentCommentId;
         this.createdAt = LocalDateTime.now();
     }
 }

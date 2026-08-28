@@ -146,7 +146,7 @@ export default function CommunityList({ boardType = "RECIPE" }) {
               className="community-post-card"
               onClick={() => navigate(`/community/${post.postId}`)}
             >
-              <div className="community-post-card-author">사용자 {post.userId}</div>
+              <div className="community-post-card-author">{post.nickname}</div>
               <div className="community-post-card-body">
                 <div className="community-post-card-title">
                   {post.prefix && <span className="community-post-card-prefix">{post.prefix}</span>}
