@@ -12,6 +12,7 @@ public class CommunityPostDetailResponse {
 
     private final Long postId;
     private final Long userId;
+    private final String nickname;
     private final String title;
     private final String categoryName;
     private final Integer cookingTimeMinutes;
@@ -24,9 +25,10 @@ public class CommunityPostDetailResponse {
     private final List<CommunityPostIngredientResponse> ingredients;
     private final List<CommunityPostStepResponse> steps;
 
-    public CommunityPostDetailResponse(CommunityPost entity) {
+    public CommunityPostDetailResponse(CommunityPost entity, String nickname) {
         this.postId = entity.getPostId();
         this.userId = entity.getUserId();
+        this.nickname = nickname;
         this.title = entity.getTitle();
         this.categoryName = entity.getCategory() != null ? entity.getCategory().getCategoryName() : null;
         this.cookingTimeMinutes = entity.getCookingTimeMinutes();

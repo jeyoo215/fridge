@@ -63,6 +63,12 @@
   font-size: 14px;
 }
 
+.review-author {
+  font-weight: 700;
+  color: var(--color-basil);
+  white-space: nowrap;
+}
+
 .review-rating {
   color: var(--color-amber);
   white-space: nowrap;

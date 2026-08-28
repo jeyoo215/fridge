@@ -58,6 +58,7 @@ export default function RecipeReviewSection({ recipeId }) {
       <ul className="review-list">
         {data.reviews.map((review) => (
           <li key={review.reviewId} className="review-item">
+            <span className="review-author">{review.nickname}</span>
             <span className="review-rating">{"★".repeat(review.rating)}</span>
             <span className="review-content">{review.content}</span>
           </li>

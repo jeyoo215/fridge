@@ -1,6 +1,8 @@
 package com.example.backend.domain.community;
 
 import com.example.backend.domain.community.dto.CommunityPostListResponse;
+import com.example.backend.domain.user.User;
+import com.example.backend.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,10 +18,13 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class CommunityActivityService {
 
+    private static final String UNKNOWN_NICKNAME = "알 수 없는 사용자";
+
     private final CommunityPostScrapRepository communityPostScrapRepository;
     private final CommunityPostLikeRepository communityPostLikeRepository;
     private final CommunityPostCommentRepository communityPostCommentRepository;
     private final CommunityPostRepository communityPostRepository;
+    private final UserRepository userRepository;
 
     public List<CommunityPostListResponse> getMyScrappedPosts(Long userId) {
         List<Long> postIds = communityPostScrapRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
@@ -54,10 +59,15 @@ public class CommunityActivityService {
                 .stream()
                 .collect(Collectors.toMap(CommunityPost::getPostId, post -> post, (a, b) -> a, LinkedHashMap::new));
 
+        Map<Long, String> nicknamesByUserId = userRepository.findAllById(
+                postsById.values().stream().map(CommunityPost::getUserId).collect(Collectors.toSet())
+        ).stream().collect(Collectors.toMap(User::getUserId, User::getNickname));
+
         return postIds.stream()
                 .map(postsById::get)
                 .filter(post -> post != null) // 스크랩/좋아요/댓글 이후 삭제된 글은 건너뜀
-                .map(CommunityPostListResponse::new)
+                .map(post -> new CommunityPostListResponse(
+                        post, nicknamesByUserId.getOrDefault(post.getUserId(), UNKNOWN_NICKNAME)))
                 .toList();
     }
 }

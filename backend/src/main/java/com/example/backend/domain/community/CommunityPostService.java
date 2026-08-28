@@ -13,6 +13,8 @@ import com.example.backend.domain.ingredient.IngredientRepository;
 import com.example.backend.domain.recipe.RecipeCategory;
 import com.example.backend.domain.recipe.RecipeCategoryRepository;
 import com.example.backend.domain.recipe.RecipeRepository;
+import com.example.backend.domain.user.User;
+import com.example.backend.domain.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,6 +44,17 @@ public class CommunityPostService {
     private final IngredientRepository ingredientRepository;
     private final RecipeRepository recipeRepository;
     private final ChallengeRepository challengeRepository;
+    private final UserRepository userRepository;
+
+    // 탈퇴 등으로 작성자 계정이 이미 없는 경우의 표시용 대체 닉네임
+    private static final String UNKNOWN_NICKNAME = "알 수 없는 사용자";
+
+    // 게시글/댓글 목록에서 매번 유저를 한 명씩 조회하지 않도록, userId 집합을 한 번에 조회해서
+    // userId -> nickname 맵으로 만들어둔다.
+    private Map<Long, String> findNicknamesByUserIds(Collection<Long> userIds) {
+        return userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getUserId, User::getNickname));
+    }
 
     // 게시글 작성 (제목 + 재료/조리순서를 통째로 받아 한 번에 저장)
     @Transactional
@@ -162,10 +176,15 @@ public class CommunityPostService {
                 .collect(Collectors.toMap(CommunityPost::getPostId, post -> post));
         postsById.values().forEach(this::repairDanglingPromotion);
 
+        Map<Long, String> nicknamesByUserId = findNicknamesByUserIds(
+                postsById.values().stream().map(CommunityPost::getUserId).collect(Collectors.toSet())
+        );
+
         // id 목록의 정렬(최신순 또는 인기순)을 그대로 유지하기 위해 IN 조회 결과를 postIds 순서에 맞춰 다시 매핑한다.
         List<CommunityPostListResponse> content = postIds.stream()
                 .map(postsById::get)
-                .map(CommunityPostListResponse::new)
+                .map(post -> new CommunityPostListResponse(
+                        post, nicknamesByUserId.getOrDefault(post.getUserId(), UNKNOWN_NICKNAME)))
                 .toList();
 
         return new CommunityPostPageResponse(content, page, idPage.getTotalPages(), idPage.getTotalElements());
@@ -178,7 +197,10 @@ public class CommunityPostService {
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다. id=" + postId));
         assertChallengeBoardAccess(userId, post.getEffectiveBoardType());
         repairDanglingPromotion(post);
-        return new CommunityPostDetailResponse(post);
+        String nickname = userRepository.findById(post.getUserId())
+                .map(User::getNickname)
+                .orElse(UNKNOWN_NICKNAME);
+        return new CommunityPostDetailResponse(post, nickname);
     }
 
     // 승격 표시(promotedRecipe)는 있는데 실제 recipe row가 없는 좀비 참조를 감지해서 풀어준다.

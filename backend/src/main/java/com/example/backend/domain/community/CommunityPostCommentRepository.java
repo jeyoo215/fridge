@@ -12,4 +12,7 @@ public interface CommunityPostCommentRepository extends JpaRepository<CommunityP
 
     // 게시글 삭제 시 먼저 호출: FK 제약 때문에 댓글을 먼저 지워야 게시글을 지울 수 있음
     void deleteByPost_PostId(Long postId);
+
+    // 원댓글 삭제 시 그 밑의 대댓글들도 같이 지우기 위함 (CommunityPostCommentService.delete)
+    void deleteByParentCommentId(Long parentCommentId);
 }

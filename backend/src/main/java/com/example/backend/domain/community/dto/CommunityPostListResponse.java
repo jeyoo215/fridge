@@ -13,6 +13,7 @@ public class CommunityPostListResponse {
 
     private final Long postId;
     private final Long userId;
+    private final String nickname;
     private final String title;
     private final String thumbnailUrl;
     private final String previewText;
@@ -22,9 +23,10 @@ public class CommunityPostListResponse {
     private final String boardType;
     private final String prefix;
 
-    public CommunityPostListResponse(CommunityPost entity) {
+    public CommunityPostListResponse(CommunityPost entity, String nickname) {
         this.postId = entity.getPostId();
         this.userId = entity.getUserId();
+        this.nickname = nickname;
         this.title = entity.getTitle();
         this.createdAt = entity.getCreatedAt();
         this.likeCount = entity.getLikeCount();
