@@ -134,3 +134,25 @@
 .fridge-item:hover .fridge-item-remove {
   opacity: 1;
 }
+
+
+.fridge-add-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-basil);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(76, 122, 94, 0.25);
+}
+
+.fridge-add-button:hover {
+  background: var(--color-basil-dark);
+}

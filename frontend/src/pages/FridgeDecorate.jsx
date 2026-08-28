@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import FridgeAddModal from "../component/FridgeAddModal";
 import {
   fetchFridgeItems,
   moveFridgeItem,
   removeFridgeItem,
 } from "../api/fridgeApi";
 import "./FridgeDecorate.css";
+
 
 // 좌표 비율 기준 구역 판정 (상단 40% = 냉동, 나머지 = 냉장)
 const FROZEN_MAX_Y = 0.4;
@@ -25,6 +27,7 @@ function dDay(expirationDate) {
 export default function FridgeDecorate() {
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
+  const [showAdd, setShowAdd] = useState(false);
   const boardRef = useRef(null);
   const dragging = useRef(null); // { id, offsetX, offsetY }
 
@@ -84,6 +87,18 @@ export default function FridgeDecorate() {
       <h2>내 냉장고</h2>
       {error && <p className="fridge-error">{error}</p>}
 
+      <button className="fridge-add-button" onClick={() => setShowAdd(true)}>
+        + 재료 추가
+      </button>
+
+      {showAdd && (
+        <FridgeAddModal
+          onClose={() => setShowAdd(false)}
+          onAdded={() => fetchFridgeItems().then(setItems).catch((e) => setError(e.message))}
+        />
+      )}
+
+      
       <div
         className="fridge-board"
         ref={boardRef}
