@@ -6,6 +6,7 @@ import com.example.backend.domain.fridge.dto.FridgeItemResponse;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,32 +18,27 @@ public class FridgeItemController {
 
     private final FridgeItemService fridgeItemService;
 
-    // TODO: 로그인 붙으면 userId는 토큰에서. 지금은 쿼리파라미터로 임시.
-    // 냉장고 조회
-    @GetMapping
-    public List<FridgeItemResponse> getMyFridge(@RequestParam("userId") Long userId) {
+    @GetMapping("/items")
+    public List<FridgeItemResponse> getMyFridge(@AuthenticationPrincipal Long userId) {
         return fridgeItemService.getMyFridge(userId);
     }
 
-    // (가) 새 재료 등록 + 배치
-    @PostMapping
+    @PostMapping("/items")
     @ResponseStatus(HttpStatus.CREATED)
-    public Long create(@RequestParam("userId") Long userId,
+    public Long create(@AuthenticationPrincipal Long userId,
                        @RequestBody FridgeItemCreateRequest request) {
         return fridgeItemService.createWithNewIngredient(userId, request);
     }
 
-    // (나) 기존 재료 배치
-    @PostMapping("/place")
+    @PostMapping("/items/place")
     @ResponseStatus(HttpStatus.CREATED)
-    public Long place(@RequestParam("userId") Long userId,
+    public Long place(@AuthenticationPrincipal Long userId,
                       @RequestBody FridgeItemPlaceRequest request) {
         return fridgeItemService.place(userId, request);
     }
 
-    // 위치/구역 이동
-    @PatchMapping("/{fridgeItemId}/move")
-    public void move(@RequestParam("userId") Long userId,
+    @PatchMapping("/items/{fridgeItemId}/move")
+    public void move(@AuthenticationPrincipal Long userId,
                      @PathVariable Long fridgeItemId,
                      @RequestParam Double posX,
                      @RequestParam Double posY,
@@ -50,9 +46,8 @@ public class FridgeItemController {
         fridgeItemService.move(userId, fridgeItemId, posX, posY, zone);
     }
 
-    // 냉장고에서 제거 (배치만, 보유재료는 유지)
-    @DeleteMapping("/{fridgeItemId}")
-    public void remove(@RequestParam("userId") Long userId,
+    @DeleteMapping("/items/{fridgeItemId}")
+    public void remove(@AuthenticationPrincipal Long userId,
                        @PathVariable Long fridgeItemId) {
         fridgeItemService.remove(userId, fridgeItemId);
     }

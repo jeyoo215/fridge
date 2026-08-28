@@ -31,3 +31,58 @@ export async function updateFridgeName(fridgeName) {
   const data = await response.json();
   return data.fridgeName;
 }
+
+
+// ================================== 
+// ========== 냉장고 이미지 ===========
+// ================================== 
+
+// 냉장고에 배치된 재료 목록 조회
+export async function fetchFridgeItems() {
+  const response = await fetch(`${BASE_URL}/fridge/items`, {
+    headers: authHeaders(),
+  });
+  if (!response.ok) throw new Error("냉장고 재료를 불러오지 못했습니다.");
+  return response.json();
+}
+
+// 새 재료 등록 + 배치
+export async function createFridgeItem(payload) {
+  const response = await fetch(`${BASE_URL}/fridge/items`, {
+    method: "POST",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error("재료 배치에 실패했습니다.");
+  return response.json();
+}
+
+// 기존 보유재료 배치
+export async function placeFridgeItem(payload) {
+  const response = await fetch(`${BASE_URL}/fridge/items/place`, {
+    method: "POST",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error("배치에 실패했습니다.");
+  return response.json();
+}
+
+// 위치/구역 이동
+export async function moveFridgeItem(fridgeItemId, posX, posY, zone) {
+  const params = new URLSearchParams({ posX, posY, zone });
+  const response = await fetch(`${BASE_URL}/fridge/items/${fridgeItemId}/move?${params}`, {
+    method: "PATCH",
+    headers: authHeaders(),
+  });
+  if (!response.ok) throw new Error("이동에 실패했습니다.");
+}
+
+// 배치 제거
+export async function removeFridgeItem(fridgeItemId) {
+  const response = await fetch(`${BASE_URL}/fridge/items/${fridgeItemId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!response.ok) throw new Error("삭제에 실패했습니다.");
+}

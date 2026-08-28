@@ -1,0 +1,136 @@
+.fridge-decorate {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 28px 24px 60px;
+}
+
+.fridge-decorate h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 28px;
+  color: var(--color-text);
+}
+
+.fridge-error {
+  color: var(--color-danger-text);
+  background: var(--color-tomato-bg);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.fridge-board {
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+  min-height: 600px;
+  margin: 0 auto;
+  aspect-ratio: 3 / 4;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+
+.fridge-zone-frozen,
+.fridge-zone-fridge {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 8px 12px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.fridge-zone-frozen {
+  top: 0;
+  height: 40%;
+  background: var(--color-basil-bg);
+  border-bottom: 2px dashed var(--color-border);
+}
+
+.fridge-zone-fridge {
+  top: 40%;
+  height: 60%;
+  background: var(--color-bg);
+}
+
+.fridge-item {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: grab;
+  touch-action: none;
+}
+
+.fridge-item:active {
+  cursor: grabbing;
+}
+
+.fridge-item img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.fridge-item-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.85);
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.fridge-item-dday {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--color-tomato);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 999px;
+}
+
+.fridge-item-remove {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.fridge-item:hover .fridge-item-remove {
+  opacity: 1;
+}
