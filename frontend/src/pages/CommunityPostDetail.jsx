@@ -30,6 +30,8 @@ export default function CommunityPostDetail() {
   const [scrapCount, setScrapCount] = useState(0);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
+  const [replyingTo, setReplyingTo] = useState(null); // 답글 입력창을 열어둔 댓글의 commentId
+  const [replyText, setReplyText] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -89,12 +91,24 @@ export default function CommunityPostDetail() {
     const content = newComment.trim();
     if (!content) return;
     try {
-      const { commentId } = await createCommunityPostComment(postId, content);
-      setComments((prev) => [
-        ...prev,
-        { commentId, userId: currentUserId, content, createdAt: new Date().toISOString() },
-      ]);
+      await createCommunityPostComment(postId, content);
       setNewComment("");
+      setComments(await fetchCommunityPostComments(postId));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  // 대댓글 등록. 새로 단 답글의 닉네임을 직접 알 필요 없이, 등록 후 목록을 다시 받아와서
+  // 서버가 채워준 nickname/parentCommentId 그대로 반영한다.
+  const handleAddReply = async (parentCommentId) => {
+    const content = replyText.trim();
+    if (!content) return;
+    try {
+      await createCommunityPostComment(postId, content, parentCommentId);
+      setReplyText("");
+      setReplyingTo(null);
+      setComments(await fetchCommunityPostComments(postId));
     } catch (err) {
       setError(err.message);
     }
@@ -103,7 +117,10 @@ export default function CommunityPostDetail() {
   const handleDeleteComment = async (commentId) => {
     try {
       await deleteCommunityPostComment(commentId);
-      setComments((prev) => prev.filter((comment) => comment.commentId !== commentId));
+      // 원댓글을 지우면 백엔드가 대댓글도 같이 지우므로, 화면에서도 같이 걷어냄
+      setComments((prev) =>
+        prev.filter((comment) => comment.commentId !== commentId && comment.parentCommentId !== commentId)
+      );
     } catch (err) {
       setError(err.message);
     }
@@ -123,7 +140,7 @@ export default function CommunityPostDetail() {
       </button>
 
       <div className="community-detail-top">
-        <div className="community-detail-author">사용자 {post.userId}</div>
+        <div className="community-detail-author">{post.nickname}</div>
         {!post.promotedRecipeId && (
           <div className="community-detail-actions">
             <button type="button" onClick={() => navigate(`/community/${postId}/edit`)}>
@@ -217,27 +234,92 @@ export default function CommunityPostDetail() {
           <p className="community-detail-comments-empty">아직 댓글이 없어요. 첫 댓글을 남겨보세요!</p>
         ) : (
           <ul className="community-detail-comment-list">
-            {comments.map((comment) => (
-              <li key={comment.commentId} className="community-detail-comment">
-                <div className="community-detail-comment-body">
-                  <div className="community-detail-comment-meta">
-                    <span className="community-detail-comment-author">사용자 {comment.userId}</span>
-                    <span className="community-detail-comment-date">{comment.createdAt?.slice(0, 10)}</span>
-                  </div>
-                  <p className="community-detail-comment-content">{comment.content}</p>
-                </div>
-                {comment.userId === currentUserId && (
-                  <button
-                    type="button"
-                    className="community-detail-comment-delete"
-                    onClick={() => handleDeleteComment(comment.commentId)}
-                    aria-label="댓글 삭제"
-                  >
-                    ×
-                  </button>
-                )}
-              </li>
-            ))}
+            {comments
+              .filter((comment) => !comment.parentCommentId)
+              .map((comment) => {
+                const replies = comments.filter((reply) => reply.parentCommentId === comment.commentId);
+                return (
+                  <li key={comment.commentId} className="community-detail-comment">
+                    <div className="community-detail-comment-row">
+                      <div className="community-detail-comment-body">
+                        <div className="community-detail-comment-meta">
+                          <span className="community-detail-comment-author">{comment.nickname}</span>
+                          <span className="community-detail-comment-date">{comment.createdAt?.slice(0, 10)}</span>
+                        </div>
+                        <p className="community-detail-comment-content">{comment.content}</p>
+                      </div>
+                      {comment.userId === currentUserId && (
+                        <button
+                          type="button"
+                          className="community-detail-comment-delete"
+                          onClick={() => handleDeleteComment(comment.commentId)}
+                          aria-label="댓글 삭제"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      className="community-detail-comment-reply-toggle"
+                      onClick={() => {
+                        setReplyingTo(replyingTo === comment.commentId ? null : comment.commentId);
+                        setReplyText("");
+                      }}
+                    >
+                      답글
+                    </button>
+
+                    {replyingTo === comment.commentId && (
+                      <form
+                        className="community-detail-reply-form"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          handleAddReply(comment.commentId);
+                        }}
+                      >
+                        <input
+                          type="text"
+                          placeholder={`${comment.nickname}님에게 답글 남기기`}
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          maxLength={500}
+                          autoFocus
+                        />
+                        <button type="submit">등록</button>
+                      </form>
+                    )}
+
+                    {replies.length > 0 && (
+                      <ul className="community-detail-reply-list">
+                        {replies.map((reply) => (
+                          <li key={reply.commentId} className="community-detail-comment community-detail-reply">
+                            <div className="community-detail-comment-row">
+                              <div className="community-detail-comment-body">
+                                <div className="community-detail-comment-meta">
+                                  <span className="community-detail-comment-author">{reply.nickname}</span>
+                                  <span className="community-detail-comment-date">{reply.createdAt?.slice(0, 10)}</span>
+                                </div>
+                                <p className="community-detail-comment-content">{reply.content}</p>
+                              </div>
+                              {reply.userId === currentUserId && (
+                                <button
+                                  type="button"
+                                  className="community-detail-comment-delete"
+                                  onClick={() => handleDeleteComment(reply.commentId)}
+                                  aria-label="답글 삭제"
+                                >
+                                  ×
+                                </button>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
           </ul>
         )}
         <form className="community-detail-comment-form" onSubmit={handleAddComment}>
