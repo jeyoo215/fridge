@@ -44,7 +44,7 @@ public class RecipeService {
     private static final int EXPIRY_WEIGHT_D3 = 2; // D-3 이하
 
     private final RecipeRepository recipeRepository;
-    private final RecipeCategoryRepository recipeCategoryRepository; // 📌 새로 생성한 Repository 주입
+    private final RecipeCategoryRepository recipeCategoryRepository;
     private final IngredientRepository ingredientRepository;
     private final UserIngredientRepository userIngredientRepository;
     private final CookingToolRepository cookingToolRepository;
@@ -116,7 +116,7 @@ public class RecipeService {
                 .collect(Collectors.toMap(
                         userIngredient -> userIngredient.getIngredient().getIngredientId(),
                         userIngredient -> ChronoUnit.DAYS.between(LocalDate.now(), userIngredient.getExpirationDate()),
-                        (existing, duplicate) -> existing
+                        (existing, duplicate) -> existing // 혹시 같은 재료 여러 개 보유 시 첫 값 사용
                 ));
 
         // 보유 재료(조미료 제외)와 겹치는 비조미료 재료 개수

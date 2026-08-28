@@ -39,13 +39,14 @@ export default function RecipeDetail() {
         setLiked(res.active);
         setLikeCount(res.count);
       })
-      .catch(() => {});
+      .catch(() => { });
 
     fetchScrapStatus(recipeId)
       .then((res) => {
         setScraped(res.active);
         setScrapCount(res.count);
       })
+
       .catch(() => {});
 
     fetchMadeStatus(recipeId)
@@ -154,6 +155,7 @@ export default function RecipeDetail() {
         <ol className="recipe-detail-step-list">
           {recipe.steps.map((step) => (
             <li key={step.stepOrder}>
+
               {step.mediaUrl && step.mediaType === "VIDEO" && (
                 <video className="recipe-detail-step-media" src={toMediaSrc(step.mediaUrl)} controls />
               )}
