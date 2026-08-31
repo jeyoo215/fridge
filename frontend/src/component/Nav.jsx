@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import MyPage from "../pages/MyPage";
 import { isLoggedIn, isSessionExpired, clearTokens, logout } from "../api/authApi";
+import NotificationBell from "./NotificationBell";
 import "./Nav.css";
 
 const linkClassName = ({ isActive }) => `app-nav-link${isActive ? " active" : ""}`;
@@ -96,6 +97,8 @@ export default function Nav() {
           ✨냉꾸
         </NavLink>
       </div>
+
+      {loggedIn && <NotificationBell />}
 
       {loggedIn ? (
         <button type="button" className="app-nav-auth-button" onClick={handleLogout}>
