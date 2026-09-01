@@ -1,7 +1,5 @@
 import { getAccessToken } from "./authApi";
-
-// PC에서 열면 localhost, 핸드폰 등 다른 기기에서 열면 그 기기가 접속한 주소(PC의 IP)를 그대로 사용
-const BASE_URL = `http://${window.location.hostname}:8080/api/v1`;
+import { BASE_URL } from "./config";
 
 // 로그인 토큰을 담은 요청 헤더. 매번 이렇게 안 쓰려고 헬퍼로 뺌.
 function authHeaders(extra = {}) {
