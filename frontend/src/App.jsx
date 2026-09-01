@@ -14,18 +14,24 @@ import CommunityPostDetail from "./pages/CommunityPostDetail";
 import MyPage from "./pages/MyPage";
 import Login from "./pages/Login";
 import OAuthRedirect from "./pages/OAuthRedirect";
-import { isLoggedIn } from "./api/authApi";
 import FridgeDecorate from "./pages/FridgeDecorate";
 import Admin from "./pages/Admin";
-import { isAdmin } from "./api/authApi";
+import AdminRecipeForm from "./pages/AdminRecipeForm";
+import { isLoggedIn, isAdmin } from "./api/authApi";
 import "./App.css";
+
+function HomeRoute() {
+  if (!isLoggedIn()) return <Login />;
+  if (isAdmin()) return <Admin />;
+  return <IngredientList />;
+}
 
 function App() {
   return (
     <BrowserRouter>
       {isLoggedIn() && <Nav />}
       <Routes>
-        <Route path="/" element={isLoggedIn() ? <IngredientList /> : <Login />} />
+        <Route path="/" element={<HomeRoute />} />
         <Route path="/ingredients/new" element={<RequireAuth><IngredientRegisterForm /></RequireAuth>} />
         <Route path="/recipes" element={<RequireAuth><RecipeRecommend /></RequireAuth>} />
         <Route path="/recipes/:recipeId" element={<RequireAuth><RecipeDetail /></RequireAuth>} />
@@ -45,9 +51,10 @@ function App() {
         <Route path="/mypage" element={<RequireAuth><MyPage /></RequireAuth>} />
         <Route path="/login" element={<Login />} />
         <Route path="/oauth/redirect" element={<OAuthRedirect />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
         <Route path="/fridge" element={<FridgeDecorate />} />
         <Route path="/admin" element={isAdmin() ? <Admin /> : <Navigate to="/" replace />} />
+        <Route path="/admin/recipes/new" element={isAdmin() ? <AdminRecipeForm /> : <Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
