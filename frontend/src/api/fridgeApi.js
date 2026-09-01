@@ -105,10 +105,20 @@ const API_BASE = `http://${window.location.hostname}:8080`;
 
 export async function resizeFridgeItem(fridgeItemId, scale) {
   const response = await fetch(
-    `${API_BASE}/api/v1/fridge/items/${fridgeItemId}/resize?scale=${scale}`,
+    `${BASE_URL}/fridge/items/${fridgeItemId}/resize?scale=${scale}`,
     {
       method: "PATCH",
+      headers: authHeaders(),
     }
   );
   if (!response.ok) throw new Error("크기 변경 실패");
+}
+
+export async function changeFridgeItemImage(fridgeItemId, imageUrl, imageType) {
+  const params = new URLSearchParams({ imageUrl, imageType });
+  const response = await fetch(`${BASE_URL}/fridge/items/${fridgeItemId}/image?${params}`, {
+    method: "PATCH",
+    headers: authHeaders(),
+  });
+  if (!response.ok) throw new Error("이미지 교체에 실패했습니다.");
 }

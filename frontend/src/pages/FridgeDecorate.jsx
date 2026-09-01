@@ -181,7 +181,12 @@ export default function FridgeDecorate() {
               )}
 
               {urgent && (
-                <span className="fridge-item-dday">{d < 0 ? "만료" : `D-${d}`}</span>
+                <span
+                  className="fridge-item-dday"
+                  style={{ transform: `scale(${1 / scale})`, transformOrigin: "top right" }}
+                >
+                  {d < 0 ? "만료" : `D-${d}`}
+                </span>
               )}
 
               {/* 선택 상태: 편집 버튼 + x */}

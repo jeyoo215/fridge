@@ -44,8 +44,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/oauth/redirect" element={<OAuthRedirect />} />
         <Route path="*" element={<Navigate to="/" replace />} />
-        <Route path="/fridge" element={<FridgeDecorate />} />
-      </Routes>
+        <Route path="/fridge" element={<RequireAuth><FridgeDecorate /></RequireAuth>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
     </BrowserRouter>
   );
 }

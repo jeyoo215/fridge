@@ -42,6 +42,9 @@ public class FridgeItem {
     @Column(name = "zone", columnDefinition = "VARCHAR(10)")
     private Zone zone;
 
+    @Column(name = "scale")
+    private Double scale;
+
     @Builder // 둔 위치 저장
     public FridgeItem(UserIngredient userIngredient, String imageUrl, ImageType imageType,
                       Double posX, Double posY, Zone zone) {
@@ -51,6 +54,18 @@ public class FridgeItem {
         this.posX = posX;
         this.posY = posY;
         this.zone = zone;
+        this.scale = (scale == null) ? 1.0 : scale;
+    }
+
+    // 크기 조정
+    public void resize(Double scale) {
+        this.scale = scale;
+    }
+
+    // 이미지 변경
+    public void changeImage(String imageUrl, ImageType imageType) {
+        this.imageUrl = imageUrl;
+        this.imageType = imageType;
     }
 
     // 위치/구역 이동
