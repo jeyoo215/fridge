@@ -16,6 +16,8 @@ import Login from "./pages/Login";
 import OAuthRedirect from "./pages/OAuthRedirect";
 import { isLoggedIn } from "./api/authApi";
 import FridgeDecorate from "./pages/FridgeDecorate";
+import Admin from "./pages/Admin";
+import { isAdmin } from "./api/authApi";
 import "./App.css";
 
 function App() {
@@ -45,6 +47,7 @@ function App() {
         <Route path="/oauth/redirect" element={<OAuthRedirect />} />
         <Route path="*" element={<Navigate to="/" replace />} />
         <Route path="/fridge" element={<FridgeDecorate />} />
+        <Route path="/admin" element={isAdmin() ? <Admin /> : <Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
