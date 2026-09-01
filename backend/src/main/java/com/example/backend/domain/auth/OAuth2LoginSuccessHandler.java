@@ -1,6 +1,8 @@
 package com.example.backend.domain.auth;
 
+import com.example.backend.domain.user.Role;
 import com.example.backend.security.JwtTokenProvider;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -31,8 +33,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         Long userId = (Long) oAuth2User.getAttributes().get("userId");
         String email = (String) oAuth2User.getAttributes().getOrDefault("email", "");
+        Role role = (Role) oAuth2User.getAttributes().get("role");
 
-        String accessToken = jwtTokenProvider.generateAccessToken(userId, email);
+        String accessToken = jwtTokenProvider.generateAccessToken(userId, email, role);
         String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
         LocalDateTime expiresAt = LocalDateTime.now()
                 .plusSeconds(jwtTokenProvider.getRefreshTokenExpirationMs() / 1000);

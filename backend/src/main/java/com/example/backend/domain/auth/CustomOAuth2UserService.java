@@ -76,6 +76,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             Map<String, Object> customAttributes = new HashMap<>(attributes);
             customAttributes.put("userId", user.getUserId());
             customAttributes.put("email", user.getEmail());
+            customAttributes.put("role", user.getRole());
 
             return new DefaultOAuth2User(
                     List.of(new SimpleGrantedAuthority("ROLE_USER")),

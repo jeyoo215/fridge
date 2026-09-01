@@ -6,12 +6,15 @@ import com.example.backend.domain.recipe.dto.RecipeDetailResponse;
 import com.example.backend.domain.recipe.dto.RecipePageResponse;
 import com.example.backend.domain.recipe.dto.RecipeRecommendPageResponse;
 import com.example.backend.domain.recipe.dto.RecipeRecommendResponse;
+
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/recipes")
@@ -21,14 +24,6 @@ public class RecipeController {
     private final RecipeService recipeService;
     private final RecipeParsingService recipeParsingService;
     private final RecipeImportService recipeImportService;
-
-    // 레시피 등록 (FR-24)
-    // 재료 목록/조리순서 목록까지 요청 본문 한 번에 받아서 같이 저장
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Long createRecipe(@RequestBody RecipeCreateRequest request) {
-        return recipeService.createRecipe(request);
-    }
 
     // 레시피 상세조회 (FR-24)
     @GetMapping("/{recipeId}")
@@ -56,7 +51,6 @@ public class RecipeController {
         return recipeParsingService.parseRecipes(limit);
     }
 
-    // 메서드
     @PostMapping("/import-steps")
     public int importSteps() {
         return recipeImportService.importCookingSteps();
@@ -70,5 +64,4 @@ public class RecipeController {
                                     @RequestParam(name = "ingredientIds", required = false) List<Long> ingredientIds) {
         return recipeService.getList(keyword, ingredientIds, page, size);
     }
-
 }

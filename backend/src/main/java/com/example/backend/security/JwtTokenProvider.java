@@ -1,5 +1,6 @@
 package com.example.backend.security;
 
+import com.example.backend.domain.user.Role;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -28,11 +29,12 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateAccessToken(Long userId, String email) {
+    public String generateAccessToken(Long userId, String email, Role role) {
         Date now = new Date();
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("email", email)
+                .claim("role", role.name())
                 .claim("type", "access")
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + accessTokenExpirationMs))
@@ -55,7 +57,6 @@ public class JwtTokenProvider {
         return refreshTokenExpirationMs;
     }
 
-    // 유효하면 Claims 반환, 아니면 예외 발생 (만료/변조 등)
     public Claims parseClaims(String token) {
         return Jwts.parser()
                 .verifyWith(key)
