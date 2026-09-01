@@ -1,7 +1,5 @@
 import { getAccessToken } from "./authApi";
-
-const HOST_URL = `http://${window.location.hostname}:8080`;
-const BASE_URL = `${HOST_URL}/api/v1`;
+import { HOST, BASE_URL } from "./config";
 
 // 토큰 있으면 헤더 붙이고, 없으면 아예 생략 (비로그인도 볼 수 있는 화면이 있어서)
 function authHeaders(extra = {}) {
@@ -14,7 +12,7 @@ function authHeaders(extra = {}) {
 export function toMediaSrc(url) {
   if (!url) return "";
   if (/^https?:\/\//i.test(url)) return url;
-  return `${HOST_URL}${url}`;
+  return `${HOST}${url}`;
 }
 
 // 게시글 섹션에 첨부할 이미지/동영상 업로드. 성공하면 { url, mediaType } 반환.
