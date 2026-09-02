@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Nav from "./component/Nav";
 import RequireAuth from "./component/RequireAuth";
@@ -17,10 +18,32 @@ import OAuthRedirect from "./pages/OAuthRedirect";
 import FridgeDecorate from "./pages/FridgeDecorate";
 import Admin from "./pages/Admin";
 import AdminRecipeForm from "./pages/AdminRecipeForm";
-import { isLoggedIn, isAdmin } from "./api/authApi";
+import {
+  isLoggedIn,
+  isAdmin,
+  isSessionExpired,
+  clearTokens,
+  extendSessionIfActive,
+} from "./api/authApi";
 import "./App.css";
 
+// "/" 경로는 RequireAuth로 안 감싸는 특수 라우트라(로그인 여부에 따라 다른 화면을 보여줘야 하니까)
 function HomeRoute() {
+  const [checked, setChecked] = useState(false);
+  const [expired, setExpired] = useState(false);
+
+  useEffect(() => {
+    if (isLoggedIn() && isSessionExpired()) {
+      clearTokens();
+      setExpired(true);
+    } else if (isLoggedIn()) {
+      extendSessionIfActive();
+    }
+    setChecked(true);
+  }, []);
+
+  if (!checked) return null;
+  if (expired) return <Navigate to="/login" replace state={{ expired: true }} />;
   if (!isLoggedIn()) return <Login />;
   if (isAdmin()) return <Admin />;
   return <IngredientList />;

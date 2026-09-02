@@ -22,6 +22,33 @@ export function isLoggedIn() {
   return !!getAccessToken();
 }
 
+// 슬라이딩 세션 갱신: 너무 자주 호출되지 않도록 짧은 시간(30초) 쓰로틀
+let lastExtendAt = 0;
+let refreshInFlight = null; // 진행 중인 reissue 요청을 공유해서 중복 호출 방지
+
+export async function extendSessionIfActive() {
+  if (!isLoggedIn() || isSessionExpired()) return;
+
+  if (refreshInFlight) {
+    await refreshInFlight;
+    return;
+  }
+
+  const now = Date.now();
+  if (now - lastExtendAt < 30 * 1000) return;
+  lastExtendAt = now;
+
+  refreshInFlight = reissue()
+    .catch(() => {
+      // 갱신 실패해도 조용히 무시 — 다음 만료 체크(RequireAuth)에서 정식으로 처리됨
+    })
+    .finally(() => {
+      refreshInFlight = null;
+    });
+
+  await refreshInFlight;
+}
+
 // accessToken(JWT)의 exp 클레임이 지났는지 확인. 백엔드가 만료된 토큰을 401로 걸러주지 않으므로
 // (모든 요청이 permitAll이고 userId가 조용히 null로만 빠짐) 프론트에서 직접 만료 여부를 감시해야 함.
 export function isSessionExpired() {
