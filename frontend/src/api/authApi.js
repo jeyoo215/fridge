@@ -1,5 +1,5 @@
-const BASE_URL = "http://localhost:8080/api/v1";
-const HOST = "http://localhost:8080";
+const BASE_URL = `http://${window.location.hostname}:8080/api/v1`;
+const HOST = `http://${window.location.hostname}:8080`;
 
 export function getAccessToken() {
   return localStorage.getItem("accessToken");

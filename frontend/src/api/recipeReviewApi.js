@@ -1,6 +1,6 @@
 import { getAccessToken } from "./authApi";
 
-const BASE_URL = "http://localhost:8080/api/v1";
+const BASE_URL = `http://${window.location.hostname}:8080/api/v1`;
 
 // 후기 목록 + 평균 평점 조회 — 공용 조회, 토큰 불필요
 export async function fetchReviews(recipeId) {

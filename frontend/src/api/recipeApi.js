@@ -1,6 +1,6 @@
 import { getAccessToken } from "./authApi";
 
-const BASE_URL = "http://localhost:8080/api/v1";
+const BASE_URL = `http://${window.location.hostname}:8080/api/v1`;
 
 function authHeaders() {
   return { Authorization: `Bearer ${getAccessToken()}` };
