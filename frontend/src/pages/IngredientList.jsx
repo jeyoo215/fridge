@@ -8,6 +8,7 @@ import {
 import { fetchFridgeName, updateFridgeName } from "../api/fridgeApi";
 import { getUserId } from "../api/authApi";
 import "./IngredientList.css";
+import FridgeDecorate from "./FridgeDecorate";
 
 const DEFAULT_ALERT_THRESHOLD = 3;
 
@@ -119,6 +120,8 @@ export default function IngredientList() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [viewMode, setViewMode] = useState("category"); // "category" | "urgent" | "purchase"
   const [collapsedCategories, setCollapsedCategories] = useState(new Set()); // 접힌 카테고리 이름 모음
+  const [viewPage, setViewPage] = useState("list"); // 여기 추가
+
 
   // 일괄 선택 모드
   const [selectMode, setSelectMode] = useState(false);
@@ -154,7 +157,7 @@ export default function IngredientList() {
     loadIngredients();
     fetchFridgeName()
       .then(setFridgeName)
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const toggleMenu = (id) => {
@@ -533,175 +536,198 @@ export default function IngredientList() {
       </nav>
 
       <div className="page-content">
-        {/* ---------- 페이지 헤더 ---------- */}
-        <section className="page-header">
-          <div className="page-header-top">
-            <div>
-              {isEditingTitle ? (
-                <div className="fridge-title-edit">
-                  <input
-                    type="text"
-                    className="fridge-title-input"
-                    value={titleDraft}
-                    maxLength={30}
-                    autoFocus
-                    onChange={(e) => setTitleDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") saveTitle();
-                      if (e.key === "Escape") cancelEditTitle();
-                    }}
-                  />
-                  <button className="fridge-title-save" onClick={saveTitle}>저장</button>
-                  <button className="fridge-title-cancel" onClick={cancelEditTitle}>취소</button>
-                </div>
-              ) : (
-                <h1 className="page-title" onClick={startEditTitle} title="클릭해서 이름 수정">
-                  {fridgeName}
-                  <span className="fridge-title-edit-icon">✎</span>
-                </h1>
-              )}
-              <p className="page-subtitle">오늘 냉장고 상태를 확인해보세요.</p>
-            </div>
-
-            <button className="add-ingredient-button" onClick={() => navigate("/ingredients/new")}>
-              <span className="add-ingredient-plus">+</span> 재료 추가
-            </button>
-          </div>
-
-          <div className="stats-row">
-            <div className="stat-card">
-              <span className="stat-value">{ingredients.length}</span>
-              <span className="stat-label">보유 재료</span>
-            </div>
-            <div className="stat-card stat-card-warning">
-              <span className="stat-value">{upcomingIngredients.length}</span>
-              <span className="stat-label">임박 재료</span>
-            </div>
-            <div className={`stat-card ${expiredIngredients.length > 0 ? "stat-card-danger" : "stat-card-good"}`}>
-              <span className="stat-value">{expiredIngredients.length}</span>
-              <span className="stat-label">지난 재료</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-value">{categoryCount}</span>
-              <span className="stat-label">카테고리</span>
-            </div>
-          </div>
-        </section>
-
-        {/* ---------- 검색 + 보기 전환 + 선택모드 ---------- */}
-        <div className="toolbar">
-          <input
-            type="text"
-            className="search-input"
-            placeholder="재료 이름으로 검색"
-            value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
-          />
-          <div className="view-toggle">
+        <div className="fridge-view-toggle-wrap">
+          <div className="fridge-view-toggle">
             <button
-              className={`view-toggle-button ${viewMode === "category" ? "active" : ""}`}
-              onClick={() => setViewMode("category")}
+              className={`fridge-view-button ${viewPage === "list" ? "active" : ""}`}
+              onClick={() => setViewPage("list")}
             >
-              카테고리별
+              목록
             </button>
             <button
-              className={`view-toggle-button ${viewMode === "urgent" ? "active" : ""}`}
-              onClick={() => setViewMode("urgent")}
+              className={`fridge-view-button ${viewPage === "decorate" ? "active" : ""}`}
+              onClick={() => setViewPage("decorate")}
             >
-              임박순
-            </button>
-            <button
-              className={`view-toggle-button ${viewMode === "purchase" ? "active" : ""}`}
-              onClick={() => setViewMode("purchase")}
-            >
-              구매일순
+              냉꾸
             </button>
           </div>
-          <button
-            className={`select-mode-toggle ${selectMode ? "active" : ""}`}
-            onClick={toggleSelectMode}
-          >
-            {selectMode ? "선택 취소" : "여러 개 선택"}
-          </button>
         </div>
 
-        {actionError && <p className="ingredient-status ingredient-action-error">{actionError}</p>}
-
-        {ingredients.length === 0 && (
-          <div className="empty-state">
-            <div className="empty-state-icon" aria-hidden="true">🥬</div>
-            <p className="empty-state-title">냉장고가 비어있어요</p>
-            <p className="empty-state-subtitle">재료를 추가하고 소비기한을 관리해보세요.</p>
-          </div>
-        )}
-
-        {ingredients.length > 0 && filteredIngredients.length === 0 && (
-          <div className="empty-state">
-            <p className="empty-state-title">"{searchKeyword}"에 해당하는 재료가 없어요</p>
-          </div>
-        )}
-
-        {/* ---------- 임박순 뷰 ---------- */}
-        {viewMode === "urgent" && urgentSorted.length > 0 && (
-          <section className="category-panel">
-            <div className="category-grid">{urgentSorted.map(renderCard)}</div>
-          </section>
-        )}
-
-        {/* ---------- 구매일순 뷰 ---------- */}
-        {viewMode === "purchase" && purchaseSorted.length > 0 && (
-          <section className="category-panel">
-            <div className="category-grid">{purchaseSorted.map(renderCard)}</div>
-          </section>
-        )}
-
-        {/* ---------- 카테고리별 뷰 ---------- */}
-        {viewMode === "category" && filteredIngredients.length > 0 && (
-          <div className="category-list">
-            {groupByCategory(filteredIngredients).map(([categoryName, items]) => {
-              const isCollapsed = collapsedCategories.has(categoryName);
-              return (
-                <section key={categoryName} className="category-panel">
-                  <button
-                    type="button"
-                    className="category-panel-header category-panel-header-button"
-                    onClick={() => toggleCategoryCollapse(categoryName)}
-                    aria-expanded={!isCollapsed}
-                  >
-                    <span className="category-icon" aria-hidden="true">
-                      {CATEGORY_ICONS[categoryName] || CATEGORY_ICONS["기타"]}
-                    </span>
-                    <span className="category-name">{categoryName}</span>
-                    <span className="category-count">{items.length}</span>
-                    <span className={`category-collapse-arrow ${isCollapsed ? "collapsed" : ""}`} aria-hidden="true">
-                      ▾
-                    </span>
-                  </button>
-                  {!isCollapsed && (
-                    <div className="category-grid">{items.map(renderCard)}</div>
+        {viewPage === "decorate" ? (
+          <FridgeDecorate embedded />
+        ) : (
+          <>
+            {/* ---------- 페이지 헤더 ---------- */}
+            <section className="page-header">
+              <div className="page-header-top">
+                <div>
+                  {isEditingTitle ? (
+                    <div className="fridge-title-edit">
+                      <input
+                        type="text"
+                        className="fridge-title-input"
+                        value={titleDraft}
+                        maxLength={30}
+                        autoFocus
+                        onChange={(e) => setTitleDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveTitle();
+                          if (e.key === "Escape") cancelEditTitle();
+                        }}
+                      />
+                      <button className="fridge-title-save" onClick={saveTitle}>저장</button>
+                      <button className="fridge-title-cancel" onClick={cancelEditTitle}>취소</button>
+                    </div>
+                  ) : (
+                    <h1 className="page-title" onClick={startEditTitle} title="클릭해서 이름 수정">
+                      {fridgeName}
+                      <span className="fridge-title-edit-icon">✎</span>
+                    </h1>
                   )}
-                </section>
-              );
-            })}
+                  <p className="page-subtitle">오늘 냉장고 상태를 확인해보세요.</p>
+                </div>
+
+                <button className="add-ingredient-button" onClick={() => navigate("/ingredients/new")}>
+                  <span className="add-ingredient-plus">+</span> 재료 추가
+                </button>
+              </div>
+
+              <div className="stats-row">
+                <div className="stat-card">
+                  <span className="stat-value">{ingredients.length}</span>
+                  <span className="stat-label">보유 재료</span>
+                </div>
+                <div className="stat-card stat-card-warning">
+                  <span className="stat-value">{upcomingIngredients.length}</span>
+                  <span className="stat-label">임박 재료</span>
+                </div>
+                <div className={`stat-card ${expiredIngredients.length > 0 ? "stat-card-danger" : "stat-card-good"}`}>
+                  <span className="stat-value">{expiredIngredients.length}</span>
+                  <span className="stat-label">지난 재료</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-value">{categoryCount}</span>
+                  <span className="stat-label">카테고리</span>
+                </div>
+              </div>
+            </section>
+
+            {/* ---------- 검색 + 보기 전환 + 선택모드 ---------- */}
+            <div className="toolbar">
+              <input
+                type="text"
+                className="search-input"
+                placeholder="재료 이름으로 검색"
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+              />
+              <div className="view-toggle">
+                <button
+                  className={`view-toggle-button ${viewMode === "category" ? "active" : ""}`}
+                  onClick={() => setViewMode("category")}
+                >
+                  카테고리별
+                </button>
+                <button
+                  className={`view-toggle-button ${viewMode === "urgent" ? "active" : ""}`}
+                  onClick={() => setViewMode("urgent")}
+                >
+                  임박순
+                </button>
+                <button
+                  className={`view-toggle-button ${viewMode === "purchase" ? "active" : ""}`}
+                  onClick={() => setViewMode("purchase")}
+                >
+                  구매일순
+                </button>
+              </div>
+              <button
+                className={`select-mode-toggle ${selectMode ? "active" : ""}`}
+                onClick={toggleSelectMode}
+              >
+                {selectMode ? "선택 취소" : "여러 개 선택"}
+              </button>
+            </div>
+
+            {actionError && <p className="ingredient-status ingredient-action-error">{actionError}</p>}
+
+            {ingredients.length === 0 && (
+              <div className="empty-state">
+                <div className="empty-state-icon" aria-hidden="true">🥬</div>
+                <p className="empty-state-title">냉장고가 비어있어요</p>
+                <p className="empty-state-subtitle">재료를 추가하고 소비기한을 관리해보세요.</p>
+              </div>
+            )}
+
+            {ingredients.length > 0 && filteredIngredients.length === 0 && (
+              <div className="empty-state">
+                <p className="empty-state-title">"{searchKeyword}"에 해당하는 재료가 없어요</p>
+              </div>
+            )}
+
+            {/* ---------- 임박순 뷰 ---------- */}
+            {viewMode === "urgent" && urgentSorted.length > 0 && (
+              <section className="category-panel">
+                <div className="category-grid">{urgentSorted.map(renderCard)}</div>
+              </section>
+            )}
+
+            {/* ---------- 구매일순 뷰 ---------- */}
+            {viewMode === "purchase" && purchaseSorted.length > 0 && (
+              <section className="category-panel">
+                <div className="category-grid">{purchaseSorted.map(renderCard)}</div>
+              </section>
+            )}
+
+            {/* ---------- 카테고리별 뷰 ---------- */}
+            {viewMode === "category" && filteredIngredients.length > 0 && (
+              <div className="category-list">
+                {groupByCategory(filteredIngredients).map(([categoryName, items]) => {
+                  const isCollapsed = collapsedCategories.has(categoryName);
+                  return (
+                    <section key={categoryName} className="category-panel">
+                      <button
+                        type="button"
+                        className="category-panel-header category-panel-header-button"
+                        onClick={() => toggleCategoryCollapse(categoryName)}
+                        aria-expanded={!isCollapsed}
+                      >
+                        <span className="category-icon" aria-hidden="true">
+                          {CATEGORY_ICONS[categoryName] || CATEGORY_ICONS["기타"]}
+                        </span>
+                        <span className="category-name">{categoryName}</span>
+                        <span className="category-count">{items.length}</span>
+                        <span className={`category-collapse-arrow ${isCollapsed ? "collapsed" : ""}`} aria-hidden="true">
+                          ▾
+                        </span>
+                      </button>
+                      {!isCollapsed && (
+                        <div className="category-grid">{items.map(renderCard)}</div>
+                      )}
+                    </section>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ---------- 일괄 삭제 하단 바 ---------- */}
+        {selectMode && selectedIds.size > 0 && (
+          <div className="bulk-action-bar">
+            <span>{selectedIds.size}개 선택됨</span>
+            <div className="bulk-action-buttons">
+              <button
+                disabled={bulkProcessing}
+                className="bulk-action-danger"
+                onClick={() => handleBulkAction(deleteIngredient, "삭제")}
+              >
+                삭제
+              </button>
+            </div>
           </div>
         )}
       </div>
-
-      {/* ---------- 일괄 삭제 하단 바 ---------- */}
-      {selectMode && selectedIds.size > 0 && (
-        <div className="bulk-action-bar">
-          <span>{selectedIds.size}개 선택됨</span>
-          <div className="bulk-action-buttons">
-            <button
-              disabled={bulkProcessing}
-              className="bulk-action-danger"
-              onClick={() => handleBulkAction(deleteIngredient, "삭제")}
-            >
-              삭제
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

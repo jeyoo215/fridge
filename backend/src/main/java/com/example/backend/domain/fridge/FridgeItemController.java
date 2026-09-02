@@ -26,29 +26,36 @@ public class FridgeItemController {
     @PostMapping("/items")
     @ResponseStatus(HttpStatus.CREATED)
     public Long create(@AuthenticationPrincipal Long userId,
-                       @RequestBody FridgeItemCreateRequest request) {
+            @RequestBody FridgeItemCreateRequest request) {
         return fridgeItemService.createWithNewIngredient(userId, request);
     }
 
     @PostMapping("/items/place")
     @ResponseStatus(HttpStatus.CREATED)
     public Long place(@AuthenticationPrincipal Long userId,
-                      @RequestBody FridgeItemPlaceRequest request) {
+            @RequestBody FridgeItemPlaceRequest request) {
         return fridgeItemService.place(userId, request);
     }
 
     @PatchMapping("/items/{fridgeItemId}/move")
     public void move(@AuthenticationPrincipal Long userId,
-                     @PathVariable Long fridgeItemId,
-                     @RequestParam Double posX,
-                     @RequestParam Double posY,
-                     @RequestParam FridgeItem.Zone zone) {
+            @PathVariable Long fridgeItemId,
+            @RequestParam Double posX,
+            @RequestParam Double posY,
+            @RequestParam FridgeItem.Zone zone) {
         fridgeItemService.move(userId, fridgeItemId, posX, posY, zone);
     }
 
     @DeleteMapping("/items/{fridgeItemId}")
     public void remove(@AuthenticationPrincipal Long userId,
-                       @PathVariable Long fridgeItemId) {
+            @PathVariable Long fridgeItemId) {
         fridgeItemService.remove(userId, fridgeItemId);
+    }
+
+    @PatchMapping("/items/{fridgeItemId}/resize")
+    public void resize(@AuthenticationPrincipal Long userId,
+            @PathVariable Long fridgeItemId,
+            @RequestParam Double scale) {
+        fridgeItemService.resize(userId, fridgeItemId, scale);
     }
 }
