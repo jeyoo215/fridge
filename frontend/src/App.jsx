@@ -18,6 +18,7 @@ import OAuthRedirect from "./pages/OAuthRedirect";
 import FridgeDecorate from "./pages/FridgeDecorate";
 import Admin from "./pages/Admin";
 import AdminRecipeForm from "./pages/AdminRecipeForm";
+import AdminReports from "./pages/AdminReports";
 import {
   isLoggedIn,
   isAdmin,
@@ -61,22 +62,26 @@ function App() {
         <Route path="/recipes/:recipeId/shopping-list" element={<RequireAuth><ShoppingList /></RequireAuth>} />
         <Route path="/shopping-list" element={<RequireAuth><MyShoppingList /></RequireAuth>} />
         <Route path="/challenge" element={<RequireAuth><Challenge /></RequireAuth>} />
-        <Route path="/community" element={<RequireAuth><CommunityList key="RECIPE" boardType="RECIPE" /></RequireAuth>} />
+        {/* 커뮤니티 열람(레시피/잡담 게시판 목록, 게시글 상세)은 로그인 없이도 가능.
+            글쓰기/수정/댓글/좋아요/스크랩 등 실제 활동은 각 화면에서 로그인 여부를 확인해서 막는다.
+            챌린지 게시판은 "진행 중인 챌린지가 있어야" 들어갈 수 있어서 개념상 로그인이 필요하므로 그대로 막아둔다. */}
+        <Route path="/community" element={<CommunityList key="RECIPE" boardType="RECIPE" />} />
         <Route path="/community/new" element={<RequireAuth><CommunityPostForm boardType="RECIPE" /></RequireAuth>} />
         <Route path="/community/challenge/fridge-clean" element={<RequireAuth><CommunityList key="CHALLENGE_FRIDGE_CLEAN" boardType="CHALLENGE_FRIDGE_CLEAN" /></RequireAuth>} />
         <Route path="/community/challenge/fridge-clean/new" element={<RequireAuth><CommunityPostForm boardType="CHALLENGE_FRIDGE_CLEAN" /></RequireAuth>} />
         <Route path="/community/challenge/target-ingredient" element={<RequireAuth><CommunityList key="CHALLENGE_TARGET_INGREDIENT" boardType="CHALLENGE_TARGET_INGREDIENT" /></RequireAuth>} />
         <Route path="/community/challenge/target-ingredient/new" element={<RequireAuth><CommunityPostForm boardType="CHALLENGE_TARGET_INGREDIENT" /></RequireAuth>} />
-        <Route path="/community/free-talk" element={<RequireAuth><CommunityList key="FREE_TALK" boardType="FREE_TALK" /></RequireAuth>} />
+        <Route path="/community/free-talk" element={<CommunityList key="FREE_TALK" boardType="FREE_TALK" />} />
         <Route path="/community/free-talk/new" element={<RequireAuth><CommunityPostForm boardType="FREE_TALK" /></RequireAuth>} />
         <Route path="/community/:postId/edit" element={<RequireAuth><CommunityPostForm /></RequireAuth>} />
-        <Route path="/community/:postId" element={<RequireAuth><CommunityPostDetail /></RequireAuth>} />
+        <Route path="/community/:postId" element={<CommunityPostDetail />} />
         <Route path="/mypage" element={<RequireAuth><MyPage /></RequireAuth>} />
         <Route path="/login" element={<Login />} />
         <Route path="/oauth/redirect" element={<OAuthRedirect />} />
         <Route path="/fridge" element={<FridgeDecorate />} />
         <Route path="/admin" element={isAdmin() ? <Admin /> : <Navigate to="/" replace />} />
         <Route path="/admin/recipes/new" element={isAdmin() ? <AdminRecipeForm /> : <Navigate to="/" replace />} />
+        <Route path="/admin/reports" element={isAdmin() ? <AdminReports /> : <Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

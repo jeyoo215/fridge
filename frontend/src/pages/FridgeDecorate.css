@@ -45,14 +45,28 @@
   width: 100%;
   display: flex;
   align-items: flex-start;
-  justify-content: flex-end;
-  padding: 8px 12px;
+  justify-content: flex-start;
+  padding: 10px 14px;
   font-family: var(--font-display);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--color-text-muted);
   box-sizing: border-box;
   pointer-events: none;
+}
+
+.fridge-zone-frozen {
+  top: 0;
+  height: 40%;
+  background: linear-gradient(180deg, #dbeafe 0%, #eff6ff 100%);
+  border-bottom: 3px dashed #60a5fa;
+  color: #37486a;
+}
+
+.fridge-zone-fridge {
+  top: 40%;
+  height: 60%;
+  background: linear-gradient(180deg, #dcfce7 0%, #f0fdf4 100%);
+  color: #415976;
 }
 
 .fridge-zone-frozen {
@@ -155,4 +169,104 @@
 
 .fridge-add-button:hover {
   background: var(--color-basil-dark);
+}
+
+.fridge-item-emoji {
+  font-size: 40px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.fam-photo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.fam-photo-preview {
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: contain;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+
+/* 편집 컨트롤 컨테이너 */
+.fridge-item-controls {
+  position: absolute;
+  bottom: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #ffffff;
+  padding: 4px 6px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  white-space: nowrap;
+}
+
+/* +, - 버튼 */
+.fridge-item-controls button {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #e0e0e0;
+  border-radius: 50%;
+  background-color: #f8f9fa;
+  color: #333;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background-color 0.2s;
+}
+
+.fridge-item-controls button:hover {
+  background-color: #e9ecef;
+}
+
+/* 적용 버튼 */
+.fridge-item-controls button.fridge-item-apply {
+  width: auto;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 12px;
+  border: none;
+  background-color: #457b5d;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.fridge-item-controls button.fridge-item-apply:hover {
+  background-color: #345e45;
+}
+
+.fridge-item-edit {
+  position: absolute;
+  bottom: -35px;
+  left: 50%;
+  transform-origin: top center;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: none;
+  background-color: #457b5d;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  z-index: 5;
+}
+
+.fridge-item-edit:hover {
+  background-color: #345e45;
 }

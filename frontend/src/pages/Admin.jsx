@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getAccessToken } from "../api/authApi";
 import "./Admin.css";
 import { BASE_URL } from "../api/config";
 
 export default function Admin() {
+  const navigate = useNavigate();
   const [status, setStatus] = useState(null);
 
   const handleRefreshCombo = async () => {
@@ -33,6 +35,16 @@ export default function Admin() {
           지금 실행
         </button>
         {status && <p className="admin-status">{status}</p>}
+      </section>
+
+      <section className="admin-section">
+        <h3>커뮤니티 신고</h3>
+        <p className="admin-section-desc">
+          신고가 들어온 게시글/댓글을 검토하고 삭제하거나 기각합니다.
+        </p>
+        <button className="admin-action-button" onClick={() => navigate("/admin/reports")}>
+          신고 목록 보기
+        </button>
       </section>
     </div>
   );

@@ -85,3 +85,39 @@ export async function removeFridgeItem(fridgeItemId) {
   });
   if (!response.ok) throw new Error("삭제에 실패했습니다.");
 }
+
+export async function uploadImage(file) {
+  const form = new FormData();
+  form.append("file", file);
+  const response = await fetch(`${BASE_URL}/community/media`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: form,
+  });
+  if (!response.ok) throw new Error("이미지 업로드에 실패했습니다.");
+  const data = await response.json();
+  return data.url;
+}
+
+
+const API_BASE = `http://${window.location.hostname}:8080`;
+
+export async function resizeFridgeItem(fridgeItemId, scale) {
+  const response = await fetch(
+    `${BASE_URL}/fridge/items/${fridgeItemId}/resize?scale=${scale}`,
+    {
+      method: "PATCH",
+      headers: authHeaders(),
+    }
+  );
+  if (!response.ok) throw new Error("크기 변경 실패");
+}
+
+export async function changeFridgeItemImage(fridgeItemId, imageUrl, imageType) {
+  const params = new URLSearchParams({ imageUrl, imageType });
+  const response = await fetch(`${BASE_URL}/fridge/items/${fridgeItemId}/image?${params}`, {
+    method: "PATCH",
+    headers: authHeaders(),
+  });
+  if (!response.ok) throw new Error("이미지 교체에 실패했습니다.");
+}

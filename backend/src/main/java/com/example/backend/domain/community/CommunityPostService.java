@@ -45,6 +45,7 @@ public class CommunityPostService {
     private final RecipeRepository recipeRepository;
     private final ChallengeRepository challengeRepository;
     private final UserRepository userRepository;
+    private final CommunityReportRepository communityReportRepository;
 
     // 탈퇴 등으로 작성자 계정이 이미 없는 경우의 표시용 대체 닉네임
     private static final String UNKNOWN_NICKNAME = "알 수 없는 사용자";
@@ -59,6 +60,9 @@ public class CommunityPostService {
     // 게시글 작성 (제목 + 재료/조리순서를 통째로 받아 한 번에 저장)
     @Transactional
     public Long create(Long userId, CommunityPostCreateRequest request) {
+        if (userId == null) {
+            throw new IllegalArgumentException("로그인이 필요합니다.");
+        }
         assertChallengeBoardAccess(userId, request.boardType());
 
         RecipeCategory category = null;
@@ -197,6 +201,10 @@ public class CommunityPostService {
     public CommunityPostDetailResponse getDetail(Long postId, Long userId) {
         CommunityPost post = communityPostRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다. id=" + postId));
+        // 신고 누적으로 숨김 처리된 글은 작성자 본인만 볼 수 있음 (관리자 판단이 나기 전까지)
+        if (post.isHidden() && !post.getUserId().equals(userId)) {
+            throw new IllegalStateException("신고가 접수되어 관리자 검토 중인 게시글입니다.");
+        }
         assertChallengeBoardAccess(userId, post.getEffectiveBoardType());
         repairDanglingPromotion(post);
         String nickname = userRepository.findById(post.getUserId())
@@ -243,9 +251,30 @@ public class CommunityPostService {
     @Transactional
     public void delete(Long userId, Long postId) {
         CommunityPost post = findOwnedPost(userId, postId);
+        deletePostInternal(post);
+    }
+
+    // 관리자 전용: 신고 처리로 게시글을 강제 삭제 (작성자 소유 여부와 무관, CommunityReportService에서 호출)
+    @Transactional
+    public void adminDelete(Long postId) {
+        CommunityPost post = communityPostRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다. id=" + postId));
+        deletePostInternal(post);
+    }
+
+    // 좋아요/댓글/스크랩과, 이 게시글(및 댓글들)에 쌓여있던 신고 row까지 전부 정리한 뒤 게시글을 지운다.
+    private void deletePostInternal(CommunityPost post) {
         if (post.isPromoted()) {
             throw new IllegalStateException("정식 레시피로 등록된 게시글은 삭제할 수 없습니다.");
         }
+        Long postId = post.getPostId();
+        List<Long> commentIds = communityPostCommentRepository.findByPost_PostIdOrderByCreatedAtAsc(postId).stream()
+                .map(CommunityPostComment::getCommentId)
+                .toList();
+        if (!commentIds.isEmpty()) {
+            communityReportRepository.deleteByTargetTypeAndTargetIdIn(CommunityReport.TargetType.COMMENT, commentIds);
+        }
+        communityReportRepository.deleteByTargetTypeAndTargetId(CommunityReport.TargetType.POST, postId);
         communityPostLikeRepository.deleteByPost_PostId(postId);
         communityPostCommentRepository.deleteByPost_PostId(postId);
         communityPostScrapRepository.deleteByPost_PostId(postId);
@@ -254,6 +283,9 @@ public class CommunityPostService {
 
     // 본인 소유의 게시글이 맞는지 확인 후 반환 (다른 사람 글을 못 건드리게 방지)
     private CommunityPost findOwnedPost(Long userId, Long postId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("로그인이 필요합니다.");
+        }
         CommunityPost post = communityPostRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다. id=" + postId));
 

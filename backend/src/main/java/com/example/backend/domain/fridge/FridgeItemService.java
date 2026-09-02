@@ -102,4 +102,17 @@ public class FridgeItemService {
         }
         return item;
     }
+
+    @Transactional
+    public void resize(Long userId, Long fridgeItemId, Double scale) {
+        System.out.println("로그인 userId=" + userId);
+        FridgeItem item = findOwned(userId, fridgeItemId);
+        item.resize(scale);
+    }
+
+    @Transactional
+    public void changeImage(Long userId, Long fridgeItemId, String imageUrl, FridgeItem.ImageType imageType) {
+        FridgeItem item = findOwned(userId, fridgeItemId);
+        item.changeImage(imageUrl, imageType);
+    }
 }

@@ -1,10 +1,12 @@
 package com.example.backend.domain.review;
 
+import com.example.backend.domain.recipe.ComboRecommendationScheduler;
 import com.example.backend.domain.recipe.Recipe;
 import com.example.backend.domain.recipe.RecipeCategory;
 import com.example.backend.domain.recipe.RecipeRepository;
 import com.example.backend.domain.review.dto.RecipeReviewCreateRequest;
 import com.example.backend.domain.review.dto.RecipeReviewListResponse;
+import com.example.backend.domain.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,6 +29,8 @@ class RecipeReviewServiceTest {
 
     @Mock private RecipeReviewRepository recipeReviewRepository;
     @Mock private RecipeRepository recipeRepository;
+    @Mock private ComboRecommendationScheduler comboRecommendationScheduler;
+    @Mock private UserRepository userRepository;
 
     @InjectMocks
     private RecipeReviewService recipeReviewService;
