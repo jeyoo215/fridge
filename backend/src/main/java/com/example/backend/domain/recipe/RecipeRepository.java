@@ -46,8 +46,9 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     @Query("SELECT r.recipeId FROM Recipe r ORDER BY r.recipeId")
     Page<Long> findAllRecipeIds(Pageable pageable);
 
-    // 이름 검색만
-    @Query("SELECT r.recipeId FROM Recipe r WHERE r.recipeName LIKE CONCAT('%', :keyword, '%') ORDER BY r.recipeId")
+    // 이름 검색만. 띄어쓰기 차이로 "감자 주스"가 "감자주스"를 못 찾는 문제를 막기 위해,
+    // 저장된 이름과 검색어 둘 다 공백을 지우고 비교한다(검색어 쪽 공백 제거는 RecipeService에서 미리 해둠).
+    @Query("SELECT r.recipeId FROM Recipe r WHERE REPLACE(r.recipeName, ' ', '') LIKE CONCAT('%', :keyword, '%') ORDER BY r.recipeId")
     Page<Long> findRecipeIdsByNameContaining(@Param("keyword") String keyword, Pageable pageable);
 
     // 재료 필터만 (선택한 재료 중 하나라도 포함된 레시피, OR 매칭)
@@ -61,7 +62,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     // 이름 + 재료 필터 동시
     @Query("""
         SELECT DISTINCT ri.recipe.recipeId FROM RecipeIngredient ri
-        WHERE ri.recipe.recipeName LIKE CONCAT('%', :keyword, '%')
+        WHERE REPLACE(ri.recipe.recipeName, ' ', '') LIKE CONCAT('%', :keyword, '%')
           AND ri.ingredient.ingredientId IN :ingredientIds
         ORDER BY ri.recipe.recipeId
         """)

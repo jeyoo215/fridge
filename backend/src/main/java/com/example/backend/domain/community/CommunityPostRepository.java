@@ -30,11 +30,13 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
                                                                     @Param("prefix") String prefix, Pageable pageable);
 
     // 제목 검색. 검색어가 있으면 말머리 필터보다 우선한다(둘 다 동시에 적용하지 않음).
-    @Query("SELECT p.postId FROM CommunityPost p WHERE p.boardType = :boardType AND p.title LIKE CONCAT('%', :keyword, '%') ORDER BY p.createdAt DESC")
+    // 띄어쓰기 차이로 "감자 주스"가 "감자주스"를 못 찾는 문제를 막기 위해, 저장된 제목과 검색어 둘 다
+    // 공백을 지우고 비교한다(검색어 쪽 공백 제거는 CommunityPostService에서 미리 해둠).
+    @Query("SELECT p.postId FROM CommunityPost p WHERE p.boardType = :boardType AND REPLACE(p.title, ' ', '') LIKE CONCAT('%', :keyword, '%') ORDER BY p.createdAt DESC")
     Page<Long> findPostIdsByBoardTypeAndTitleContainingOrderByCreatedAtDesc(@Param("boardType") CommunityPost.BoardType boardType,
                                                                              @Param("keyword") String keyword, Pageable pageable);
 
-    @Query("SELECT p.postId FROM CommunityPost p WHERE p.boardType = :boardType AND p.title LIKE CONCAT('%', :keyword, '%') ORDER BY p.likeCount DESC, p.createdAt DESC")
+    @Query("SELECT p.postId FROM CommunityPost p WHERE p.boardType = :boardType AND REPLACE(p.title, ' ', '') LIKE CONCAT('%', :keyword, '%') ORDER BY p.likeCount DESC, p.createdAt DESC")
     Page<Long> findPostIdsByBoardTypeAndTitleContainingOrderByLikeCountDesc(@Param("boardType") CommunityPost.BoardType boardType,
                                                                              @Param("keyword") String keyword, Pageable pageable);
 

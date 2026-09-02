@@ -228,11 +228,15 @@ public class RecipeService {
         boolean hasKeyword = keyword != null && !keyword.isBlank();
         boolean hasIngredients = ingredientIds != null && !ingredientIds.isEmpty();
 
+        // "감자 주스"로 검색해도 "감자주스"가 나오도록, DB에 저장된 이름뿐 아니라 검색어 쪽 공백도 미리 지운다
+        // (REPLACE(recipeName, ' ', '')와 비교하므로 둘 다 공백 없는 형태로 맞춰야 함).
+        String normalizedKeyword = hasKeyword ? keyword.trim().replaceAll("\\s+", "") : null;
+
         Page<Long> idPage;
         if (hasKeyword && hasIngredients) {
-                idPage = recipeRepository.findRecipeIdsByNameAndIngredientIds(keyword.trim(), ingredientIds, pageable);
+                idPage = recipeRepository.findRecipeIdsByNameAndIngredientIds(normalizedKeyword, ingredientIds, pageable);
         } else if (hasKeyword) {
-                idPage = recipeRepository.findRecipeIdsByNameContaining(keyword.trim(), pageable);
+                idPage = recipeRepository.findRecipeIdsByNameContaining(normalizedKeyword, pageable);
         } else if (hasIngredients) {
                 idPage = recipeRepository.findRecipeIdsByIngredientIds(ingredientIds, pageable);
         } else {
