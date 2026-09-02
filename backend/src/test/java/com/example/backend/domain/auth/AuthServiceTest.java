@@ -3,6 +3,7 @@ package com.example.backend.domain.auth;
 import com.example.backend.domain.auth.dto.LoginRequest;
 import com.example.backend.domain.auth.dto.SignupRequest;
 import com.example.backend.domain.auth.dto.TokenResponse;
+import com.example.backend.domain.user.Role;
 import com.example.backend.domain.user.User;
 import com.example.backend.domain.user.UserRepository;
 import com.example.backend.security.JwtTokenProvider;
@@ -117,7 +118,7 @@ class AuthServiceTest {
         LoginRequest request = new LoginRequest("test@example.com", "password123");
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
-        when(jwtTokenProvider.generateAccessToken(1L, "test@example.com")).thenReturn("access-token");
+        when(jwtTokenProvider.generateAccessToken(1L, "test@example.com", Role.USER)).thenReturn("access-token");
         when(jwtTokenProvider.generateRefreshToken(1L)).thenReturn("refresh-token");
         when(jwtTokenProvider.getRefreshTokenExpirationMs()).thenReturn(1_209_600_000L);
         when(refreshTokenRepository.findByUserId(1L)).thenReturn(Optional.empty());
@@ -169,7 +170,7 @@ class AuthServiceTest {
         when(jwtTokenProvider.parseClaims(refreshToken)).thenReturn(claims(1L, "refresh"));
         when(refreshTokenRepository.findByUserId(1L)).thenReturn(Optional.of(savedToken));
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(jwtTokenProvider.generateAccessToken(1L, "test@example.com")).thenReturn("new-access-token");
+        when(jwtTokenProvider.generateAccessToken(1L, "test@example.com", Role.USER)).thenReturn("new-access-token");
         when(jwtTokenProvider.generateRefreshToken(1L)).thenReturn("new-refresh-token");
         when(jwtTokenProvider.getRefreshTokenExpirationMs()).thenReturn(1_209_600_000L);
 
@@ -206,7 +207,11 @@ class AuthServiceTest {
     }
 
     private User user(Long id, String email, String password, String nickname) {
-        User user = User.builder().email(email).password(password).nickname(nickname).build();
+        User user = User.builder()
+                .email(email)
+                .password(password)
+                .nickname(nickname)
+                .build(); // Builder 안에서 role은 자동으로 Role.USER로 채워짐 (User.java 생성자 참고)
         ReflectionTestUtils.setField(user, "userId", id);
         return user;
     }

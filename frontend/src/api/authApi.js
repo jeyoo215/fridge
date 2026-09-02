@@ -1,5 +1,4 @@
-const BASE_URL = `http://${window.location.hostname}:8080/api/v1`;
-const HOST = `http://${window.location.hostname}:8080`;
+import { HOST, BASE_URL } from "./config";
 
 export function getAccessToken() {
   return localStorage.getItem("accessToken");
@@ -102,6 +101,22 @@ export async function findEmail(phone) {
   }
   const { email } = await response.json();
   return email;
+}
+
+// 권한 받기
+export function getRole() {
+  const token = getAccessToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.role ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function isAdmin() {
+  return getRole() === "ADMIN";
 }
 
 // 비밀번호 재설정 1단계: 인증 코드 발급 요청 (이메일로 실제 발송됨). { expiresInMinutes } 반환

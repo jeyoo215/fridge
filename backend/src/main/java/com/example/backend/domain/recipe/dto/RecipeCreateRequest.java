@@ -3,19 +3,19 @@ package com.example.backend.domain.recipe.dto;
 import java.math.BigDecimal;
 import java.util.List;
 
-// 레시피 등록 요청 DTO (FR-24, FR-22 조리도구)
+// ?덉떆???깅줉 ?붿껌 DTO (FR-24, FR-22 議곕━?꾧뎄)
 public record RecipeCreateRequest(
-        Long categoryId,                  // 레시피 카테고리 id
-        String recipeName,                // 레시피 이름
-        Integer cookingTimeMinutes,       // 조리 시간(분)
-        String difficulty,                // 난이도
-        String imageUrl,                  // 대표 이미지 url
-        List<IngredientItem> ingredients, // 필요 재료 목록
-        List<StepItem> steps,             // 조리 순서 목록
-        List<Long> toolIds,               // 필요 조리도구 id 목록 (FR-22, cooking_tool 참조)
-        String source                     // 출처 (예: "커뮤니티" — 커뮤니티 글 승격으로 생성된 경우)
+        Long categoryId,                  // ?덉떆??移댄뀒怨좊━ id
+        String recipeName,                // ?덉떆???대쫫
+        Integer cookingTimeMinutes,       // 議곕━ ?쒓컙(遺?
+        String difficulty,                // ?쒖씠??
+        String imageUrl,                  // ????대?吏 url
+        List<IngredientItem> ingredients, // ?꾩슂 ?щ즺 紐⑸줉
+        List<StepItem> steps,             // 議곕━ ?쒖꽌 紐⑸줉
+        List<Long> toolIds,               // ?꾩슂 議곕━?꾧뎄 id 紐⑸줉 (FR-22, cooking_tool 李몄“)
+        String source                     // 異쒖쿂 (?? "而ㅻ??덊떚" ??而ㅻ??덊떚 湲 ?밴꺽?쇰줈 ?앹꽦??寃쎌슦)
 ) {
-    // 재료 항목 (재료 id + 수량 + 단위)
+    // ?щ즺 ??ぉ (?щ즺 id + ?섎웾 + ?⑥쐞)
     public record IngredientItem(
             Long ingredientId,
             BigDecimal quantity,
@@ -23,8 +23,8 @@ public record RecipeCreateRequest(
     ) {
     }
 
-    // 조리 단계 항목 (순서 + 설명 + 선택적 이미지/동영상). mediaType은 "IMAGE"/"VIDEO" 문자열
-    // (CookingStep.MediaType.valueOf로 변환) — 도메인 간 enum 의존을 피하려고 문자열로 받는다.
+    // 議곕━ ?④퀎 ??ぉ (?쒖꽌 + ?ㅻ챸 + ?좏깮???대?吏/?숈쁺??. mediaType? "IMAGE"/"VIDEO" 臾몄옄??
+    // (CookingStep.MediaType.valueOf濡?蹂?? ???꾨찓??媛?enum ?섏〈???쇳븯?ㅺ퀬 臾몄옄?대줈 諛쏅뒗??
     public record StepItem(
             Integer stepOrder,
             String description,

@@ -28,7 +28,7 @@ public class ChallengeController {
         return challengeService.getStatus(challengeId);
     }
 
-    // 진행중인 챌린지가 없으면 404 (GlobalExceptionHandler가 처리)
+    // 진행중인 챌린지가 없으면 null 반환 (200 + empty body)
     @GetMapping("/me")
     public ChallengeResponse getActiveChallenge(@AuthenticationPrincipal Long userId) {
         return challengeService.getActiveChallenge(userId);
