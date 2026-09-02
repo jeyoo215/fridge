@@ -238,7 +238,6 @@ export async function reissue() {
     body: JSON.stringify({ refreshToken }),
   });
   if (!response.ok) {
-    clearTokens();
     throw new Error("Session expired. Please log in again.");
   }
   const { accessToken, refreshToken: newRefreshToken } = await response.json();
