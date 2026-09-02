@@ -1,6 +1,5 @@
 import { getAccessToken } from "./authApi";
-
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080") + "/api/v1";
+import { BASE_URL } from "./config";
 
 // ?�기 목록 + ?�균 ?�점 조회 ??공용 조회, ?�큰 불필??
 export async function fetchReviews(recipeId) {

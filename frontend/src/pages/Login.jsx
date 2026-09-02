@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import {
   login,
   signup,
@@ -22,6 +23,11 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [phone, setPhone] = useState("");
+
+  const location = useLocation();
+  const expiredMessage = location.state?.expired
+    ? "로그인이 만료되었습니다. 다시 로그인해주세요."
+    : null;
 
   // 회원가입 이메일 인증 단계 상태
   const [emailCheckStatus, setEmailCheckStatus] = useState(null); // null | "available" | "taken"
@@ -362,6 +368,10 @@ export default function Login() {
   return (
     <div className="login-container">
       <h2 className="login-title">{mode === "login" ? "로그인" : "회원가입"}</h2>
+
+      {mode === "login" && expiredMessage && (
+        <p className="login-error">{expiredMessage}</p>
+      )}
 
       <form className="login-form" onSubmit={handleLoginOrSignup}>
         {mode === "signup" && (

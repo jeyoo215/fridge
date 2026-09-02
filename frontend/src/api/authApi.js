@@ -22,8 +22,35 @@ export function isLoggedIn() {
   return !!getAccessToken();
 }
 
-// accessToken(JWT)??exp ?�레?�이 지?�는지 ?�인. 백엔?��? 만료???�큰??401�?걸러주�? ?�으므�?
-// (모든 ?�청??permitAll?�고 userId가 조용??null로만 빠짐) ?�론?�에??직접 만료 ?��?�?감시?�야 ??
+// 슬라이딩 세션 갱신: 너무 자주 호출되지 않도록 짧은 시간(30초) 쓰로틀
+let lastExtendAt = 0;
+let refreshInFlight = null; // 진행 중인 reissue 요청을 공유해서 중복 호출 방지
+
+export async function extendSessionIfActive() {
+  if (!isLoggedIn() || isSessionExpired()) return;
+
+  if (refreshInFlight) {
+    await refreshInFlight;
+    return;
+  }
+
+  const now = Date.now();
+  if (now - lastExtendAt < 30 * 1000) return;
+  lastExtendAt = now;
+
+  refreshInFlight = reissue()
+    .catch(() => {
+      // 갱신 실패해도 조용히 무시 — 다음 만료 체크(RequireAuth)에서 정식으로 처리됨
+    })
+    .finally(() => {
+      refreshInFlight = null;
+    });
+
+  await refreshInFlight;
+}
+
+// accessToken(JWT)의 exp 클레임이 지났는지 확인. 백엔드가 만료된 토큰을 401로 걸러주지 않으므로
+// (모든 요청이 permitAll이고 userId가 조용히 null로만 빠짐) 프론트에서 직접 만료 여부를 감시해야 함.
 export function isSessionExpired() {
   const token = getAccessToken();
   if (!token) return false;
@@ -103,7 +130,27 @@ export async function findEmail(phone) {
   return email;
 }
 
+<<<<<<< HEAD
 // 비�?번호 ?�설??1?�계: ?�증 코드 발급 ?�청 (?�메?�로 ?�제 발송??. { expiresInMinutes } 반환
+=======
+// 권한 받기
+export function getRole() {
+  const token = getAccessToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.role ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function isAdmin() {
+  return getRole() === "ADMIN";
+}
+
+// 비밀번호 재설정 1단계: 인증 코드 발급 요청 (이메일로 실제 발송됨). { expiresInMinutes } 반환
+>>>>>>> origin/develop
 export async function requestPasswordReset(email) {
   const response = await fetch(`${BASE_URL}/auth/password-reset/request`, {
     method: "POST",
@@ -195,7 +242,6 @@ export async function reissue() {
     body: JSON.stringify({ refreshToken }),
   });
   if (!response.ok) {
-    clearTokens();
     throw new Error("Session expired. Please log in again.");
   }
   const { accessToken, refreshToken: newRefreshToken } = await response.json();

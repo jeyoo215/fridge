@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Nav from "./component/Nav";
 import RequireAuth from "./component/RequireAuth";
@@ -14,16 +15,46 @@ import CommunityPostDetail from "./pages/CommunityPostDetail";
 import MyPage from "./pages/MyPage";
 import Login from "./pages/Login";
 import OAuthRedirect from "./pages/OAuthRedirect";
-import { isLoggedIn } from "./api/authApi";
 import FridgeDecorate from "./pages/FridgeDecorate";
+import Admin from "./pages/Admin";
+import AdminRecipeForm from "./pages/AdminRecipeForm";
+import {
+  isLoggedIn,
+  isAdmin,
+  isSessionExpired,
+  clearTokens,
+  extendSessionIfActive,
+} from "./api/authApi";
 import "./App.css";
+
+// "/" 경로는 RequireAuth로 안 감싸는 특수 라우트라(로그인 여부에 따라 다른 화면을 보여줘야 하니까)
+function HomeRoute() {
+  const [checked, setChecked] = useState(false);
+  const [expired, setExpired] = useState(false);
+
+  useEffect(() => {
+    if (isLoggedIn() && isSessionExpired()) {
+      clearTokens();
+      setExpired(true);
+    } else if (isLoggedIn()) {
+      extendSessionIfActive();
+    }
+    setChecked(true);
+  }, []);
+
+  if (!checked) return null;
+  if (expired) return <Navigate to="/login" replace state={{ expired: true }} />;
+  if (!isLoggedIn()) return <Login />;
+  if (isAdmin()) return <Admin />;
+  return <IngredientList />;
+}
 
 function App() {
   return (
     <BrowserRouter>
       {isLoggedIn() && <Nav />}
       <Routes>
-        <Route path="/" element={isLoggedIn() ? <IngredientList /> : <Login />} />
+        <Route path="/" element={<HomeRoute />} />
         <Route path="/ingredients/new" element={<RequireAuth><IngredientRegisterForm /></RequireAuth>} />
         <Route path="/recipes" element={<RequireAuth><RecipeRecommend /></RequireAuth>} />
         <Route path="/recipes/:recipeId" element={<RequireAuth><RecipeDetail /></RequireAuth>} />
@@ -43,10 +74,11 @@ function App() {
         <Route path="/mypage" element={<RequireAuth><MyPage /></RequireAuth>} />
         <Route path="/login" element={<Login />} />
         <Route path="/oauth/redirect" element={<OAuthRedirect />} />
+        <Route path="/fridge" element={<FridgeDecorate />} />
+        <Route path="/admin" element={isAdmin() ? <Admin /> : <Navigate to="/" replace />} />
+        <Route path="/admin/recipes/new" element={isAdmin() ? <AdminRecipeForm /> : <Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
-        <Route path="/fridge" element={<RequireAuth><FridgeDecorate /></RequireAuth>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+      </Routes>
     </BrowserRouter>
   );
 }
