@@ -7,12 +7,12 @@ function authHeaders() {
 
 export async function fetchMyBadges() {
   const response = await fetch(`${BASE_URL}/users/me/badges`, { headers: authHeaders() });
-  if (!response.ok) throw new Error("뱃지 목록을 불러오지 못했습니다.");
+  if (!response.ok) throw new Error("뱃�? 목록??불러?��? 못했?�니??");
   return response.json();
 }
 
 export async function fetchMyStreak() {
   const response = await fetch(`${BASE_URL}/users/me/streak`, { headers: authHeaders() });
-  if (!response.ok) throw new Error("스트릭 정보를 불러오지 못했습니다.");
+  if (!response.ok) throw new Error("?�트�??�보�?불러?��? 못했?�니??");
   return response.json();
 }

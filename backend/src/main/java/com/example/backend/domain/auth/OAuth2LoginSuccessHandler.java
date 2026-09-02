@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 
 // 카카오 로그인 완료 후 우리 JWT(access/refresh)를 발급해서 프론트로 리다이렉트시키는 핸들러
 @Component
@@ -22,7 +21,7 @@ import java.time.LocalDateTime;
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${app.oauth2.redirect-uri}")
     private String redirectUri;
@@ -37,21 +36,16 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
         String accessToken = jwtTokenProvider.generateAccessToken(userId, email, role);
         String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
-        LocalDateTime expiresAt = LocalDateTime.now()
-                .plusSeconds(jwtTokenProvider.getRefreshTokenExpirationMs() / 1000);
 
-        refreshTokenRepository.findByUserId(userId)
-                .ifPresentOrElse(
-                        existing -> existing.update(refreshToken, expiresAt),
-                        () -> refreshTokenRepository.save(
-                                RefreshToken.builder().userId(userId).token(refreshToken).expiresAt(expiresAt).build()
-                        )
-                );
+        // 트랜잭션이 확실히 걸린 서비스에 저장을 위임 (self-invocation으로 인한 트랜잭션 미적용 방지)
+        refreshTokenService.saveOrUpdate(userId, refreshToken, jwtTokenProvider.getRefreshTokenExpirationMs());
 
         String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
                 .queryParam("accessToken", accessToken)
                 .queryParam("refreshToken", refreshToken)
-                .build().toUriString();
+                .build()
+                .encode()
+                .toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }

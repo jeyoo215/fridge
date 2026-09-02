@@ -13,7 +13,8 @@ public record FridgeItemResponse(
         String imageType,
         Double posX,
         Double posY,
-        String zone
+        String zone,
+        Double scale
 ) {
     public FridgeItemResponse(FridgeItem fi) {
         this(
@@ -25,7 +26,8 @@ public record FridgeItemResponse(
             fi.getImageType() == null ? null : fi.getImageType().name(),
             fi.getPosX(),
             fi.getPosY(),
-            fi.getZone() == null ? null : fi.getZone().name()
+            fi.getZone() == null ? null : fi.getZone().name(),
+            fi.getScale()
         );
     }
 }
