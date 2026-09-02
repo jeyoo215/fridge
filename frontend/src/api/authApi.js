@@ -1,5 +1,4 @@
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080") + "/api/v1";
-const HOST = "http://localhost:8080";
+import { HOST, BASE_URL } from "./config";
 
 export function getAccessToken() {
   return localStorage.getItem("accessToken");
