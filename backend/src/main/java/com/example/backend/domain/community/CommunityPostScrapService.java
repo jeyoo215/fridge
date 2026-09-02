@@ -17,6 +17,9 @@ public class CommunityPostScrapService {
     // 스크랩 토글: 이미 해뒀으면 취소, 안 해뒀으면 새로 스크랩 (RecipeScrapService와 동일한 패턴)
     @Transactional
     public ToggleResponse toggle(Long userId, Long postId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("로그인이 필요합니다.");
+        }
         var existing = communityPostScrapRepository.findByPost_PostIdAndUserId(postId, userId);
 
         if (existing.isPresent()) {

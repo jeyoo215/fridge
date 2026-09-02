@@ -34,6 +34,7 @@
 .admin-recipe-form input,
 .admin-recipe-form select,
 .admin-recipe-form textarea {
+  box-sizing: border-box;
   padding: 10px 12px;
   border-radius: var(--radius);
   border: 1px solid var(--color-border);
@@ -134,4 +135,81 @@
 .admin-recipe-form-submit:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+.admin-recipe-form-ingredient-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  align-items: flex-start;
+}
+
+.admin-recipe-form-ingredient-search {
+  position: relative;
+  flex: 2;
+}
+
+.admin-recipe-form-ingredient-search input {
+  width: 100%;
+}
+
+.admin-recipe-form-matched-badge {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--color-basil-dark);
+  font-weight: 700;
+}
+
+.admin-recipe-form-search-results {
+  position: absolute;
+  z-index: 5;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-menu);
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 4px 0;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.admin-recipe-form-search-results li {
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.admin-recipe-form-search-results li:hover {
+  background: var(--color-bg);
+}
+
+.admin-recipe-form-create-ingredient {
+  margin-top: 4px;
+  padding: 6px 10px;
+  border: 1px dashed var(--color-amber);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--color-amber);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.admin-recipe-form-ingredient-row > input {
+  flex: 1;
+}
+
+.admin-recipe-form-ingredient-row > button {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-tomato);
+  font-size: 12px;
+  cursor: pointer;
 }

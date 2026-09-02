@@ -60,6 +60,9 @@ export default function Nav() {
             <NavLink to="/admin/recipes/new" className={linkClassName}>
               📖 레시피 추가
             </NavLink>
+            <NavLink to="/admin/reports" className={linkClassName}>
+              🚨 신고 관리
+            </NavLink>
           </>
         ) : (
           <>

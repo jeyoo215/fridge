@@ -35,6 +35,21 @@ export function isSessionExpired() {
   }
 }
 
+// 슬라이딩 세션 갱신: 너무 자주 호출되지 않도록 짧은 시간(30초) 쓰로틀
+let lastExtendAt = 0;
+
+export async function extendSessionIfActive() {
+  if (!isLoggedIn() || isSessionExpired()) return;
+  const now = Date.now();
+  if (now - lastExtendAt < 30 * 1000) return;
+  lastExtendAt = now;
+  try {
+    await reissue();
+  } catch {
+    // 갱신 실패해도 조용히 무시 — 다음 만료 체크(RequireAuth)에서 정식으로 처리됨
+  }
+}
+
 export const KAKAO_LOGIN_URL = `${HOST}/oauth2/authorization/kakao`;
 
 // 이메일 실시간 중복 확인

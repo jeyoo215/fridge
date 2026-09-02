@@ -75,6 +75,11 @@ public class CommunityPost {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    // 신고가 임계치(CommunityReportService.HIDE_THRESHOLD) 이상 누적되면 자동으로 true가 되어
+    // 목록/상세에서 안 보이게 된다. 관리자가 신고를 무시(기각)하면 다시 false로 풀린다.
+    @Column(name = "hidden", nullable = false, columnDefinition = "TINYINT(1) NOT NULL DEFAULT 0")
+    private boolean hidden;
+
     @Builder
     public CommunityPost(Long userId, String title, RecipeCategory category,
                           Integer cookingTimeMinutes, String difficulty,
@@ -159,6 +164,15 @@ public class CommunityPost {
     // 좋아요 임계치를 넘었을 때 호출 (CommunityPostPromotionService 전용)
     public void promote(Recipe recipe) {
         this.promotedRecipe = recipe;
+    }
+
+    // 신고 누적/관리자 처리 시 CommunityReportService 전용
+    public void hide() {
+        this.hidden = true;
+    }
+
+    public void unhide() {
+        this.hidden = false;
     }
 
     // 챌린지 게시판 2종류는 challenge 도메인의 ChallengeType과 1:1로 대응한다

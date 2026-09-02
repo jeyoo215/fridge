@@ -25,6 +25,9 @@ public class CommunityPostLikeService {
     // 좋아요 개수는 매번 COUNT 쿼리로 세지 않고 CommunityPost.likeCount에 저장해서 관리한다.
     @Transactional
     public ToggleResponse toggle(Long userId, Long postId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("로그인이 필요합니다.");
+        }
         CommunityPost post = communityPostRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다. id=" + postId));
         // 승격 표시는 있는데 실제 recipe row가 사라진 좀비 참조면 풀어준다 (data.sql 재시딩 버그 등에 대한 방어).
