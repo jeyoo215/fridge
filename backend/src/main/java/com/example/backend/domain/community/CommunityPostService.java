@@ -150,7 +150,9 @@ public class CommunityPostService {
 
         Pageable pageable = PageRequest.of(page, size);
         boolean popular = "popular".equals(sortBy);
-        String trimmedKeyword = keyword == null ? null : keyword.trim();
+        // "감자 주스"로 검색해도 "감자주스"가 나오도록, DB에 저장된 제목뿐 아니라 검색어 쪽 공백도 미리 지운다
+        // (REPLACE(title, ' ', '')와 비교하므로 둘 다 공백 없는 형태로 맞춰야 함).
+        String trimmedKeyword = keyword == null ? null : keyword.trim().replaceAll("\\s+", "");
         Page<Long> idPage;
         if (trimmedKeyword != null && !trimmedKeyword.isEmpty()) {
             idPage = popular
