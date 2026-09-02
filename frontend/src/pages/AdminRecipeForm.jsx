@@ -9,9 +9,8 @@ import {
   createIngredient,
   fetchIngredientCategories,
 } from "../api/ingredientApi";
+import { BASE_URL } from "../api/config";
 import "./AdminRecipeForm.css";
-
-const BASE_URL = "http://localhost:8080/api/v1";
 
 const emptyIngredientRow = { keyword: "", matched: null, quantity: "", unit: "" };
 const emptyStep = { stepOrder: 1, description: "", mediaUrl: "", mediaType: "" };

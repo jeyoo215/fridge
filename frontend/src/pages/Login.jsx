@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   login,
   signup,
@@ -25,6 +25,7 @@ export default function Login() {
   const [phone, setPhone] = useState("");
 
   const location = useLocation();
+  const navigate = useNavigate();
   const expiredMessage = location.state?.expired
     ? "로그인이 만료되었습니다. 다시 로그인해주세요."
     : null;
@@ -517,6 +518,14 @@ export default function Login() {
           </>
         )}
       </p>
+
+      {mode === "login" && (
+        <p className="login-signup-link">
+          <button type="button" onClick={() => navigate("/community")}>
+            로그인 없이 커뮤니티 둘러보기 →
+          </button>
+        </p>
+      )}
     </div>
   );
 }

@@ -1,0 +1,146 @@
+.admin-reports-container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+.admin-reports-status {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 30px 0;
+}
+
+.admin-reports-status.error {
+  color: var(--color-tomato);
+}
+
+.admin-reports-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-reports-item {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 18px 20px;
+}
+
+.admin-reports-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-reports-type-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--color-basil-bg);
+  color: var(--color-basil-dark);
+}
+
+.admin-reports-type-badge.comment {
+  background: var(--color-amber-bg);
+  color: var(--color-amber);
+}
+
+.admin-reports-hidden-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--color-tomato-bg);
+  color: var(--color-tomato);
+}
+
+.admin-reports-deleted-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.admin-reports-count {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.admin-reports-preview {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 4px;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.admin-reports-meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 0 0 10px;
+}
+
+.admin-reports-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.admin-reports-reason-chip {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.admin-reports-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.admin-reports-actions button {
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.admin-reports-actions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.admin-reports-dismiss:hover:not(:disabled) {
+  border-color: var(--color-basil);
+  color: var(--color-basil-dark);
+}
+
+.admin-reports-delete {
+  border: none;
+  background: var(--color-tomato);
+  color: white;
+}
+
+.admin-reports-delete:hover:not(:disabled) {
+  opacity: 0.85;
+}

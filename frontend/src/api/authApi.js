@@ -130,9 +130,6 @@ export async function findEmail(phone) {
   return email;
 }
 
-<<<<<<< HEAD
-// 비�?번호 ?�설??1?�계: ?�증 코드 발급 ?�청 (?�메?�로 ?�제 발송??. { expiresInMinutes } 반환
-=======
 // 권한 받기
 export function getRole() {
   const token = getAccessToken();
@@ -149,8 +146,7 @@ export function isAdmin() {
   return getRole() === "ADMIN";
 }
 
-// 비밀번호 재설정 1단계: 인증 코드 발급 요청 (이메일로 실제 발송됨). { expiresInMinutes } 반환
->>>>>>> origin/develop
+// 비�?번호 ?�설??1?�계: ?�증 코드 발급 ?�청 (?�메?�로 ?�제 발송??. { expiresInMinutes } 반환
 export async function requestPasswordReset(email) {
   const response = await fetch(`${BASE_URL}/auth/password-reset/request`, {
     method: "POST",

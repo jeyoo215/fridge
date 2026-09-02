@@ -36,6 +36,11 @@ public class CommunityPostComment {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    // 신고가 임계치 이상 누적되면 자동으로 true가 되어 댓글 목록에서 안 보이게 된다.
+    // 관리자가 신고를 무시(기각)하면 다시 false로 풀린다.
+    @Column(name = "hidden", nullable = false, columnDefinition = "TINYINT(1) NOT NULL DEFAULT 0")
+    private boolean hidden;
+
     @Builder
     public CommunityPostComment(CommunityPost post, Long userId, String content, Long parentCommentId) {
         this.post = post;
@@ -43,5 +48,14 @@ public class CommunityPostComment {
         this.content = content;
         this.parentCommentId = parentCommentId;
         this.createdAt = LocalDateTime.now();
+    }
+
+    // 신고 누적/관리자 처리 시 CommunityReportService 전용
+    public void hide() {
+        this.hidden = true;
+    }
+
+    public void unhide() {
+        this.hidden = false;
     }
 }
