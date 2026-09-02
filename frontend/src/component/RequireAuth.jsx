@@ -1,8 +1,23 @@
-import { Navigate } from "react-router-dom";
-import { isLoggedIn } from "../api/authApi";
+import { useEffect, useState } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { isLoggedIn, isSessionExpired, clearTokens, extendSessionIfActive } from "../api/authApi";
 
-// 로그인 안 된 상태로 보호된 라우트에 직접 접근하면 로그인 페이지로 보냄
 export default function RequireAuth({ children }) {
+  const location = useLocation();
+  const [expired, setExpired] = useState(false);
+
+  useEffect(() => {
+    if (isLoggedIn() && isSessionExpired()) {
+      clearTokens();
+      setExpired(true);
+    } else {
+      extendSessionIfActive(); // 페이지 이동(=새로고침, 네비게이션)할 때마다 슬라이딩 연장
+    }
+  }, [location.pathname]);
+
+  if (expired) {
+    return <Navigate to="/login" replace state={{ expired: true }} />;
+  }
   if (!isLoggedIn()) {
     return <Navigate to="/login" replace />;
   }
