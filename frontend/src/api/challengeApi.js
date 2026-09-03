@@ -60,3 +60,15 @@ export async function fetchChallengeHistory(page = 0, size = 5) {
   }
   return response.json();
 }
+
+export async function fetchSuggestedTarget() {
+  const response = await fetch(`${BASE_URL}/challenges/suggest-target`, {
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.message || "추천 재료를 불러오지 못했습니다.");
+  }
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
+}

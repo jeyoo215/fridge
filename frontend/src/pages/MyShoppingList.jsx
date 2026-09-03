@@ -12,6 +12,7 @@ import {
   setAllShoppingItemsChecked,
   purchaseCheckedShoppingItems,
 } from "../api/shoppingListApi";
+import { fetchActiveChallenge } from "../api/challengeApi";
 import { searchIngredients } from "../api/ingredientApi";
 import "./MyShoppingList.css";
 
@@ -35,6 +36,12 @@ export default function MyShoppingList() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   };
+
+  const [activeChallenge, setActiveChallenge] = useState(null);
+
+  useEffect(() => {
+    fetchActiveChallenge().then(setActiveChallenge).catch(() => {});
+  }, []);
 
   useEffect(() => {
     loadList();
@@ -166,6 +173,13 @@ export default function MyShoppingList() {
   };
 
   const handlePurchaseChecked = async () => {
+    if (activeChallenge?.status === "진행중" && activeChallenge.type === "FRIDGE_CLEAN") {
+      const confirmed = window.confirm(
+        "냉장고 파먹기 챌린지 진행 중입니다.\n정말로 구매하시겠습니까? 챌린지가 실패 처리될 수 있어요."
+      );
+      if (!confirmed) return;
+    }
+
     try {
       const result = await purchaseCheckedShoppingItems();
       loadList();
