@@ -28,8 +28,9 @@ public class CommunityPostComment {
     @Column(nullable = false, length = 500)
     private String content;
 
-    // 대댓글이면 원댓글(최상위 댓글)의 id, 일반 댓글이면 null.
-    // 대댓글에는 다시 대댓글을 못 달게 해서(CommunityPostCommentService.create) 항상 1단계 깊이만 존재한다.
+    // 답글이면 바로 위 댓글(부모)의 id, 원댓글이면 null.
+    // 원댓글(0단계) → 대댓글(1단계) → 대댓글의 댓글(2단계)까지만 허용하고 그 이상은 막는다
+    // (CommunityPostCommentService.create의 isReplyToReply).
     @Column(name = "parent_comment_id")
     private Long parentCommentId;
 
@@ -40,6 +41,11 @@ public class CommunityPostComment {
     // 관리자가 신고를 무시(기각)하면 다시 false로 풀린다.
     @Column(name = "hidden", nullable = false, columnDefinition = "TINYINT(1) NOT NULL DEFAULT 0")
     private boolean hidden;
+
+    // 공감(좋아요) 개수. community_comment_like row 수를 매번 COUNT하지 않도록 여기에 캐싱해서
+    // 들고 있는다 (CommunityCommentLikeService가 토글할 때마다 increase/decrease로 갱신).
+    @Column(name = "like_count", nullable = false, columnDefinition = "INT NOT NULL DEFAULT 0")
+    private int likeCount;
 
     @Builder
     public CommunityPostComment(CommunityPost post, Long userId, String content, Long parentCommentId) {
@@ -57,5 +63,14 @@ public class CommunityPostComment {
 
     public void unhide() {
         this.hidden = false;
+    }
+
+    // 공감 토글 시 CommunityCommentLikeService 전용
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        this.likeCount = Math.max(0, this.likeCount - 1);
     }
 }

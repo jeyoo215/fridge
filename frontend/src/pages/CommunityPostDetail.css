@@ -345,6 +345,7 @@
   gap: 10px;
 }
 
+.community-detail-comment-like-toggle,
 .community-detail-comment-reply-toggle,
 .community-detail-comment-report-toggle {
   align-self: flex-start;
@@ -357,6 +358,10 @@
   font-weight: 600;
   cursor: pointer;
   padding: 2px 0;
+}
+
+.community-detail-comment-like-toggle.active {
+  color: var(--color-tomato);
 }
 
 .community-detail-comment-report-toggle:hover {
