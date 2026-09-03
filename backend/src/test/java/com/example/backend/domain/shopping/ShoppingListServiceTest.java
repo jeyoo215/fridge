@@ -4,6 +4,7 @@ import com.example.backend.domain.ingredient.Ingredient;
 import com.example.backend.domain.ingredient.IngredientRepository;
 import com.example.backend.domain.ingredient.UserIngredient;
 import com.example.backend.domain.ingredient.UserIngredientRepository;
+import com.example.backend.domain.ingredient.UserIngredientService;
 import com.example.backend.domain.recipe.Recipe;
 import com.example.backend.domain.recipe.RecipeIngredient;
 import com.example.backend.domain.recipe.RecipeRepository;
@@ -21,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +38,7 @@ class ShoppingListServiceTest {
 
     @Mock private RecipeRepository recipeRepository;
     @Mock private UserIngredientRepository userIngredientRepository;
+    @Mock private UserIngredientService userIngredientService;
     @Mock private ShoppingListRepository shoppingListRepository;
     @Mock private IngredientRepository ingredientRepository;
 
@@ -447,5 +450,89 @@ class ShoppingListServiceTest {
         assertThat(list.getItems()).hasSize(1);
         assertThat(list.getItems().get(0).getQuantity()).isNull();
         assertThat(list.getItems().get(0).getUnit()).isNull();
+    }
+
+    @Test
+    @DisplayName("체크된 항목을 구매하면 보유재료로 등록되고 장보기 리스트에서 제거된다")
+    void purchaseCheckedItems_보유재료로등록되고_리스트에서제거() {
+        Ingredient onion = ingredient(2L, "양파");
+        ReflectionTestUtils.setField(onion, "defaultShelfLifeDays", 14);
+
+        ShoppingList list = ShoppingList.builder().userId(1L).build();
+        ShoppingListItem checkedItem = ShoppingListItem.builder()
+                .ingredient(onion).quantity(BigDecimal.valueOf(2)).unit("개").build();
+        checkedItem.check();
+        ShoppingListItem uncheckedItem = ShoppingListItem.builder()
+                .ingredient(ingredient(3L, "당근")).quantity(BigDecimal.ONE).unit("개").build();
+        list.addItem(checkedItem);
+        list.addItem(uncheckedItem);
+
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.of(list));
+        when(userIngredientRepository.findByUserIdAndStatusOrderByExpirationDateAsc(1L, UserIngredient.Status.보유중))
+                .thenReturn(List.of()); // 기존 보유재료 없음 -> 새로 등록되는 케이스
+        when(userIngredientService.register(eq(1L), any())).thenReturn(100L);
+
+        List<Long> result = shoppingListService.purchaseCheckedItems(1L);
+
+        assertThat(result).containsExactly(100L);
+        assertThat(list.getItems()).hasSize(1);
+        assertThat(list.getItems().get(0).getIngredient().getIngredientName()).isEqualTo("당근");
+    }
+
+    @Test
+    @DisplayName("같은 재료+단위를 이미 보유 중이면 새로 만들지 않고 수량을 합친다")
+    void purchaseCheckedItems_같은재료보유중이면_수량합침() {
+        Ingredient strawberry = ingredient(4L, "딸기");
+        ReflectionTestUtils.setField(strawberry, "defaultShelfLifeDays", 5);
+
+        ShoppingList list = ShoppingList.builder().userId(1L).build();
+        ShoppingListItem checkedItem = ShoppingListItem.builder()
+                .ingredient(strawberry).quantity(BigDecimal.valueOf(100)).unit("g").build();
+        checkedItem.check();
+        list.addItem(checkedItem);
+
+        UserIngredient existingStrawberry = UserIngredient.builder()
+                .userId(1L).ingredient(strawberry).quantity(BigDecimal.valueOf(70)).unit("g")
+                .purchaseDate(LocalDate.now().minusDays(1)).expirationDate(LocalDate.now().plusDays(3))
+                .build();
+        ReflectionTestUtils.setField(existingStrawberry, "userIngredientId", 200L);
+
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.of(list));
+        when(userIngredientRepository.findByUserIdAndStatusOrderByExpirationDateAsc(1L, UserIngredient.Status.보유중))
+                .thenReturn(List.of(existingStrawberry));
+
+        List<Long> result = shoppingListService.purchaseCheckedItems(1L);
+
+        assertThat(result).containsExactly(200L); // 기존 항목 id 그대로, 새로 안 만들어짐
+        assertThat(existingStrawberry.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(170)); // 70+100
+        verify(userIngredientService, never()).register(any(), any()); // register 호출 안 됐는지 확인
+    }
+
+    @Test
+    @DisplayName("같은 재료여도 단위가 다르면 합치지 않고 새로 등록한다")
+    void purchaseCheckedItems_단위다르면_새로등록() {
+        Ingredient strawberry = ingredient(4L, "딸기");
+        ReflectionTestUtils.setField(strawberry, "defaultShelfLifeDays", 5);
+
+        ShoppingList list = ShoppingList.builder().userId(1L).build();
+        ShoppingListItem checkedItem = ShoppingListItem.builder()
+                .ingredient(strawberry).quantity(BigDecimal.ONE).unit("팩").build(); // 기존은 "g"
+        checkedItem.check();
+        list.addItem(checkedItem);
+
+        UserIngredient existingStrawberry = UserIngredient.builder()
+                .userId(1L).ingredient(strawberry).quantity(BigDecimal.valueOf(70)).unit("g")
+                .purchaseDate(LocalDate.now()).expirationDate(LocalDate.now().plusDays(3))
+                .build();
+
+        when(shoppingListRepository.findByUserId(1L)).thenReturn(Optional.of(list));
+        when(userIngredientRepository.findByUserIdAndStatusOrderByExpirationDateAsc(1L, UserIngredient.Status.보유중))
+                .thenReturn(List.of(existingStrawberry));
+        when(userIngredientService.register(eq(1L), any())).thenReturn(300L);
+
+        List<Long> result = shoppingListService.purchaseCheckedItems(1L);
+
+        assertThat(result).containsExactly(300L);
+        assertThat(existingStrawberry.getQuantity()).isEqualByComparingTo(BigDecimal.valueOf(70)); // 안 바뀜
     }
 }
