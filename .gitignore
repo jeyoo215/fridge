@@ -59,6 +59,7 @@ src/main/resources/application-prod.yml
 # AutoML
 # ==========================================
 ml/venv/
+ml/venv_pycaret/
 .venv/
 __pycache__/
 *.pyc
