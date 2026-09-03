@@ -4,6 +4,8 @@ import com.example.backend.domain.ingredient.Ingredient;
 import com.example.backend.domain.ingredient.IngredientRepository;
 import com.example.backend.domain.ingredient.UserIngredient;
 import com.example.backend.domain.ingredient.UserIngredientRepository;
+import com.example.backend.domain.ingredient.UserIngredientService;
+import com.example.backend.domain.ingredient.dto.UserIngredientRegisterRequest;
 import com.example.backend.domain.recipe.Recipe;
 import com.example.backend.domain.recipe.RecipeIngredient;
 import com.example.backend.domain.recipe.RecipeRepository;
@@ -18,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +34,7 @@ public class ShoppingListService {
 
     private final RecipeRepository recipeRepository;
     private final UserIngredientRepository userIngredientRepository;
+    private final UserIngredientService userIngredientService;
     private final ShoppingListRepository shoppingListRepository;
     private final IngredientRepository ingredientRepository;
 
@@ -187,5 +192,48 @@ public class ShoppingListService {
         @Transactional
         public void updateQuantity(Long userId, Long itemId, BigDecimal quantity) {
         findOwnedItem(userId, itemId).updateQuantity(quantity);
+        }
+
+        // 체크된 항목 전체선택/해제
+        @Transactional
+        public void setAllChecked(Long userId, boolean checked) {
+        ShoppingList shoppingList = shoppingListRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("장보기 리스트가 없습니다."));
+        shoppingList.getItems().forEach(item -> {
+                if (checked) item.check(); else item.uncheck();
+        });
+        }
+
+        // 체크된 항목들을 보유재료로 등록하고 장보기 리스트에서 제거 ("구매" 버튼)
+        @Transactional
+        public List<Long> purchaseCheckedItems(Long userId) {
+        ShoppingList shoppingList = shoppingListRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("장보기 리스트가 없습니다."));
+
+        List<ShoppingListItem> checkedItems = shoppingList.getItems().stream()
+                .filter(ShoppingListItem::isChecked)
+                .toList();
+
+        if (checkedItems.isEmpty()) {
+                throw new IllegalArgumentException("구매 처리할 항목이 없습니다. 먼저 항목을 체크해주세요.");
+        }
+
+        LocalDate today = LocalDate.now();
+        List<Long> createdUserIngredientIds = new ArrayList<>();
+
+        for (ShoppingListItem item : checkedItems) {
+                Ingredient ingredient = item.getIngredient();
+                BigDecimal quantity = item.getQuantity() != null ? item.getQuantity() : BigDecimal.ONE;
+                // 기본 소비기한 정보 없는 재료는 7일로 (프론트 재료등록 화면 촬영등록 시 쓰는 기본값과 동일)
+                int shelfLifeDays = ingredient.getDefaultShelfLifeDays() != null ? ingredient.getDefaultShelfLifeDays() : 7;
+
+                UserIngredientRegisterRequest registerRequest = new UserIngredientRegisterRequest(
+                        ingredient.getIngredientId(), quantity, item.getUnit(), today, today.plusDays(shelfLifeDays)
+                );
+                createdUserIngredientIds.add(userIngredientService.register(userId, registerRequest));
+        }
+
+        shoppingList.getItems().removeAll(checkedItems);
+        return createdUserIngredientIds;
         }
 }
