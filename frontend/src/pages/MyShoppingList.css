@@ -8,7 +8,7 @@
   font-family: var(--font-display);
   font-size: 22px;
   font-weight: 700;
-  margin-bottom: 18px;
+  margin: 0;
   color: var(--color-text);
 }
 
@@ -57,24 +57,6 @@
   font-weight: 700;
   font-size: 15px;
   color: var(--color-text);
-}
-
-.my-shopping-list-item-amount {
-  font-size: 13px;
-  color: var(--color-text-muted);
-}
-
-.my-shopping-list-item-delete {
-  border: none;
-  background: none;
-  color: var(--color-text-muted);
-  font-size: 14px;
-  cursor: pointer;
-  padding: 4px 8px;
-}
-
-.my-shopping-list-item-delete:hover {
-  color: var(--color-tomato, #d9534f);
 }
 
 .my-shopping-list-add-form {
@@ -255,20 +237,43 @@
   background: var(--color-tomato-bg);
 }
 
-/* ===== 상단 헤더 + 선택삭제/전체삭제 (타원형) ===== */
+/* ===== 상단 헤더: 제목 줄 + 액션 줄 분리 ===== */
 .my-shopping-list-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+/* 전체선택 체크박스(왼쪽) + 버튼 묶음(오른쪽) 한 줄 */
+.my-shopping-list-actions-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.my-shopping-list-select-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .my-shopping-list-bulk-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .my-shopping-list-bulk-actions button {
+  white-space: nowrap;
   padding: 7px 16px;
   border-radius: 999px;
   border: 1px solid var(--color-border);
@@ -289,15 +294,14 @@
   cursor: default;
 }
 
-.my-shopping-list-bulk-actions button.danger {
-  border-color: var(--color-tomato);
-  color: var(--color-tomato);
-  background: var(--color-tomato-bg);
+.my-shopping-list-bulk-actions button.primary {
+  border-color: var(--color-basil);
+  color: #fff;
+  background: var(--color-basil);
 }
 
-.my-shopping-list-bulk-actions button.danger:hover:not(:disabled) {
-  background: var(--color-tomato);
-  color: #fff;
+.my-shopping-list-bulk-actions button.primary:hover:not(:disabled) {
+  background: var(--color-basil-dark);
 }
 
 .my-shopping-list-item-handle {
@@ -310,25 +314,4 @@
 
 .my-shopping-list-item-handle:active {
   cursor: grabbing;
-}
-
-.my-shopping-list-select-all {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--color-text-muted);
-  font-weight: 700;
-  cursor: pointer;
-  margin-right: 4px;
-}
-
-.my-shopping-list-bulk-actions button.primary {
-  border-color: var(--color-basil);
-  color: #fff;
-  background: var(--color-basil);
-}
-
-.my-shopping-list-bulk-actions button.primary:hover:not(:disabled) {
-  background: var(--color-basil-dark);
 }
