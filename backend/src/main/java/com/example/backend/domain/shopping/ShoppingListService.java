@@ -24,6 +24,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -219,21 +221,42 @@ public class ShoppingListService {
         }
 
         LocalDate today = LocalDate.now();
-        List<Long> createdUserIngredientIds = new ArrayList<>();
+        List<Long> resultIds = new ArrayList<>();
+
+        // 이미 보유 중인 재료 목록 (같은 재료+단위면 새로 만들지 않고 합치기 위해 미리 조회)
+        List<UserIngredient> ownedIngredients = userIngredientRepository
+                .findByUserIdAndStatusOrderByExpirationDateAsc(userId, UserIngredient.Status.보유중);
 
         for (ShoppingListItem item : checkedItems) {
                 Ingredient ingredient = item.getIngredient();
                 BigDecimal quantity = item.getQuantity() != null ? item.getQuantity() : BigDecimal.ONE;
-                // 기본 소비기한 정보 없는 재료는 7일로 (프론트 재료등록 화면 촬영등록 시 쓰는 기본값과 동일)
+                String unit = item.getUnit();
                 int shelfLifeDays = ingredient.getDefaultShelfLifeDays() != null ? ingredient.getDefaultShelfLifeDays() : 7;
+                LocalDate newExpirationDate = today.plusDays(shelfLifeDays);
 
+                Optional<UserIngredient> existing = ownedIngredients.stream()
+                        .filter(ui -> ui.getIngredient().getIngredientId().equals(ingredient.getIngredientId()))
+                        .filter(ui -> Objects.equals(ui.getUnit(), unit))
+                        .findFirst();
+
+                if (existing.isPresent()) {
+                // 같은 재료+단위 보유 중 -> 수량 합치고, 구매일/유통기한은 이번 구매 기준으로 갱신
+                UserIngredient merged = existing.get();
+                BigDecimal mergedQuantity = merged.getQuantity().add(quantity);
+                LocalDate mergedExpiration = newExpirationDate.isAfter(merged.getExpirationDate())
+                        ? newExpirationDate
+                        : merged.getExpirationDate();
+                merged.updateQuantityAndExpiration(mergedQuantity, today, mergedExpiration);
+                resultIds.add(merged.getUserIngredientId());
+                } else {
                 UserIngredientRegisterRequest registerRequest = new UserIngredientRegisterRequest(
-                        ingredient.getIngredientId(), quantity, item.getUnit(), today, today.plusDays(shelfLifeDays)
+                        ingredient.getIngredientId(), quantity, unit, today, newExpirationDate
                 );
-                createdUserIngredientIds.add(userIngredientService.register(userId, registerRequest));
+                resultIds.add(userIngredientService.register(userId, registerRequest));
+                }
         }
 
         shoppingList.getItems().removeAll(checkedItems);
-        return createdUserIngredientIds;
+        return resultIds;
         }
 }
