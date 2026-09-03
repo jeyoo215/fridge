@@ -191,6 +191,14 @@
   margin: 0 0 10px;
 }
 
+/* 내용이 아예 없는 빈 문단(<p></p>)은 기본적으로 높이가 0으로 접혀서, 사용자가 엔터로 띄운
+   줄바꿈이 안 보이는 것처럼 보인다. 빈 칸을 채워서 한 줄 높이를 갖게 한다
+   (글쓰기 폼은 useSemanticHTML={false}로 이미 <br>을 그대로 저장하지만, 예전에 저장된 글은
+   <br> 없는 <p></p>일 수 있어서 방어적으로 처리). */
+.community-detail-content p:empty::before {
+  content: "\00a0";
+}
+
 /* Quill 에디터가 정렬 서식을 이 클래스들로 저장하는데, 에디터 밖(상세 화면)에선 직접 스타일을 줘야 함 */
 .community-detail-content .ql-align-center {
   text-align: center;

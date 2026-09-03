@@ -551,6 +551,12 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
               value={step.description}
               onChange={(value) => updateStep(step.key, { description: value })}
               modules={QUILL_MODULES}
+              // react-quill-new는 기본적으로 quill의 getSemanticHTML()로 값을 만드는데, 이게
+              // 빈 문단(엔터만 여러 번 친 줄)의 <br>을 지워버려서 <p></p>가 되고, 상세 화면(읽기
+              // 전용 dangerouslySetInnerHTML)에서는 내용 없는 <p>가 높이 0으로 접혀 문단 줄바꿈이
+              // 안 보이게 된다 — 편집 중엔 contenteditable이라 안 보이던 문제. root.innerHTML을
+              // 그대로 쓰면 편집기에 실제로 있는 <br>이 그대로 저장돼 그 문제가 없다.
+              useSemanticHTML={false}
             />
           </div>
         </div>
