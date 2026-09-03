@@ -38,8 +38,18 @@ const QUILL_MODULES = {
   ],
 };
 
+// crypto.randomUUID()는 https 또는 localhost 같은 "보안 컨텍스트"에서만 존재해서,
+// 사내망 IP 등 http로 접속하면 undefined라 여기서 바로 TypeError가 나며 폼 전체가 하얗게 죽는다.
+// 여기선 React key로만 쓰이는 값이라 진짜 UUID일 필요 없이 충돌만 안 나면 충분하므로, 폴백을 둔다.
+function generateKey() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `key-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 function emptyStep() {
-  return { key: crypto.randomUUID(), description: "", mediaUrl: "", mediaType: null, uploading: false };
+  return { key: generateKey(), description: "", mediaUrl: "", mediaType: null, uploading: false };
 }
 
 // props의 boardType은 "새 글쓰기" 진입 경로(라우트)로 결정된다. 수정 모드에서는 대신 서버에서 불러온
@@ -125,7 +135,7 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
           setDifficulty(post.difficulty || DIFFICULTY_OPTIONS[0]);
           setIngredients(
             post.ingredients.map((item) => ({
-              key: crypto.randomUUID(),
+              key: generateKey(),
               ingredientId: item.ingredientId,
               ingredientName: item.ingredientName,
               quantity: item.quantity ?? "",
@@ -138,7 +148,7 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
         setSteps(
           post.steps.length > 0
             ? post.steps.map((step) => ({
-                key: crypto.randomUUID(),
+                key: generateKey(),
                 description: step.description,
                 mediaUrl: step.mediaUrl || "",
                 mediaType: step.mediaType,
@@ -175,7 +185,7 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
   const addIngredientRow = (ingredient) => {
     setIngredients((prev) => [
       ...prev,
-      { key: crypto.randomUUID(), ingredientId: ingredient.ingredientId, ingredientName: ingredient.ingredientName, quantity: "", unit: "" },
+      { key: generateKey(), ingredientId: ingredient.ingredientId, ingredientName: ingredient.ingredientName, quantity: "", unit: "" },
     ]);
     setIngredientKeyword("");
     setIngredientResults([]);
