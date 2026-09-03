@@ -28,8 +28,9 @@ public class CommunityPostComment {
     @Column(nullable = false, length = 500)
     private String content;
 
-    // 대댓글이면 원댓글(최상위 댓글)의 id, 일반 댓글이면 null.
-    // 대댓글에는 다시 대댓글을 못 달게 해서(CommunityPostCommentService.create) 항상 1단계 깊이만 존재한다.
+    // 답글이면 바로 위 댓글(부모)의 id, 원댓글이면 null.
+    // 원댓글(0단계) → 대댓글(1단계) → 대댓글의 댓글(2단계)까지만 허용하고 그 이상은 막는다
+    // (CommunityPostCommentService.create의 isReplyToReply).
     @Column(name = "parent_comment_id")
     private Long parentCommentId;
 
