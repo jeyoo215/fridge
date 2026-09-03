@@ -16,7 +16,6 @@ import {
 import { getBoardConfig } from "./communityBoards";
 import { getUserId, isLoggedIn } from "../api/authApi";
 import { REPORT_REASONS, reportPost, reportComment } from "../api/communityReportApi";
-import CommunityNotificationBell from "../component/CommunityNotificationBell";
 import "./CommunityPostDetail.css";
 
 // 댓글 목록에서 "내가 쓴 댓글인지" 비교할 때 씀. 토큰 안 userId는 문자열이라 Number로 맞춰줌.
@@ -188,12 +187,9 @@ export default function CommunityPostDetail() {
 
   return (
     <article className="community-detail-container">
-      <div className="community-detail-top-bar">
-        <button type="button" className="community-detail-back" onClick={() => navigate(board.listPath)}>
-          ← 목록으로
-        </button>
-        <CommunityNotificationBell />
-      </div>
+      <button type="button" className="community-detail-back" onClick={() => navigate(board.listPath)}>
+        ← 목록으로
+      </button>
 
       <div className="community-detail-top">
         <div className="community-detail-author">{post.nickname}</div>
