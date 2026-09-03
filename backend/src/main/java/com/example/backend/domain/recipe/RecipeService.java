@@ -44,7 +44,7 @@ public class RecipeService {
     private static final int EXPIRY_WEIGHT_D3 = 2; // D-3 이하
 
     private final RecipeRepository recipeRepository;
-    private final RecipeCategoryRepository recipeCategoryRepository; // 📌 새로 생성한 Repository 주입
+    private final RecipeCategoryRepository recipeCategoryRepository;
     private final IngredientRepository ingredientRepository;
     private final UserIngredientRepository userIngredientRepository;
     private final CookingToolRepository cookingToolRepository;
@@ -118,7 +118,7 @@ public class RecipeService {
                 .collect(Collectors.toMap(
                         userIngredient -> userIngredient.getIngredient().getIngredientId(),
                         userIngredient -> ChronoUnit.DAYS.between(LocalDate.now(), userIngredient.getExpirationDate()),
-                        (existing, duplicate) -> existing
+                        (existing, duplicate) -> existing // 혹시 같은 재료 여러 개 보유 시 첫 값 사용
                 ));
 
         // 보유 재료(조미료 제외)와 겹치는 비조미료 재료 개수 (레시피별)
@@ -234,11 +234,15 @@ public class RecipeService {
         boolean hasKeyword = keyword != null && !keyword.isBlank();
         boolean hasIngredients = ingredientIds != null && !ingredientIds.isEmpty();
 
+        // "감자 주스"로 검색해도 "감자주스"가 나오도록, DB에 저장된 이름뿐 아니라 검색어 쪽 공백도 미리 지운다
+        // (REPLACE(recipeName, ' ', '')와 비교하므로 둘 다 공백 없는 형태로 맞춰야 함).
+        String normalizedKeyword = hasKeyword ? keyword.trim().replaceAll("\\s+", "") : null;
+
         Page<Long> idPage;
         if (hasKeyword && hasIngredients) {
-                idPage = recipeRepository.findRecipeIdsByNameAndIngredientIds(keyword.trim(), ingredientIds, pageable);
+                idPage = recipeRepository.findRecipeIdsByNameAndIngredientIds(normalizedKeyword, ingredientIds, pageable);
         } else if (hasKeyword) {
-                idPage = recipeRepository.findRecipeIdsByNameContaining(keyword.trim(), pageable);
+                idPage = recipeRepository.findRecipeIdsByNameContaining(normalizedKeyword, pageable);
         } else if (hasIngredients) {
                 idPage = recipeRepository.findRecipeIdsByIngredientIds(ingredientIds, pageable);
         } else {

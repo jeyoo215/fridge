@@ -3,9 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { fetchCommunityPosts, toMediaSrc } from "../api/communityApi";
 import CommunitySidebar from "../component/CommunitySidebar";
 import { getBoardConfig, FREE_TALK_PREFIXES } from "./communityBoards";
+import { isLoggedIn } from "../api/authApi";
 import "./CommunityList.css";
-
-const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
 
 export default function CommunityList({ boardType = "RECIPE" }) {
   const board = getBoardConfig(boardType);
@@ -30,7 +29,6 @@ export default function CommunityList({ boardType = "RECIPE" }) {
     fetchCommunityPosts(page, 10, sortBy, boardType, {
       prefix: prefix || undefined,
       keyword: keyword || undefined,
-      userId: TEMP_USER_ID,
     })
       .then((data) => {
         setPosts(data.content);
@@ -149,7 +147,7 @@ export default function CommunityList({ boardType = "RECIPE" }) {
               className="community-post-card"
               onClick={() => navigate(`/community/${post.postId}`)}
             >
-              <div className="community-post-card-author">사용자 {post.userId}</div>
+              <div className="community-post-card-author">{post.nickname}</div>
               <div className="community-post-card-body">
                 <div className="community-post-card-title">
                   {post.prefix && <span className="community-post-card-prefix">{post.prefix}</span>}
@@ -203,7 +201,11 @@ export default function CommunityList({ boardType = "RECIPE" }) {
         )}
       </div>
 
-      <button type="button" className="community-write-fab" onClick={() => navigate(board.newPath)}>
+      <button
+        type="button"
+        className="community-write-fab"
+        onClick={() => navigate(isLoggedIn() ? board.newPath : "/login")}
+      >
         ✏️ 글쓰기
       </button>
     </div>

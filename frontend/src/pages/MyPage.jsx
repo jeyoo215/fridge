@@ -13,9 +13,8 @@ import {
 } from "../api/userApi";
 import { toMediaSrc } from "../api/communityApi";
 import { fetchMyScraps, fetchMyMadeRecipes, fetchMyReviewedRecipes } from "../api/socialApi";
+import { fetchMyProfile, updateNickname as updateNicknameApi } from "../api/authApi";
 import "./MyPage.css";
-
-const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
 
 const ACTIVITY_CATEGORIES = [
   { key: "scraps", label: "📌 스크랩한 게시글", fetcher: fetchMyCommunityScraps, type: "community" },
@@ -40,6 +39,8 @@ export default function MyPage({ onNavigateAway } = {}) {
   const [allTools, setAllTools] = useState([]);
   const [selectedToolIds, setSelectedToolIds] = useState([]);
   const [savedToolIds, setSavedToolIds] = useState([]);
+  const [nickname, setNickname] = useState("");
+  const [savedNickname, setSavedNickname] = useState(null); // null = 프로필 조회 실패(비로그인 등) → 닉네임 섹션 자체를 숨김
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -52,16 +53,21 @@ export default function MyPage({ onNavigateAway } = {}) {
 
   useEffect(() => {
     Promise.all([
-      fetchMyAllergyIngredients(TEMP_USER_ID),
+      fetchMyAllergyIngredients(),
       fetchAllCookingTools(),
-      fetchMyTools(TEMP_USER_ID),
+      fetchMyTools(),
+      fetchMyProfile().catch(() => null), // 비로그인 등으로 실패해도 나머지 섹션은 정상 동작해야 하므로 조용히 null 처리
     ])
-      .then(([allergyList, toolList, myTools]) => {
+      .then(([allergyList, toolList, myTools, profile]) => {
         setAllergyIngredients(allergyList);
         setAllTools(toolList);
         const myToolIds = myTools.map((tool) => tool.toolId);
         setSelectedToolIds(myToolIds);
         setSavedToolIds(myToolIds);
+        if (profile) {
+          setNickname(profile.nickname);
+          setSavedNickname(profile.nickname);
+        }
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -75,7 +81,8 @@ export default function MyPage({ onNavigateAway } = {}) {
 
   const toolsDirty = !isSameToolSet(selectedToolIds, savedToolIds);
   const ingredientsDirty = pendingNewIngredients.length > 0 || pendingDeleteIds.length > 0;
-  const isDirty = toolsDirty || ingredientsDirty;
+  const nicknameDirty = savedNickname !== null && nickname.trim() !== savedNickname && nickname.trim() !== "";
+  const isDirty = toolsDirty || ingredientsDirty || nicknameDirty;
 
   const handleAddAllergyIngredient = (e) => {
     e.preventDefault();
@@ -109,17 +116,21 @@ export default function MyPage({ onNavigateAway } = {}) {
     setSaving(true);
     try {
       await Promise.all([
-        ...pendingDeleteIds.map((id) => deleteAllergyIngredient(TEMP_USER_ID, id)),
+        ...pendingDeleteIds.map((id) => deleteAllergyIngredient(id)),
         ...pendingNewIngredients.map((item) =>
-          registerAllergyIngredient(TEMP_USER_ID, item.ingredientName, item.type)
+          registerAllergyIngredient(item.ingredientName, item.type)
         ),
       ]);
       if (toolsDirty) {
-        await updateMyTools(TEMP_USER_ID, selectedToolIds);
+        await updateMyTools(selectedToolIds);
         setSavedToolIds(selectedToolIds);
       }
+      if (nicknameDirty) {
+        await updateNicknameApi(nickname.trim());
+        setSavedNickname(nickname.trim());
+      }
 
-      const freshAllergyList = await fetchMyAllergyIngredients(TEMP_USER_ID);
+      const freshAllergyList = await fetchMyAllergyIngredients();
       setAllergyIngredients(freshAllergyList);
       setPendingNewIngredients([]);
       setPendingDeleteIds([]);
@@ -137,6 +148,9 @@ export default function MyPage({ onNavigateAway } = {}) {
       setSelectedToolIds(savedToolIds);
       setPendingNewIngredients([]);
       setPendingDeleteIds([]);
+      if (savedNickname !== null) {
+        setNickname(savedNickname);
+      }
     }
     setSaved(false);
     setEditing((prev) => !prev);
@@ -147,7 +161,7 @@ export default function MyPage({ onNavigateAway } = {}) {
     setActivityError(null);
     setActivityLoading(true);
     try {
-      const posts = await category.fetcher(TEMP_USER_ID);
+      const posts = await category.fetcher();
       setActivityPosts(posts);
     } catch (err) {
       setActivityError(err.message);
@@ -279,6 +293,23 @@ export default function MyPage({ onNavigateAway } = {}) {
         </div>
       </div>
       {error && <p className="mypage-status error">{error}</p>}
+
+      {savedNickname !== null && (
+        <section className="mypage-section">
+          <h3 className="mypage-section-title">닉네임</h3>
+          {editing ? (
+            <input
+              type="text"
+              className="mypage-nickname-input"
+              value={nickname}
+              maxLength={50}
+              onChange={(e) => setNickname(e.target.value)}
+            />
+          ) : (
+            <p className="mypage-nickname-view">{savedNickname}</p>
+          )}
+        </section>
+      )}
 
       <section className="mypage-section">
         <h3 className="mypage-section-title">알레르기 · 기피 재료</h3>

@@ -13,6 +13,8 @@ import com.example.backend.domain.ingredient.IngredientRepository;
 import com.example.backend.domain.recipe.RecipeCategory;
 import com.example.backend.domain.recipe.RecipeCategoryRepository;
 import com.example.backend.domain.recipe.RecipeRepository;
+import com.example.backend.domain.user.User;
+import com.example.backend.domain.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,10 +44,25 @@ public class CommunityPostService {
     private final IngredientRepository ingredientRepository;
     private final RecipeRepository recipeRepository;
     private final ChallengeRepository challengeRepository;
+    private final UserRepository userRepository;
+    private final CommunityReportRepository communityReportRepository;
+
+    // 탈퇴 등으로 작성자 계정이 이미 없는 경우의 표시용 대체 닉네임
+    private static final String UNKNOWN_NICKNAME = "알 수 없는 사용자";
+
+    // 게시글/댓글 목록에서 매번 유저를 한 명씩 조회하지 않도록, userId 집합을 한 번에 조회해서
+    // userId -> nickname 맵으로 만들어둔다.
+    private Map<Long, String> findNicknamesByUserIds(Collection<Long> userIds) {
+        return userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getUserId, User::getNickname));
+    }
 
     // 게시글 작성 (제목 + 재료/조리순서를 통째로 받아 한 번에 저장)
     @Transactional
     public Long create(Long userId, CommunityPostCreateRequest request) {
+        if (userId == null) {
+            throw new IllegalArgumentException("로그인이 필요합니다.");
+        }
         assertChallengeBoardAccess(userId, request.boardType());
 
         RecipeCategory category = null;
@@ -136,7 +154,9 @@ public class CommunityPostService {
 
         Pageable pageable = PageRequest.of(page, size);
         boolean popular = "popular".equals(sortBy);
-        String trimmedKeyword = keyword == null ? null : keyword.trim();
+        // "감자 주스"로 검색해도 "감자주스"가 나오도록, DB에 저장된 제목뿐 아니라 검색어 쪽 공백도 미리 지운다
+        // (REPLACE(title, ' ', '')와 비교하므로 둘 다 공백 없는 형태로 맞춰야 함).
+        String trimmedKeyword = keyword == null ? null : keyword.trim().replaceAll("\\s+", "");
         Page<Long> idPage;
         if (trimmedKeyword != null && !trimmedKeyword.isEmpty()) {
             idPage = popular
@@ -162,10 +182,15 @@ public class CommunityPostService {
                 .collect(Collectors.toMap(CommunityPost::getPostId, post -> post));
         postsById.values().forEach(this::repairDanglingPromotion);
 
+        Map<Long, String> nicknamesByUserId = findNicknamesByUserIds(
+                postsById.values().stream().map(CommunityPost::getUserId).collect(Collectors.toSet())
+        );
+
         // id 목록의 정렬(최신순 또는 인기순)을 그대로 유지하기 위해 IN 조회 결과를 postIds 순서에 맞춰 다시 매핑한다.
         List<CommunityPostListResponse> content = postIds.stream()
                 .map(postsById::get)
-                .map(CommunityPostListResponse::new)
+                .map(post -> new CommunityPostListResponse(
+                        post, nicknamesByUserId.getOrDefault(post.getUserId(), UNKNOWN_NICKNAME)))
                 .toList();
 
         return new CommunityPostPageResponse(content, page, idPage.getTotalPages(), idPage.getTotalElements());
@@ -176,9 +201,16 @@ public class CommunityPostService {
     public CommunityPostDetailResponse getDetail(Long postId, Long userId) {
         CommunityPost post = communityPostRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다. id=" + postId));
+        // 신고 누적으로 숨김 처리된 글은 작성자 본인만 볼 수 있음 (관리자 판단이 나기 전까지)
+        if (post.isHidden() && !post.getUserId().equals(userId)) {
+            throw new IllegalStateException("신고가 접수되어 관리자 검토 중인 게시글입니다.");
+        }
         assertChallengeBoardAccess(userId, post.getEffectiveBoardType());
         repairDanglingPromotion(post);
-        return new CommunityPostDetailResponse(post);
+        String nickname = userRepository.findById(post.getUserId())
+                .map(User::getNickname)
+                .orElse(UNKNOWN_NICKNAME);
+        return new CommunityPostDetailResponse(post, nickname);
     }
 
     // 승격 표시(promotedRecipe)는 있는데 실제 recipe row가 없는 좀비 참조를 감지해서 풀어준다.
@@ -219,9 +251,30 @@ public class CommunityPostService {
     @Transactional
     public void delete(Long userId, Long postId) {
         CommunityPost post = findOwnedPost(userId, postId);
+        deletePostInternal(post);
+    }
+
+    // 관리자 전용: 신고 처리로 게시글을 강제 삭제 (작성자 소유 여부와 무관, CommunityReportService에서 호출)
+    @Transactional
+    public void adminDelete(Long postId) {
+        CommunityPost post = communityPostRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다. id=" + postId));
+        deletePostInternal(post);
+    }
+
+    // 좋아요/댓글/스크랩과, 이 게시글(및 댓글들)에 쌓여있던 신고 row까지 전부 정리한 뒤 게시글을 지운다.
+    private void deletePostInternal(CommunityPost post) {
         if (post.isPromoted()) {
             throw new IllegalStateException("정식 레시피로 등록된 게시글은 삭제할 수 없습니다.");
         }
+        Long postId = post.getPostId();
+        List<Long> commentIds = communityPostCommentRepository.findByPost_PostIdOrderByCreatedAtAsc(postId).stream()
+                .map(CommunityPostComment::getCommentId)
+                .toList();
+        if (!commentIds.isEmpty()) {
+            communityReportRepository.deleteByTargetTypeAndTargetIdIn(CommunityReport.TargetType.COMMENT, commentIds);
+        }
+        communityReportRepository.deleteByTargetTypeAndTargetId(CommunityReport.TargetType.POST, postId);
         communityPostLikeRepository.deleteByPost_PostId(postId);
         communityPostCommentRepository.deleteByPost_PostId(postId);
         communityPostScrapRepository.deleteByPost_PostId(postId);
@@ -230,6 +283,9 @@ public class CommunityPostService {
 
     // 본인 소유의 게시글이 맞는지 확인 후 반환 (다른 사람 글을 못 건드리게 방지)
     private CommunityPost findOwnedPost(Long userId, Long postId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("로그인이 필요합니다.");
+        }
         CommunityPost post = communityPostRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 게시글입니다. id=" + postId));
 

@@ -6,7 +6,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -14,8 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
-// Authorization: Bearer {accessToken} 헤더를 읽어서 SecurityContext에 인증 정보를 채워넣는 필터.
-// 토큰이 없거나 유효하지 않아도 그냥 다음 필터로 넘김 (permitAll 엔드포인트가 있으므로 여기서 막지 않음).
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -30,23 +31,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                      HttpServletResponse response,
                                      FilterChain filterChain) throws ServletException, IOException {
         String token = resolveToken(request);
+        log.info("[JWT필터] URI={}, token존재={}", request.getRequestURI(), token != null);
 
         if (token != null) {
             try {
                 var claims = jwtTokenProvider.parseClaims(token);
+                log.info("[JWT필터] claims type={}, role={}", claims.get("type"), claims.get("role"));
                 if ("access".equals(claims.get("type"))) {
                     Long userId = Long.valueOf(claims.getSubject());
+                    String role = claims.get("role", String.class);
+                    var authorities = role != null
+                            ? List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                            : List.<SimpleGrantedAuthority>of();
+
                     var authentication = new UsernamePasswordAuthenticationToken(
-                            userId, null, List.of()
+                            userId, null, authorities
                     );
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+                    log.info("[JWT필터] 인증 설정 완료: userId={}, authorities={}", userId, authorities);
                 }
             } catch (JwtException | IllegalArgumentException e) {
+                log.error("[JWT필터] 토큰 파싱 실패", e);
                 SecurityContextHolder.clearContext();
             }
         }
 
         filterChain.doFilter(request, response);
+
+        // 필터체인 끝난 뒤 최종 인증 상태 확인 (다른 필터가 지웠는지 확인용)
+        var finalAuth = SecurityContextHolder.getContext().getAuthentication();
+        log.info("[JWT필터] 응답 시점 최종 인증 상태: {}", finalAuth);
     }
 
     private String resolveToken(HttpServletRequest request) {

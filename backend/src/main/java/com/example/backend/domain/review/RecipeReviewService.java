@@ -7,20 +7,28 @@ import com.example.backend.domain.review.dto.MyRecipeReviewResponse;
 import com.example.backend.domain.review.dto.RecipeReviewCreateRequest;
 import com.example.backend.domain.review.dto.RecipeReviewListResponse;
 import com.example.backend.domain.review.dto.RecipeReviewResponse;
+import com.example.backend.domain.user.User;
+import com.example.backend.domain.user.UserRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class RecipeReviewService {
 
+    private static final String UNKNOWN_NICKNAME = "알 수 없는 사용자";
+
     private final RecipeReviewRepository recipeReviewRepository;
     private final RecipeRepository recipeRepository;
     private final ComboRecommendationScheduler comboRecommendationScheduler;
+    private final UserRepository userRepository;
 
     // 후기/평점 등록 (FR-41)
     @Transactional
@@ -44,8 +52,15 @@ public class RecipeReviewService {
 
     // 레시피의 후기 목록 + 평균 평점 조회
     public RecipeReviewListResponse getReviews(Long recipeId) {
-        var reviews = recipeReviewRepository.findByRecipe_RecipeIdOrderByCreatedAtDesc(recipeId).stream()
-                .map(RecipeReviewResponse::new)
+        var reviewEntities = recipeReviewRepository.findByRecipe_RecipeIdOrderByCreatedAtDesc(recipeId);
+
+        Map<Long, String> nicknamesByUserId = userRepository.findAllById(
+                reviewEntities.stream().map(RecipeReview::getUserId).collect(Collectors.toSet())
+        ).stream().collect(Collectors.toMap(User::getUserId, User::getNickname));
+
+        var reviews = reviewEntities.stream()
+                .map(review -> new RecipeReviewResponse(
+                        review, nicknamesByUserId.getOrDefault(review.getUserId(), UNKNOWN_NICKNAME)))
                 .toList();
 
         Double average = recipeReviewRepository.findAverageRatingByRecipeId(recipeId);

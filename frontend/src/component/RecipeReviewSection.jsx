@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { fetchReviews, createReview } from "../api/recipeReviewApi";
 import "./RecipeReviewSection.css";
 
-const TEMP_USER_ID = 1;
-
 // RecipeDetail.jsx 안에 <RecipeReviewSection recipeId={recipe.recipeId} /> 형태로 붙여서 사용
 export default function RecipeReviewSection({ recipeId }) {
   const [data, setData] = useState(null);
@@ -23,7 +21,7 @@ export default function RecipeReviewSection({ recipeId }) {
     if (submitting) return;
     setSubmitting(true);
     try {
-      await createReview(TEMP_USER_ID, recipeId, { rating, content });
+      await createReview(recipeId, { rating, content });
       setContent("");
       setRating(5);
       loadReviews();
@@ -60,6 +58,7 @@ export default function RecipeReviewSection({ recipeId }) {
       <ul className="review-list">
         {data.reviews.map((review) => (
           <li key={review.reviewId} className="review-item">
+            <span className="review-author">{review.nickname}</span>
             <span className="review-rating">{"★".repeat(review.rating)}</span>
             <span className="review-content">{review.content}</span>
           </li>

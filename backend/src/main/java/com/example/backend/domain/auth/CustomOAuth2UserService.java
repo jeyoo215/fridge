@@ -43,6 +43,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     : null;
 
             String email = kakaoAccount != null ? (String) kakaoAccount.get("email") : null;
+            // 카카오가 이메일을 실제로 검증했는지 여부. 검증 안 된 이메일로 자동 연결해주면
+            // 남의 이메일을 카카오 프로필에 대충 써넣고 그 사람 계정을 가로채는 경로가 생기므로,
+            // 반드시 검증된 이메일일 때만 기존 계정에 연결(계정 통합)한다.
+            boolean emailVerified = kakaoAccount != null && Boolean.TRUE.equals(kakaoAccount.get("is_email_verified"));
             String nickname = profile != null ? (String) profile.get("nickname") : null;
             if (nickname == null || nickname.isBlank()) {
                 nickname = "카카오사용자" + providerId.substring(Math.max(0, providerId.length() - 4));
@@ -50,19 +54,29 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             String finalNickname = nickname;
             User user = userRepository.findByProviderAndProviderId(AuthProvider.KAKAO, providerId)
-                    .orElseGet(() -> userRepository.save(
-                            User.builder()
-                                    .email(email != null ? email : "kakao_" + providerId + "@no-email.fridge")
-                                    .password(null)
-                                    .nickname(finalNickname)
-                                    .provider(AuthProvider.KAKAO)
-                                    .providerId(providerId)
-                                    .build()
-                    ));
+                    .orElseGet(() -> {
+                        if (email != null && emailVerified) {
+                            User existing = userRepository.findByEmail(email).orElse(null);
+                            if (existing != null) {
+                                existing.linkKakao(providerId);
+                                return existing;
+                            }
+                        }
+                        return userRepository.save(
+                                User.builder()
+                                        .email(email != null ? email : "kakao_" + providerId + "@no-email.fridge")
+                                        .password(null)
+                                        .nickname(finalNickname)
+                                        .provider(AuthProvider.KAKAO)
+                                        .providerId(providerId)
+                                        .build()
+                        );
+                    });
 
             Map<String, Object> customAttributes = new HashMap<>(attributes);
             customAttributes.put("userId", user.getUserId());
             customAttributes.put("email", user.getEmail());
+            customAttributes.put("role", user.getRole());
 
             return new DefaultOAuth2User(
                     List.of(new SimpleGrantedAuthority("ROLE_USER")),

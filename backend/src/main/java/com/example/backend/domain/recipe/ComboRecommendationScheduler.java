@@ -65,7 +65,7 @@ public class ComboRecommendationScheduler {
             log.info("서버 시작 시 조합 추천 배치 자동 실행을 건너뜀 (enabled={}, runOnStartup={})", enabled, runOnStartup);
             return;
         }
-        log.info("서버 시작 시 조합 추천 배치 자동 실행");
+        log.info("현재 작업 디렉토리: {}", System.getProperty("user.dir"));
         executeBatch(null);
     }
 

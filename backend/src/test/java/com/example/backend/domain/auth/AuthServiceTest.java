@@ -3,6 +3,7 @@ package com.example.backend.domain.auth;
 import com.example.backend.domain.auth.dto.LoginRequest;
 import com.example.backend.domain.auth.dto.SignupRequest;
 import com.example.backend.domain.auth.dto.TokenResponse;
+import com.example.backend.domain.user.Role;
 import com.example.backend.domain.user.User;
 import com.example.backend.domain.user.UserRepository;
 import com.example.backend.security.JwtTokenProvider;
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -34,7 +34,10 @@ class AuthServiceTest {
 
     @Mock private UserRepository userRepository;
     @Mock private RefreshTokenRepository refreshTokenRepository;
+    @Mock private PasswordResetTokenRepository passwordResetTokenRepository;
+    @Mock private SignupVerificationRepository signupVerificationRepository;
     @Mock private JwtTokenProvider jwtTokenProvider;
+    @Mock private EmailService emailService;
 
     // 실제 암호화 로직이 필요해서(matches 검증 포함) Mock이 아니라 진짜 구현체를 사용
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -43,16 +46,22 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userRepository, refreshTokenRepository, passwordEncoder, jwtTokenProvider);
+        authService = new AuthService(
+                userRepository, refreshTokenRepository, passwordResetTokenRepository,
+                signupVerificationRepository, passwordEncoder, jwtTokenProvider, emailService);
     }
 
     @Test
-    @DisplayName("정상적으로 회원가입하면 유저가 저장된다")
+    @DisplayName("이메일 인증을 마친 뒤 회원가입하면 유저가 저장된다")
     void signup_정상가입() {
-        SignupRequest request = new SignupRequest("test@example.com", "password123", "테스트유저");
+        SignupRequest request = new SignupRequest("test@example.com", "password123", "01012345678");
         User savedUser = user(1L, "test@example.com", passwordEncoder.encode("password123"), "테스트유저");
 
         when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
+        when(userRepository.existsByPhone("01012345678")).thenReturn(false);
+        when(signupVerificationRepository.findByEmail("test@example.com"))
+                .thenReturn(Optional.of(verifiedSignupVerification("test@example.com")));
+        when(userRepository.existsByNickname(any())).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
         Long userId = authService.signup(request);
@@ -64,7 +73,7 @@ class AuthServiceTest {
     @Test
     @DisplayName("이미 가입된 이메일로 회원가입하면 예외가 발생한다")
     void signup_중복이메일이면_예외() {
-        SignupRequest request = new SignupRequest("test@example.com", "password123", "테스트유저");
+        SignupRequest request = new SignupRequest("test@example.com", "password123", "01012345678");
 
         when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
 
@@ -76,6 +85,32 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("이메일 인증을 하지 않고 회원가입하면 예외가 발생한다")
+    void signup_이메일인증안했으면_예외() {
+        SignupRequest request = new SignupRequest("test@example.com", "password123", "01012345678");
+
+        when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
+        when(userRepository.existsByPhone("01012345678")).thenReturn(false);
+        when(signupVerificationRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.signup(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("이메일 인증을 먼저 완료해주세요");
+
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    private SignupVerification verifiedSignupVerification(String email) {
+        SignupVerification verification = SignupVerification.builder()
+                .email(email)
+                .code("123456")
+                .expiresAt(LocalDateTime.now().plusMinutes(10))
+                .build();
+        verification.markVerified();
+        return verification;
+    }
+
+    @Test
     @DisplayName("정상적으로 로그인하면 액세스/리프레시 토큰이 발급된다")
     void login_정상로그인() {
         String encodedPassword = passwordEncoder.encode("password123");
@@ -83,7 +118,7 @@ class AuthServiceTest {
         LoginRequest request = new LoginRequest("test@example.com", "password123");
 
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
-        when(jwtTokenProvider.generateAccessToken(1L, "test@example.com")).thenReturn("access-token");
+        when(jwtTokenProvider.generateAccessToken(1L, "test@example.com", Role.USER)).thenReturn("access-token");
         when(jwtTokenProvider.generateRefreshToken(1L)).thenReturn("refresh-token");
         when(jwtTokenProvider.getRefreshTokenExpirationMs()).thenReturn(1_209_600_000L);
         when(refreshTokenRepository.findByUserId(1L)).thenReturn(Optional.empty());
@@ -135,7 +170,7 @@ class AuthServiceTest {
         when(jwtTokenProvider.parseClaims(refreshToken)).thenReturn(claims(1L, "refresh"));
         when(refreshTokenRepository.findByUserId(1L)).thenReturn(Optional.of(savedToken));
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(jwtTokenProvider.generateAccessToken(1L, "test@example.com")).thenReturn("new-access-token");
+        when(jwtTokenProvider.generateAccessToken(1L, "test@example.com", Role.USER)).thenReturn("new-access-token");
         when(jwtTokenProvider.generateRefreshToken(1L)).thenReturn("new-refresh-token");
         when(jwtTokenProvider.getRefreshTokenExpirationMs()).thenReturn(1_209_600_000L);
 
@@ -172,7 +207,11 @@ class AuthServiceTest {
     }
 
     private User user(Long id, String email, String password, String nickname) {
-        User user = User.builder().email(email).password(password).nickname(nickname).build();
+        User user = User.builder()
+                .email(email)
+                .password(password)
+                .nickname(nickname)
+                .build(); // Builder 안에서 role은 자동으로 Role.USER로 채워짐 (User.java 생성자 참고)
         ReflectionTestUtils.setField(user, "userId", id);
         return user;
     }

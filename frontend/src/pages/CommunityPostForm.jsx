@@ -15,8 +15,6 @@ import { fetchActiveChallenge } from "../api/challengeApi";
 import { getBoardConfig, FREE_TALK_PREFIXES } from "./communityBoards";
 import "./CommunityPostForm.css";
 
-const TEMP_USER_ID = 1; // TODO: 로그인 기능 만들어지면 실제 로그인한 유저 ID로 교체
-
 const MAX_IMAGE_SIZE = 50 * 1024 * 1024;  // 50MB
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
 
@@ -40,8 +38,18 @@ const QUILL_MODULES = {
   ],
 };
 
+// crypto.randomUUID()는 https 또는 localhost 같은 "보안 컨텍스트"에서만 존재해서,
+// 사내망 IP 등 http로 접속하면 undefined라 여기서 바로 TypeError가 나며 폼 전체가 하얗게 죽는다.
+// 여기선 React key로만 쓰이는 값이라 진짜 UUID일 필요 없이 충돌만 안 나면 충분하므로, 폴백을 둔다.
+function generateKey() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `key-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 function emptyStep() {
-  return { key: crypto.randomUUID(), description: "", mediaUrl: "", mediaType: null, uploading: false };
+  return { key: generateKey(), description: "", mediaUrl: "", mediaType: null, uploading: false };
 }
 
 // props의 boardType은 "새 글쓰기" 진입 경로(라우트)로 결정된다. 수정 모드에서는 대신 서버에서 불러온
@@ -104,7 +112,7 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
   // (수정 모드는 이미 쓴 글이라 다시 자격을 따지지 않는다 — 챌린지가 끝났어도 본인 글은 계속 관리 가능).
   useEffect(() => {
     if (isEditMode || !board.challengeType) return;
-    fetchActiveChallenge(TEMP_USER_ID)
+    fetchActiveChallenge()
       .then((challenge) => {
         if (challenge?.type !== board.challengeType) setAccessDenied(true);
       })
@@ -113,7 +121,7 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
 
   useEffect(() => {
     if (!isEditMode) return;
-    fetchCommunityPost(postId, TEMP_USER_ID)
+    fetchCommunityPost(postId)
       .then((post) => {
         setPostBoardType(post.boardType);
         if (post.promotedRecipeId) {
@@ -127,7 +135,7 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
           setDifficulty(post.difficulty || DIFFICULTY_OPTIONS[0]);
           setIngredients(
             post.ingredients.map((item) => ({
-              key: crypto.randomUUID(),
+              key: generateKey(),
               ingredientId: item.ingredientId,
               ingredientName: item.ingredientName,
               quantity: item.quantity ?? "",
@@ -140,7 +148,7 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
         setSteps(
           post.steps.length > 0
             ? post.steps.map((step) => ({
-                key: crypto.randomUUID(),
+                key: generateKey(),
                 description: step.description,
                 mediaUrl: step.mediaUrl || "",
                 mediaType: step.mediaType,
@@ -177,7 +185,7 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
   const addIngredientRow = (ingredient) => {
     setIngredients((prev) => [
       ...prev,
-      { key: crypto.randomUUID(), ingredientId: ingredient.ingredientId, ingredientName: ingredient.ingredientName, quantity: "", unit: "" },
+      { key: generateKey(), ingredientId: ingredient.ingredientId, ingredientName: ingredient.ingredientName, quantity: "", unit: "" },
     ]);
     setIngredientKeyword("");
     setIngredientResults([]);
@@ -276,6 +284,10 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
         setError("재료를 1개 이상 추가해주세요.");
         return;
       }
+      if (ingredients.some((row) => row.quantity === "" || !row.unit.trim())) {
+        setError("모든 재료의 수량과 단위를 입력해주세요.");
+        return;
+      }
     }
     if (isFreeTalkBoard && !FREE_TALK_PREFIXES.includes(prefix)) {
       setError("말머리를 선택해주세요.");
@@ -314,10 +326,10 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
     };
     try {
       if (isEditMode) {
-        await updateCommunityPost(TEMP_USER_ID, postId, payload);
+        await updateCommunityPost(postId, payload);
         navigate(`/community/${postId}`);
       } else {
-        const { postId: newPostId } = await createCommunityPost(TEMP_USER_ID, payload);
+        const { postId: newPostId } = await createCommunityPost(payload);
         navigate(`/community/${newPostId}`);
       }
     } catch (err) {
@@ -426,12 +438,14 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
                       placeholder="수량"
                       value={row.quantity}
                       onChange={(e) => updateIngredientRow(row.key, { quantity: e.target.value })}
+                      required
                     />
                     <input
                       type="text"
                       placeholder="단위 (예: 개)"
                       value={row.unit}
                       onChange={(e) => updateIngredientRow(row.key, { unit: e.target.value })}
+                      required
                     />
                     <button type="button" onClick={() => removeIngredientRow(row.key)}>
                       삭제

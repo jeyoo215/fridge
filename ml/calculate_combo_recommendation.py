@@ -67,11 +67,15 @@ def fetch_user_tried_pairs(conn, user_id):
     return tried_pairs
 
 
-def compute_recipe_scores(conn, user_id, baskets, pairwise_rules, tried_pairs):
-    reviewed_ids = set(fetch_df(conn, f"""
-        SELECT DISTINCT recipe_id FROM recipe_review WHERE user_id = {user_id}
-    """)["recipe_id"].tolist())
+def build_rule_lookup(pairwise_rules):
+    lookup = {}
+    for _, row in pairwise_rules.iterrows():
+        key = frozenset([row["ingredient_a"], row["ingredient_b"]])
+        lookup[key] = lookup.get(key, 0) + row["lift"]
+    return lookup
 
+
+def compute_recipe_scores(reviewed_ids, baskets, rule_lookup, tried_pairs):
     scores = []
     for recipe_id, ingredients in baskets.items():
         if recipe_id in reviewed_ids:
@@ -81,12 +85,8 @@ def compute_recipe_scores(conn, user_id, baskets, pairwise_rules, tried_pairs):
             for j in range(i + 1, len(ingredients)):
                 pair = frozenset([ingredients[i], ingredients[j]])
                 if pair in tried_pairs:
-                    continue  # 이미 먹어본 조합이면 novelty 없음
-                match = pairwise_rules[
-                    ((pairwise_rules["ingredient_a"] == ingredients[i]) & (pairwise_rules["ingredient_b"] == ingredients[j]))
-                    | ((pairwise_rules["ingredient_a"] == ingredients[j]) & (pairwise_rules["ingredient_b"] == ingredients[i]))
-                ]
-                score += match["lift"].sum()
+                    continue
+                score += rule_lookup.get(pair, 0)
         if score > 0:
             scores.append((recipe_id, score))
 
@@ -107,6 +107,31 @@ def save_scores(conn, user_id, scores):
     cursor.close()
 
 
+def fetch_all_reviews(conn):
+    return fetch_df(conn, """
+        SELECT rr.user_id, ri.recipe_id, i.ingredient_name
+        FROM recipe_review rr
+        JOIN recipe_ingredient ri ON ri.recipe_id = rr.recipe_id
+        JOIN ingredient i ON i.ingredient_id = ri.ingredient_id
+        WHERE i.is_seasoning = false
+    """)
+
+
+def build_user_tried_pairs_and_reviewed(all_reviews):
+    tried_pairs_by_user = {}
+    reviewed_by_user = {}
+    for user_id, user_df in all_reviews.groupby("user_id"):
+        reviewed_by_user[user_id] = set(user_df["recipe_id"].unique())
+        pairs = set()
+        for _, group in user_df.groupby("recipe_id"):
+            names = group["ingredient_name"].tolist()
+            for i in range(len(names)):
+                for j in range(i + 1, len(names)):
+                    pairs.add(frozenset([names[i], names[j]]))
+        tried_pairs_by_user[user_id] = pairs
+    return tried_pairs_by_user, reviewed_by_user
+
+
 
 
 def main():
@@ -114,17 +139,21 @@ def main():
 
     baskets = build_recipe_baskets(conn)
     pairwise_rules = mine_pairwise_rules(baskets)
+    rule_lookup = build_rule_lookup(pairwise_rules)
     print(f"연관 규칙 {len(pairwise_rules)}개 발견")
 
-    # 인자로 user_id가 오면 그 유저만, 안 오면 전체 유저
+    all_reviews = fetch_all_reviews(conn)
+    tried_pairs_by_user, reviewed_by_user = build_user_tried_pairs_and_reviewed(all_reviews)
+
     if len(sys.argv) > 1:
         user_ids = [int(sys.argv[1])]
     else:
         user_ids = fetch_df(conn, "SELECT DISTINCT user_id FROM user")["user_id"].tolist()
 
     for user_id in user_ids:
-        tried_pairs = fetch_user_tried_pairs(conn, user_id)
-        scores = compute_recipe_scores(conn, user_id, baskets, pairwise_rules, tried_pairs)
+        tried_pairs = tried_pairs_by_user.get(user_id, set())
+        reviewed_ids = reviewed_by_user.get(user_id, set())
+        scores = compute_recipe_scores(reviewed_ids, baskets, rule_lookup, tried_pairs)
         save_scores(conn, user_id, scores)
         print(f"user_id={user_id}: 추천 {len(scores)}개 저장")
 
