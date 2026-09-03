@@ -3,6 +3,8 @@ package com.example.backend.config;
 import com.example.backend.domain.auth.CustomOAuth2UserService;
 import com.example.backend.domain.auth.OAuth2LoginSuccessHandler;
 import com.example.backend.security.JwtAuthenticationFilter;
+import com.example.backend.security.OAuth2OriginCaptureFilter;
+
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -14,6 +16,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -22,6 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final OAuth2OriginCaptureFilter oAuth2OriginCaptureFilter;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
@@ -31,9 +35,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // JwtAuthenticationFilter가 @Component라서 Spring Boot가 서블릿 레벨에 자동으로
-    // 한 번 더 등록해버리는 걸 막는 용도. Security 체인 안에서만(addFilterBefore로) 동작해야
-    // SecurityContextHolderFilter의 컨텍스트 초기화 이후에 실행되어 role이 제대로 반영된다.
     @Bean
     public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilterRegistration(
             JwtAuthenticationFilter filter) {
@@ -65,6 +66,7 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler(oAuth2LoginSuccessHandler)
                 )
+                .addFilterBefore(oAuth2OriginCaptureFilter, OAuth2AuthorizationRequestRedirectFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
