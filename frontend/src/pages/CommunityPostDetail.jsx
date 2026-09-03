@@ -10,11 +10,13 @@ import {
   fetchCommunityPostComments,
   createCommunityPostComment,
   deleteCommunityPostComment,
+  toggleCommunityCommentLike,
   toMediaSrc,
 } from "../api/communityApi";
 import { getBoardConfig } from "./communityBoards";
 import { getUserId, isLoggedIn } from "../api/authApi";
 import { REPORT_REASONS, reportPost, reportComment } from "../api/communityReportApi";
+import CommunityNotificationBell from "../component/CommunityNotificationBell";
 import "./CommunityPostDetail.css";
 
 // 댓글 목록에서 "내가 쓴 댓글인지" 비교할 때 씀. 토큰 안 userId는 문자열이라 Number로 맞춰줌.
@@ -162,6 +164,21 @@ export default function CommunityPostDetail() {
     }
   };
 
+  const handleToggleCommentLike = async (commentId) => {
+    if (!isLoggedIn()) {
+      navigate("/login");
+      return;
+    }
+    try {
+      const { active, count } = await toggleCommunityCommentLike(commentId);
+      setComments((prev) =>
+        prev.map((c) => (c.commentId === commentId ? { ...c, liked: active, likeCount: count } : c))
+      );
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   if (loading) return <p className="community-detail-status">불러오는 중...</p>;
   if (error) return <p className="community-detail-status error">{error}</p>;
   if (!post) return null;
@@ -171,9 +188,12 @@ export default function CommunityPostDetail() {
 
   return (
     <article className="community-detail-container">
-      <button type="button" className="community-detail-back" onClick={() => navigate(board.listPath)}>
-        ← 목록으로
-      </button>
+      <div className="community-detail-top-bar">
+        <button type="button" className="community-detail-back" onClick={() => navigate(board.listPath)}>
+          ← 목록으로
+        </button>
+        <CommunityNotificationBell />
+      </div>
 
       <div className="community-detail-top">
         <div className="community-detail-author">{post.nickname}</div>
@@ -316,6 +336,7 @@ export default function CommunityPostDetail() {
                   setReplyText={setReplyText}
                   handleAddReply={handleAddReply}
                   handleDeleteComment={handleDeleteComment}
+                  handleToggleCommentLike={handleToggleCommentLike}
                   reportingCommentId={reportingCommentId}
                   setReportingCommentId={setReportingCommentId}
                   commentReportReason={commentReportReason}
@@ -364,6 +385,7 @@ function CommentNode({
   setReplyText,
   handleAddReply,
   handleDeleteComment,
+  handleToggleCommentLike,
   reportingCommentId,
   setReportingCommentId,
   commentReportReason,
@@ -402,6 +424,13 @@ function CommentNode({
         )}
       </div>
 
+      <button
+        type="button"
+        className={`community-detail-comment-like-toggle${comment.liked ? " active" : ""}`}
+        onClick={requireLogin(() => handleToggleCommentLike(comment.commentId))}
+      >
+        {comment.liked ? "❤️" : "🤍"} {comment.likeCount ?? 0}
+      </button>
       {depth < 2 && (
         <button
           type="button"
@@ -478,6 +507,7 @@ function CommentNode({
               setReplyText={setReplyText}
               handleAddReply={handleAddReply}
               handleDeleteComment={handleDeleteComment}
+              handleToggleCommentLike={handleToggleCommentLike}
               reportingCommentId={reportingCommentId}
               setReportingCommentId={setReportingCommentId}
               commentReportReason={commentReportReason}

@@ -42,6 +42,11 @@ public class CommunityPostComment {
     @Column(name = "hidden", nullable = false, columnDefinition = "TINYINT(1) NOT NULL DEFAULT 0")
     private boolean hidden;
 
+    // 공감(좋아요) 개수. community_comment_like row 수를 매번 COUNT하지 않도록 여기에 캐싱해서
+    // 들고 있는다 (CommunityCommentLikeService가 토글할 때마다 increase/decrease로 갱신).
+    @Column(name = "like_count", nullable = false, columnDefinition = "INT NOT NULL DEFAULT 0")
+    private int likeCount;
+
     @Builder
     public CommunityPostComment(CommunityPost post, Long userId, String content, Long parentCommentId) {
         this.post = post;
@@ -58,5 +63,14 @@ public class CommunityPostComment {
 
     public void unhide() {
         this.hidden = false;
+    }
+
+    // 공감 토글 시 CommunityCommentLikeService 전용
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        this.likeCount = Math.max(0, this.likeCount - 1);
     }
 }

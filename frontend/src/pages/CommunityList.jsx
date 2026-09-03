@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchCommunityPosts, toMediaSrc } from "../api/communityApi";
 import CommunitySidebar from "../component/CommunitySidebar";
+import CommunityNotificationBell from "../component/CommunityNotificationBell";
 import { getBoardConfig, FREE_TALK_PREFIXES } from "./communityBoards";
 import { isLoggedIn } from "../api/authApi";
 import "./CommunityList.css";
@@ -87,6 +88,7 @@ export default function CommunityList({ boardType = "RECIPE" }) {
       <div className="community-list-container">
         <div className="community-list-header">
           <h2 className="community-list-title">{board.label}</h2>
+          <CommunityNotificationBell />
         </div>
 
         <form className="community-search-form" onSubmit={handleSearchSubmit}>
