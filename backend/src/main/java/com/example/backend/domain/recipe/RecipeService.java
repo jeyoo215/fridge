@@ -99,8 +99,9 @@ public class RecipeService {
     }
 
 
-    // 보유 재료 기반 레시피 추천 (FR-20 + FR-21 유통기한 가중치), 페이징 지원
-    public RecipeRecommendPageResponse recommendRecipes(Long userId, int page, int size) {
+    // 보유 재료 기반 레시피 추천 (FR-20 + FR-21 유통기한 가중치 + FR-22 조리도구), 페이징 지원
+        // 필수조건: 조미료를 제외한 필요 재료를 전부 보유해야 후보에 포함됨
+        public RecipeRecommendPageResponse recommendRecipes(Long userId, int page, int size) {
         List<UserIngredient> myIngredients = userIngredientRepository
                 .findByUserIdAndStatusOrderByExpirationDateAsc(userId, UserIngredient.Status.보유중);
 
@@ -112,6 +113,7 @@ public class RecipeService {
                 return RecipeRecommendPageResponse.empty(page);
         }
 
+        // 재료 id -> 유통기한까지 남은 일수(dDay) 매핑 (가중치 계산용)
         Map<Long, Long> dDayByIngredientId = myIngredients.stream()
                 .collect(Collectors.toMap(
                         userIngredient -> userIngredient.getIngredient().getIngredientId(),
@@ -119,7 +121,7 @@ public class RecipeService {
                         (existing, duplicate) -> existing // 혹시 같은 재료 여러 개 보유 시 첫 값 사용
                 ));
 
-        // 보유 재료(조미료 제외)와 겹치는 비조미료 재료 개수
+        // 보유 재료(조미료 제외)와 겹치는 비조미료 재료 개수 (레시피별)
         List<RecipeRepository.RecipeMatchResult> matchResults =
                 recipeRepository.findRecipesByMatchingNonSeasoningIngredients(ingredientIds);
 
@@ -133,18 +135,20 @@ public class RecipeService {
                         RecipeRepository.RecipeMatchResult::getMatchCount
                 ));
 
-        // 레시피별 필요한 비조미료 재료 총 개수
-        Map<Long, Long> totalRequiredByRecipeId = recipeRepository.findNonSeasoningIngredientCountPerRecipe().stream()
+        // 재료가 하나라도 겹치는 후보들 (matchResults 순서 그대로 보존 - HashMap entrySet은 순서 보장 안 됨)
+        List<Long> candidateRecipeIds = matchResults.stream()
+                .map(RecipeRepository.RecipeMatchResult::getRecipeId)
+                .toList();
+
+        // 레시피별 필요한 비조미료 재료 총 개수 (후보로만 범위를 좁혀서 조회 - 전체 스캔 방지)
+        Map<Long, Long> totalRequiredByRecipeId = recipeRepository.findNonSeasoningIngredientCountByRecipeIdIn(candidateRecipeIds).stream()
                 .collect(Collectors.toMap(
                         RecipeRepository.RecipeMatchResult::getRecipeId,
                         RecipeRepository.RecipeMatchResult::getMatchCount
                 ));
 
         // 필수조건: 필요한 비조미료 재료를 하나도 빠짐없이 다 갖고 있어야 함 (matchCount == totalRequired)
-        // HashMap(matchCountByRecipeId)의 entrySet 순서는 보장되지 않으므로, 원래 쿼리 순서를 유지하는
-        // matchResults 리스트를 기준으로 필터링한다.
-        List<Long> recipeIds = matchResults.stream()
-                .map(RecipeRepository.RecipeMatchResult::getRecipeId)
+        List<Long> recipeIds = candidateRecipeIds.stream()
                 .filter(recipeId -> matchCountByRecipeId.get(recipeId).equals(totalRequiredByRecipeId.get(recipeId)))
                 .toList();
 
@@ -156,15 +160,17 @@ public class RecipeService {
                 .map(userTool -> userTool.getTool().getToolId())
                 .collect(Collectors.toSet());
 
+        // N+1 방지: 완전매칭된 후보들의 필요 도구 id를 한 번에 묶어서 조회
         Map<Long, Set<Long>> requiredToolIdsByRecipeId = recipeRepository.findToolIdPairsByRecipeIdIn(recipeIds).stream()
                 .collect(Collectors.groupingBy(
                         RecipeRepository.RecipeToolIdPair::getRecipeId,
                         Collectors.mapping(RecipeRepository.RecipeToolIdPair::getToolId, Collectors.toSet())
                 ));
 
+        // N+1 방지: 완전매칭된 후보들의 재료까지 한 번에 fetch join
         List<Recipe> recipes = recipeRepository.findAllWithIngredientsByRecipeIdIn(recipeIds);
 
-        // 완전매칭된 후보만 남았으니, 이제부턴 유통기한 임박 재료 활용도로만 순위를 매긴다 (요청사항 2번)
+        // 완전매칭된 후보만 남았으니, 유통기한 임박 재료 활용도 -> 조리도구 보유 여부 순으로 랭킹
         List<RecipeRecommendResponse> ranked = recipes.stream()
                 .map(recipe -> {
                         long matchCount = matchCountByRecipeId.get(recipe.getRecipeId());
