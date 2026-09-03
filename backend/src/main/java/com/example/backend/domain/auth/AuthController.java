@@ -2,6 +2,7 @@ package com.example.backend.domain.auth;
 
 import com.example.backend.domain.auth.dto.FindEmailRequest;
 import com.example.backend.domain.auth.dto.LoginRequest;
+import com.example.backend.domain.auth.dto.LogoutRequest;
 import com.example.backend.domain.auth.dto.PasswordResetConfirmRequest;
 import com.example.backend.domain.auth.dto.PasswordResetRequestRequest;
 import com.example.backend.domain.auth.dto.ReissueRequest;
@@ -13,7 +14,6 @@ import com.example.backend.domain.auth.dto.VerifySignupCodeRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -103,9 +103,9 @@ public class AuthController {
 
     // JwtAuthenticationFilter가 SecurityContext에 넣어준 userId(Long)를 그대로 principal로 받음
     @PostMapping("/logout")
-    public void logout(@AuthenticationPrincipal Long userId) {
-        if (userId != null) {
-            authService.logout(userId);
+    public void logout(@RequestBody(required = false) LogoutRequest request) {
+        if (request != null) {
+            authService.logout(request.refreshToken());
         }
     }
 
