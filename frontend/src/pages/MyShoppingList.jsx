@@ -9,6 +9,8 @@ import {
   deleteCheckedShoppingItems,
   deleteAllShoppingItems,
   updateShoppingItemQuantity,
+  setAllShoppingItemsChecked,
+  purchaseCheckedShoppingItems,
 } from "../api/shoppingListApi";
 import { searchIngredients } from "../api/ingredientApi";
 import "./MyShoppingList.css";
@@ -162,12 +164,40 @@ export default function MyShoppingList() {
   const items = list?.items ?? [];
   const hasChecked = items.some((i) => i.checked);
 
+  const allChecked = items.length > 0 && items.every((i) => i.checked);
+
+  const handleToggleAllChecked = async () => {
+    try {
+      await setAllShoppingItemsChecked(!allChecked);
+      loadList();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handlePurchaseChecked = async () => {
+    try {
+      const result = await purchaseCheckedShoppingItems();
+      loadList();
+      alert(`${result.createdUserIngredientIds.length}개 재료를 냉장고에 담았어요!`);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   return (
     <div className="my-shopping-list-container">
       <div className="my-shopping-list-header">
         <h2 className="my-shopping-list-title">🛒 내 장보기 리스트</h2>
         {items.length > 0 && (
           <div className="my-shopping-list-bulk-actions">
+            <label className="my-shopping-list-select-all">
+              <input type="checkbox" checked={allChecked} onChange={handleToggleAllChecked} />
+              전체선택
+            </label>
+            <button onClick={handlePurchaseChecked} disabled={!hasChecked} className="primary">
+              구매
+            </button>
             <button onClick={handleDeleteChecked} disabled={!hasChecked}>
               선택 삭제
             </button>

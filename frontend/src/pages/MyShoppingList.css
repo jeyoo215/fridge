@@ -311,3 +311,24 @@
 .my-shopping-list-item-handle:active {
   cursor: grabbing;
 }
+
+.my-shopping-list-select-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-weight: 700;
+  cursor: pointer;
+  margin-right: 4px;
+}
+
+.my-shopping-list-bulk-actions button.primary {
+  border-color: var(--color-basil);
+  color: #fff;
+  background: var(--color-basil);
+}
+
+.my-shopping-list-bulk-actions button.primary:hover:not(:disabled) {
+  background: var(--color-basil-dark);
+}

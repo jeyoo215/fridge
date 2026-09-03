@@ -103,3 +103,24 @@ export async function updateShoppingItemQuantity(itemId, quantity) {
   });
   if (!response.ok) throw new Error("수량 변경에 실패했습니다.");
 }
+
+export async function setAllShoppingItemsChecked(checked) {
+  const response = await fetch(`${BASE_URL}/shopping-list/items/check-all`, {
+    method: "PATCH",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ checked }),
+  });
+  if (!response.ok) throw new Error("전체 선택 처리에 실패했습니다.");
+}
+
+export async function purchaseCheckedShoppingItems() {
+  const response = await fetch(`${BASE_URL}/shopping-list/items/purchase`, {
+    method: "POST",
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || "구매 처리에 실패했습니다.");
+  }
+  return response.json();
+}
