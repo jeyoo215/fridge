@@ -2,13 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import MyPage from "../pages/MyPage";
 import { isLoggedIn, isAdmin, logout } from "../api/authApi";
+import { fetchCommunityNotificationUnreadCount } from "../api/communityNotificationApi";
 import "./Nav.css";
 
 const linkClassName = ({ isActive }) => `app-nav-link${isActive ? " active" : ""}`;
+const COMMUNITY_UNREAD_POLL_MS = 60 * 1000;
 
 export default function Nav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
+  const [hasUnreadCommunity, setHasUnreadCommunity] = useState(false);
   const pushedHistoryRef = useRef(false);
   const navigate = useNavigate();
   const admin = isAdmin();
@@ -34,6 +37,26 @@ export default function Nav() {
       window.removeEventListener("focus", syncLoginState);
     };
   }, []);
+
+  // 상단 "📝 커뮤니티" 링크에 안 읽은 알림이 있으면 빨간 점을 띄운다
+  // (관리자는 이 링크 자체가 없어서 건너뜀).
+  useEffect(() => {
+    if (!loggedIn || admin) {
+      setHasUnreadCommunity(false);
+      return undefined;
+    }
+    const refresh = () =>
+      fetchCommunityNotificationUnreadCount()
+        .then((count) => setHasUnreadCommunity(count > 0))
+        .catch(() => {});
+    refresh();
+    const timer = setInterval(refresh, COMMUNITY_UNREAD_POLL_MS);
+    window.addEventListener("focus", refresh);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [loggedIn, admin]);
 
   const closeSheet = () => {
     if (pushedHistoryRef.current) {
@@ -80,6 +103,7 @@ export default function Nav() {
             </NavLink>
             <NavLink to="/community" className={linkClassName}>
               📝 커뮤니티
+              {hasUnreadCommunity && <span className="app-nav-badge-dot" aria-label="읽지 않은 알림 있음" />}
             </NavLink>
           </>
         )}
