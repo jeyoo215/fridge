@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   login,
   signup,
@@ -22,6 +23,12 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [phone, setPhone] = useState("");
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const expiredMessage = location.state?.expired
+    ? "로그인이 만료되었습니다. 다시 로그인해주세요."
+    : null;
 
   // 회원가입 이메일 인증 단계 상태
   const [emailCheckStatus, setEmailCheckStatus] = useState(null); // null | "available" | "taken"
@@ -363,6 +370,10 @@ export default function Login() {
     <div className="login-container">
       <h2 className="login-title">{mode === "login" ? "로그인" : "회원가입"}</h2>
 
+      {mode === "login" && expiredMessage && (
+        <p className="login-error">{expiredMessage}</p>
+      )}
+
       <form className="login-form" onSubmit={handleLoginOrSignup}>
         {mode === "signup" && (
           <input
@@ -507,6 +518,14 @@ export default function Login() {
           </>
         )}
       </p>
+
+      {mode === "login" && (
+        <p className="login-signup-link">
+          <button type="button" onClick={() => navigate("/community")}>
+            로그인 없이 커뮤니티 둘러보기 →
+          </button>
+        </p>
+      )}
     </div>
   );
 }

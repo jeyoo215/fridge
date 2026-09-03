@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchCommunityPosts, toMediaSrc } from "../api/communityApi";
 import CommunitySidebar from "../component/CommunitySidebar";
 import { getBoardConfig, FREE_TALK_PREFIXES } from "./communityBoards";
+import { isLoggedIn } from "../api/authApi";
 import "./CommunityList.css";
 
 export default function CommunityList({ boardType = "RECIPE" }) {
@@ -200,7 +201,11 @@ export default function CommunityList({ boardType = "RECIPE" }) {
         )}
       </div>
 
-      <button type="button" className="community-write-fab" onClick={() => navigate(board.newPath)}>
+      <button
+        type="button"
+        className="community-write-fab"
+        onClick={() => navigate(isLoggedIn() ? board.newPath : "/login")}
+      >
         ✏️ 글쓰기
       </button>
     </div>

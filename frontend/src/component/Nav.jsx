@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import MyPage from "../pages/MyPage";
-import { isLoggedIn, isSessionExpired, clearTokens, logout } from "../api/authApi";
+import { isLoggedIn, isAdmin, logout } from "../api/authApi";
 import NotificationBell from "./NotificationBell";
 import "./Nav.css";
 
@@ -12,15 +12,12 @@ export default function Nav() {
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
   const pushedHistoryRef = useRef(false);
   const navigate = useNavigate();
+  const admin = isAdmin();
 
-  // 시트를 열 때 히스토리 항목을 하나 쌓아서, 모바일 기기의 뒤로가기가
-  // 브라우저 이전 페이지가 아니라 이 시트를 닫도록 만든다.
   useEffect(() => {
     if (!menuOpen) return undefined;
-
     window.history.pushState({ mypageSheet: true }, "");
     pushedHistoryRef.current = true;
-
     const handlePopState = () => {
       pushedHistoryRef.current = false;
       setMenuOpen(false);
@@ -29,7 +26,6 @@ export default function Nav() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, [menuOpen]);
 
-  // 다른 탭에서 로그인/로그아웃했을 때도 상태 동기화
   useEffect(() => {
     const syncLoginState = () => setLoggedIn(isLoggedIn());
     window.addEventListener("storage", syncLoginState);
@@ -39,27 +35,6 @@ export default function Nav() {
       window.removeEventListener("focus", syncLoginState);
     };
   }, []);
-
-  // 세션(accessToken) 만료 감시. 백엔드가 만료된 토큰을 401로 걸러주지 않으므로
-  // 프론트에서 주기적으로 + 탭 복귀 시 직접 exp를 확인해서 알려줘야 함.
-  useEffect(() => {
-    if (!loggedIn) return undefined;
-
-    const checkSession = () => {
-      if (!isSessionExpired()) return;
-      alert("세션이 만료되었습니다. 다시 로그인해주세요.");
-      clearTokens();
-      window.location.href = "/"; // navigate 대신 완전 새로고침으로 화면 상태 초기화
-    };
-
-    checkSession();
-    const intervalId = setInterval(checkSession, 30_000);
-    window.addEventListener("focus", checkSession);
-    return () => {
-      clearInterval(intervalId);
-      window.removeEventListener("focus", checkSession);
-    };
-  }, [loggedIn]);
 
   const closeSheet = () => {
     if (pushedHistoryRef.current) {
@@ -72,62 +47,70 @@ export default function Nav() {
   const handleLogout = async () => {
     await logout();
     setLoggedIn(false);
-    window.location.href = "/"; // navigate 대신 완전 새로고침으로 화면 상태 초기화
+    window.location.href = "/";
   };
 
   return (
     <nav className="app-nav">
       <div className="app-nav-links">
-        <NavLink to="/" end className={linkClassName}>
-          🥬 냉장고
-        </NavLink>
-        <NavLink to="/recipes" className={linkClassName}>
-          🍳 레시피
-        </NavLink>
-        <NavLink to="/shopping-list" className={linkClassName}>
-          🛒 장보기
-        </NavLink>
-        <NavLink to="/challenge" className={linkClassName}>
-          🏆 챌린지
-        </NavLink>
-        <NavLink to="/community" className={linkClassName}>
-          📝 커뮤니티
-        </NavLink>
-        <NavLink to="/fridge" className={linkClassName}>
-          ✨냉꾸
-        </NavLink>
+        {admin ? (
+          <>
+            {/* TODO: 아래 3개 관리자 메뉴 문구는 인코딩 깨진 걸 임시로 복구한 추측 텍스트입니다.
+                관리자 기능 만든 팀원한테 정확한 문구 확인 후 수정해주세요. */}
+            <NavLink to="/admin" end className={linkClassName}>
+              🛠️ 관리자 대시보드
+            </NavLink>
+            <NavLink to="/admin/recipes/new" className={linkClassName}>
+              📝 레시피 추가
+            </NavLink>
+            <NavLink to="/admin/reports" className={linkClassName}>
+              🚩 신고 관리
+            </NavLink>
+          </>
+        ) : (
+          <>
+            <NavLink to="/" end className={linkClassName}>
+              🥬 냉장고
+            </NavLink>
+            <NavLink to="/recipes" className={linkClassName}>
+              🍳 레시피
+            </NavLink>
+            <NavLink to="/shopping-list" className={linkClassName}>
+              🛒 장보기
+            </NavLink>
+            <NavLink to="/challenge" className={linkClassName}>
+              🏆 챌린지
+            </NavLink>
+            <NavLink to="/community" className={linkClassName}>
+              📝 커뮤니티
+            </NavLink>
+          </>
+        )}
       </div>
 
       {loggedIn && <NotificationBell />}
 
-      {loggedIn ? (
+      {loggedIn && (
         <button type="button" className="app-nav-auth-button" onClick={handleLogout}>
           로그아웃
         </button>
-      ) : (
-        <NavLink to="/login" className="app-nav-auth-button">
-          로그인
-        </NavLink>
       )}
 
-      <button
-        type="button"
-        className="app-nav-menu-button"
-        aria-label="내 정보 열기"
-        onClick={() => setMenuOpen(true)}
-      >
-        ☰
-      </button>
+      {!admin && (
+        <button
+          type="button"
+          className="app-nav-menu-button"
+          aria-label="내 정보 열기"
+          onClick={() => setMenuOpen(true)}
+        >
+          ☰
+        </button>
+      )}
 
       {menuOpen && (
         <div className="app-nav-sheet">
           <div className="app-nav-sheet-header">
-            <button
-              type="button"
-              className="app-nav-sheet-back"
-              aria-label="닫기"
-              onClick={closeSheet}
-            >
+            <button type="button" className="app-nav-sheet-back" aria-label="닫기" onClick={closeSheet}>
               ←
             </button>
             <span className="app-nav-sheet-title">내 정보</span>

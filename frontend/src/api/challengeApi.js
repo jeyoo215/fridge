@@ -1,6 +1,5 @@
 import { getAccessToken } from "./authApi";
-
-const BASE_URL = `http://${window.location.hostname}:8080/api/v1`; // 다른 파일들이랑 통일
+import { BASE_URL } from "./config";
 
 function authHeaders(extra = {}) {
   return { Authorization: `Bearer ${getAccessToken()}`, ...extra };

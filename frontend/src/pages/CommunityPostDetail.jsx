@@ -13,7 +13,8 @@ import {
   toMediaSrc,
 } from "../api/communityApi";
 import { getBoardConfig } from "./communityBoards";
-import { getUserId } from "../api/authApi";
+import { getUserId, isLoggedIn } from "../api/authApi";
+import { REPORT_REASONS, reportPost, reportComment } from "../api/communityReportApi";
 import "./CommunityPostDetail.css";
 
 // 댓글 목록에서 "내가 쓴 댓글인지" 비교할 때 씀. 토큰 안 userId는 문자열이라 Number로 맞춰줌.
@@ -32,6 +33,11 @@ export default function CommunityPostDetail() {
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState(null); // 답글 입력창을 열어둔 댓글의 commentId
   const [replyText, setReplyText] = useState("");
+  const [reportingPost, setReportingPost] = useState(false); // 게시글 신고 입력창 열림 여부
+  const [postReportReason, setPostReportReason] = useState(REPORT_REASONS[0]);
+  const [reportingCommentId, setReportingCommentId] = useState(null); // 신고 입력창을 열어둔 댓글의 commentId
+  const [commentReportReason, setCommentReportReason] = useState(REPORT_REASONS[0]);
+  const [reportNotice, setReportNotice] = useState(null); // 신고 접수 완료 안내 문구
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -61,6 +67,10 @@ export default function CommunityPostDetail() {
   }, [loading, location.hash]);
 
   const handleToggleLike = async () => {
+    if (!isLoggedIn()) {
+      navigate("/login");
+      return;
+    }
     try {
       const res = await toggleCommunityPostLike(postId);
       setLiked(res.active);
@@ -71,6 +81,10 @@ export default function CommunityPostDetail() {
   };
 
   const handleToggleScrap = async () => {
+    if (!isLoggedIn()) {
+      navigate("/login");
+      return;
+    }
     const res = await toggleCommunityPostScrap(postId);
     setScrapped(res.active);
     setScrapCount(res.count);
@@ -114,7 +128,30 @@ export default function CommunityPostDetail() {
     }
   };
 
+  const handleReportPost = async (e) => {
+    e.preventDefault();
+    try {
+      await reportPost(postId, postReportReason);
+      setReportingPost(false);
+      setReportNotice("신고가 접수됐습니다. 검토 후 처리됩니다.");
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleReportComment = async (e, commentId) => {
+    e.preventDefault();
+    try {
+      await reportComment(commentId, commentReportReason);
+      setReportingCommentId(null);
+      setReportNotice("신고가 접수됐습니다. 검토 후 처리됩니다.");
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   const handleDeleteComment = async (commentId) => {
+    if (!window.confirm("이 댓글을 삭제하시겠습니까? 되돌릴 수 없습니다.")) return;
     try {
       await deleteCommunityPostComment(commentId);
       // 원댓글을 지우면 백엔드가 대댓글도 같이 지우므로, 화면에서도 같이 걷어냄
@@ -141,7 +178,7 @@ export default function CommunityPostDetail() {
 
       <div className="community-detail-top">
         <div className="community-detail-author">{post.nickname}</div>
-        {!post.promotedRecipeId && (
+        {!post.promotedRecipeId && post.userId === currentUserId && (
           <div className="community-detail-actions">
             <button type="button" onClick={() => navigate(`/community/${postId}/edit`)}>
               수정
@@ -226,7 +263,37 @@ export default function CommunityPostDetail() {
         >
           {scrapped ? "🔖" : "📑"} 스크랩 {scrapCount}
         </button>
+        {post.userId !== currentUserId && (
+          <button
+            type="button"
+            className="community-detail-report-button"
+            onClick={() => {
+              if (!isLoggedIn()) {
+                navigate("/login");
+                return;
+              }
+              setReportingPost((prev) => !prev);
+            }}
+          >
+            🚨 신고
+          </button>
+        )}
       </div>
+
+      {reportNotice && <p className="community-detail-report-notice">{reportNotice}</p>}
+
+      {reportingPost && (
+        <form className="community-detail-report-form community-detail-report-form--centered" onSubmit={handleReportPost}>
+          <select value={postReportReason} onChange={(e) => setPostReportReason(e.target.value)}>
+            {REPORT_REASONS.map((reason) => (
+              <option key={reason} value={reason}>
+                {reason}
+              </option>
+            ))}
+          </select>
+          <button type="submit">신고하기</button>
+        </form>
+      )}
 
       <section id="comments" className="community-detail-comments">
         <h3 className="community-detail-comments-title">댓글 {comments.length}</h3>
@@ -263,12 +330,31 @@ export default function CommunityPostDetail() {
                       type="button"
                       className="community-detail-comment-reply-toggle"
                       onClick={() => {
+                        if (!isLoggedIn()) {
+                          navigate("/login");
+                          return;
+                        }
                         setReplyingTo(replyingTo === comment.commentId ? null : comment.commentId);
                         setReplyText("");
                       }}
                     >
                       답글
                     </button>
+                    {comment.userId !== currentUserId && (
+                      <button
+                        type="button"
+                        className="community-detail-comment-report-toggle"
+                        onClick={() => {
+                          if (!isLoggedIn()) {
+                            navigate("/login");
+                            return;
+                          }
+                          setReportingCommentId(reportingCommentId === comment.commentId ? null : comment.commentId);
+                        }}
+                      >
+                        신고
+                      </button>
+                    )}
 
                     {replyingTo === comment.commentId && (
                       <form
@@ -287,6 +373,22 @@ export default function CommunityPostDetail() {
                           autoFocus
                         />
                         <button type="submit">등록</button>
+                      </form>
+                    )}
+
+                    {reportingCommentId === comment.commentId && (
+                      <form
+                        className="community-detail-report-form"
+                        onSubmit={(e) => handleReportComment(e, comment.commentId)}
+                      >
+                        <select value={commentReportReason} onChange={(e) => setCommentReportReason(e.target.value)}>
+                          {REPORT_REASONS.map((reason) => (
+                            <option key={reason} value={reason}>
+                              {reason}
+                            </option>
+                          ))}
+                        </select>
+                        <button type="submit">신고하기</button>
                       </form>
                     )}
 
@@ -313,6 +415,36 @@ export default function CommunityPostDetail() {
                                 </button>
                               )}
                             </div>
+                            {reply.userId !== currentUserId && (
+                              <button
+                                type="button"
+                                className="community-detail-comment-report-toggle"
+                                onClick={() => {
+                                  if (!isLoggedIn()) {
+                                    navigate("/login");
+                                    return;
+                                  }
+                                  setReportingCommentId(reportingCommentId === reply.commentId ? null : reply.commentId);
+                                }}
+                              >
+                                신고
+                              </button>
+                            )}
+                            {reportingCommentId === reply.commentId && (
+                              <form
+                                className="community-detail-report-form"
+                                onSubmit={(e) => handleReportComment(e, reply.commentId)}
+                              >
+                                <select value={commentReportReason} onChange={(e) => setCommentReportReason(e.target.value)}>
+                                  {REPORT_REASONS.map((reason) => (
+                                    <option key={reason} value={reason}>
+                                      {reason}
+                                    </option>
+                                  ))}
+                                </select>
+                                <button type="submit">신고하기</button>
+                              </form>
+                            )}
                           </li>
                         ))}
                       </ul>
@@ -322,16 +454,26 @@ export default function CommunityPostDetail() {
               })}
           </ul>
         )}
-        <form className="community-detail-comment-form" onSubmit={handleAddComment}>
-          <input
-            type="text"
-            placeholder="댓글을 입력하세요"
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            maxLength={500}
-          />
-          <button type="submit">등록</button>
-        </form>
+        {isLoggedIn() ? (
+          <form className="community-detail-comment-form" onSubmit={handleAddComment}>
+            <input
+              type="text"
+              placeholder="댓글을 입력하세요"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              maxLength={500}
+            />
+            <button type="submit">등록</button>
+          </form>
+        ) : (
+          <p className="community-detail-comments-empty">
+            댓글을 작성하려면{" "}
+            <button type="button" className="community-detail-comment-login-link" onClick={() => navigate("/login")}>
+              로그인
+            </button>
+            이 필요합니다.
+          </p>
+        )}
       </section>
     </article>
   );

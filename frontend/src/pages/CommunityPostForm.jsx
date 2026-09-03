@@ -274,6 +274,10 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
         setError("재료를 1개 이상 추가해주세요.");
         return;
       }
+      if (ingredients.some((row) => row.quantity === "" || !row.unit.trim())) {
+        setError("모든 재료의 수량과 단위를 입력해주세요.");
+        return;
+      }
     }
     if (isFreeTalkBoard && !FREE_TALK_PREFIXES.includes(prefix)) {
       setError("말머리를 선택해주세요.");
@@ -424,12 +428,14 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
                       placeholder="수량"
                       value={row.quantity}
                       onChange={(e) => updateIngredientRow(row.key, { quantity: e.target.value })}
+                      required
                     />
                     <input
                       type="text"
                       placeholder="단위 (예: 개)"
                       value={row.unit}
                       onChange={(e) => updateIngredientRow(row.key, { unit: e.target.value })}
+                      required
                     />
                     <button type="button" onClick={() => removeIngredientRow(row.key)}>
                       삭제
