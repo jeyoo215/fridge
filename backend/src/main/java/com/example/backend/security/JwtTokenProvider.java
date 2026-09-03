@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtTokenProvider {
@@ -32,6 +33,7 @@ public class JwtTokenProvider {
     public String generateAccessToken(Long userId, String email, Role role) {
         Date now = new Date();
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(String.valueOf(userId))
                 .claim("email", email)
                 .claim("role", role.name())
@@ -45,6 +47,7 @@ public class JwtTokenProvider {
     public String generateRefreshToken(Long userId) {
         Date now = new Date();
         return Jwts.builder()
+                .id(UUID.randomUUID().toString()) // jti — 매번 고유한 값이라 토큰 중복을 원천 차단
                 .subject(String.valueOf(userId))
                 .claim("type", "refresh")
                 .issuedAt(now)
