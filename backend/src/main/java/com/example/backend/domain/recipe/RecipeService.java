@@ -17,6 +17,10 @@ import com.example.backend.domain.recipe.dto.RecipeRecommendPageResponse;
 import com.example.backend.domain.recipe.dto.RecipeRecommendResponse;
 import com.example.backend.domain.recipe.dto.RecipeSummaryResponse;
 
+import com.example.backend.domain.challenge.Challenge;
+import com.example.backend.domain.challenge.ChallengeRepository;
+import com.example.backend.domain.challenge.ChallengeTargetIngredient;
+
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
@@ -31,6 +35,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -49,6 +54,7 @@ public class RecipeService {
     private final UserIngredientRepository userIngredientRepository;
     private final CookingToolRepository cookingToolRepository;
     private final UserToolRepository userToolRepository;
+    private final ChallengeRepository challengeRepository;
 
     // 레시피 등록 (FR-24)
     @Transactional
@@ -100,8 +106,8 @@ public class RecipeService {
 
 
     // 보유 재료 기반 레시피 추천 (FR-20 + FR-21 유통기한 가중치 + FR-22 조리도구), 페이징 지원
-        // 필수조건: 조미료를 제외한 필요 재료를 전부 보유해야 후보에 포함됨
-        public RecipeRecommendPageResponse recommendRecipes(Long userId, int page, int size) {
+    // 필수조건: 조미료를 제외한 필요 재료를 전부 보유해야 후보에 포함됨
+    public RecipeRecommendPageResponse recommendRecipes(Long userId, int page, int size) {
         List<UserIngredient> myIngredients = userIngredientRepository
                 .findByUserIdAndStatusOrderByExpirationDateAsc(userId, UserIngredient.Status.보유중);
 
@@ -120,6 +126,14 @@ public class RecipeService {
                         userIngredient -> ChronoUnit.DAYS.between(LocalDate.now(), userIngredient.getExpirationDate()),
                         (existing, duplicate) -> existing // 혹시 같은 재료 여러 개 보유 시 첫 값 사용
                 ));
+
+        // 진행중인 "특정 재료 소진" 챌린지가 있으면, 그 대상 재료들도 유통기한 임박(D-1)과 동일한 가중치를 준다
+        Set<Long> challengeTargetIngredientIds = challengeRepository.findByUserIdAndStatus(userId, Challenge.Status.진행중)
+                .filter(challenge -> challenge.getType() == Challenge.ChallengeType.TARGET_INGREDIENT)
+                .map(challenge -> challenge.getTargetIngredients().stream()
+                        .map(ChallengeTargetIngredient::getIngredientId)
+                        .collect(Collectors.toSet()))
+                .orElse(Set.of());
 
         // 보유 재료(조미료 제외)와 겹치는 비조미료 재료 개수 (레시피별)
         List<RecipeRepository.RecipeMatchResult> matchResults =
@@ -174,7 +188,7 @@ public class RecipeService {
         List<RecipeRecommendResponse> ranked = recipes.stream()
                 .map(recipe -> {
                         long matchCount = matchCountByRecipeId.get(recipe.getRecipeId());
-                        int expiryPriorityScore = calculateExpiryPriorityScore(recipe, dDayByIngredientId);
+                        int expiryPriorityScore = calculateExpiryPriorityScore(recipe, dDayByIngredientId, challengeTargetIngredientIds);
                         Set<Long> requiredToolIds = requiredToolIdsByRecipeId.getOrDefault(recipe.getRecipeId(), Set.of());
                         boolean hasAllTools = ownedToolIds.containsAll(requiredToolIds);
                         return new RecipeRecommendResponse(recipe, matchCount, expiryPriorityScore, hasAllTools);
@@ -192,19 +206,30 @@ public class RecipeService {
         int toIndex = Math.min(fromIndex + size, totalElements);
 
         return new RecipeRecommendPageResponse(ranked.subList(fromIndex, toIndex), page, totalPages, totalElements);
-        }
+    }
 
     // 레시피가 사용하는 재료 중, 보유 재료와 겹치는 것들의 유통기한 가중치 합산
-    private int calculateExpiryPriorityScore(Recipe recipe, Map<Long, Long> dDayByIngredientId) {
+    // + 진행중인 특정 재료 소진 챌린지의 대상 재료는 D-1과 동일한 가중치를 부여
+    private int calculateExpiryPriorityScore(Recipe recipe, Map<Long, Long> dDayByIngredientId,
+                                          Set<Long> challengeTargetIngredientIds) {
         return recipe.getRecipeIngredients().stream()
-                .mapToInt(recipeIngredient -> {
-                    Long dDay = dDayByIngredientId.get(recipeIngredient.getIngredient().getIngredientId());
-                    if (dDay == null) return 0;
-                    if (dDay <= 1) return EXPIRY_WEIGHT_D1;
-                    if (dDay <= 3) return EXPIRY_WEIGHT_D3;
-                    return 0;
-                })
-                .sum();
+            .mapToInt(recipeIngredient -> {
+                Long ingredientId = recipeIngredient.getIngredient().getIngredientId();
+
+                int score = 0;
+                Long dDay = dDayByIngredientId.get(ingredientId);
+                if (dDay != null) {
+                    if (dDay <= 1) score = EXPIRY_WEIGHT_D1;
+                    else if (dDay <= 3) score = EXPIRY_WEIGHT_D3;
+                }
+
+                if (challengeTargetIngredientIds.contains(ingredientId)) {
+                    score = Math.max(score, EXPIRY_WEIGHT_D1); // 챌린지 대상 재료 = 임박(D-1)과 동일 취급
+                }
+
+                return score;
+            })
+            .sum();
     }
 
     // 레시피가 요구하는 조리도구를 사용자가 전부 보유하고 있는지 확인 (필요 도구 없는 레시피는 항상 통과) (FR-22)
