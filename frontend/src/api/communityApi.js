@@ -145,9 +145,11 @@ export async function toggleCommunityPostLike(postId) {
   return response.json();
 }
 
-// 댓글 목록 (등록순) — 공용 조회, 토큰 불필요
+// 댓글 목록 (등록순) — 공용 조회지만, 로그인 상태면 "내가 공감한 댓글" 표시를 위해 토큰을 같이 보낸다.
 export async function fetchCommunityPostComments(postId) {
-  const response = await fetch(`${BASE_URL}/community/posts/${postId}/comments`);
+  const response = await fetch(`${BASE_URL}/community/posts/${postId}/comments`, {
+    headers: authHeaders(),
+  });
   if (!response.ok) {
     throw new Error("댓글 목록을 불러오지 못했습니다.");
   }
@@ -164,6 +166,18 @@ export async function createCommunityPostComment(postId, content, parentCommentI
   if (!response.ok) {
     const body = await response.json().catch(() => null);
     throw new Error(body?.message || "댓글 등록에 실패했습니다.");
+  }
+  return response.json();
+}
+
+// 댓글 공감 토글
+export async function toggleCommunityCommentLike(commentId) {
+  const response = await fetch(`${BASE_URL}/community/comments/${commentId}/likes`, {
+    method: "POST",
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error("댓글 공감 처리에 실패했습니다.");
   }
   return response.json();
 }

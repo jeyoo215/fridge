@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   login,
@@ -26,9 +26,20 @@ export default function Login() {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const expiredMessage = location.state?.expired
-    ? "로그인이 만료되었습니다. 다시 로그인해주세요."
-    : null;
+  // location.state는 브라우저 히스토리에 남아서 새로고침/뒤로가기로 이 페이지를 다시 봐도
+  // 그대로 남아있다. useState 초기값으로 딱 한 번만 읽어와 보여준 뒤, 아래 useEffect에서
+  // history state 자체를 바로 비워서 재방문 시엔 문구가 다시 뜨지 않게 한다.
+  const [expiredMessage] = useState(() =>
+    location.state?.expired ? "로그인이 만료되었습니다. 다시 로그인해주세요." : null
+  );
+
+  useEffect(() => {
+    if (location.state?.expired) {
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+    // 마운트 시 한 번만 — location.state는 이 안에서 지워버리므로 의존성에 넣지 않는다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 회원가입 이메일 인증 단계 상태
   const [emailCheckStatus, setEmailCheckStatus] = useState(null); // null | "available" | "taken"

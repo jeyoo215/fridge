@@ -86,6 +86,7 @@
 }
 
 .app-nav-link {
+  position: relative;
   padding: 8px 16px;
   border-radius: 999px;
   font-size: 14px;
@@ -95,6 +96,17 @@
   transition: background 0.15s ease, color 0.15s ease;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.app-nav-badge-dot {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-tomato);
+  border: 1.5px solid var(--color-surface);
 }
 
 .app-nav-link:hover {

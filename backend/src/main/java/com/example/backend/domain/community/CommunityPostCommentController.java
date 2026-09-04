@@ -26,10 +26,11 @@ public class CommunityPostCommentController {
         return Map.of("commentId", commentId);
     }
 
-    // 등록순 조회 — 공용 조회, 토큰 불필요
+    // 등록순 조회 — 공용 조회, 토큰은 있으면 "내가 공감한 댓글" 표시에만 쓰고 없어도 됨
     @GetMapping("/api/v1/community/posts/{postId}/comments")
-    public List<CommunityPostCommentResponse> getComments(@PathVariable("postId") Long postId) {
-        return communityPostCommentService.getComments(postId);
+    public List<CommunityPostCommentResponse> getComments(@PathVariable("postId") Long postId,
+                                                            @AuthenticationPrincipal Long userId) {
+        return communityPostCommentService.getComments(postId, userId);
     }
 
     // 댓글 삭제 (본인 댓글만)

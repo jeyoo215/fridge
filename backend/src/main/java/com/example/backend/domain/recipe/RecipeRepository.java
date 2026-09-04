@@ -37,10 +37,10 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     @Query("""
         SELECT ri.recipe.recipeId AS recipeId, COUNT(ri) AS matchCount
         FROM RecipeIngredient ri
-        WHERE ri.ingredient.isSeasoning = false
+        WHERE ri.recipe.recipeId IN :recipeIds AND ri.ingredient.isSeasoning = false
         GROUP BY ri.recipe.recipeId
         """)
-    List<RecipeMatchResult> findNonSeasoningIngredientCountPerRecipe();
+    List<RecipeMatchResult> findNonSeasoningIngredientCountByRecipeIdIn(@Param("recipeIds") List<Long> recipeIds);
 
     // 전체 목록 (검색조건 없을 때)
     @Query("SELECT r.recipeId FROM Recipe r ORDER BY r.recipeId")

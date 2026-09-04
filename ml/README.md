@@ -1,9 +1,4 @@
-# ml/ — 의외의 재료 조합 추천 배치 스크립트
-
-```text
-혹시 모르겠는 게 있다면 카톡을 하시게
-근데 아마 이거 AI한테 주면 방법 알려줄 듯
-```
+# ml/ — 의외의 재료 조합 추천 배치 스크립트 / 레시피 카테고리 자동 분류
 
 
 레시피 재료 조합을 Apriori 연관 규칙으로 분석해서, 사용자가 아직 시도해보지 않은
@@ -66,3 +61,49 @@ python calculate_combo_recommendation.py
 - 문서·발표 자료에는 "Apriori 연관 규칙 기반"으로 표기하기로 함 — 요구사항
   정의서의 FR-23 문구("협업 필터링 기반")와는 다르며, 이는 논의 후 의도적으로
   바꾼 것.
+
+
+
+
+
+  ---
+
+# 레시피 카테고리 자동 분류
+
+재료 원문 텍스트를 TF-IDF로 벡터화한 뒤 PyCaret 분류 모델로 레시피 카테고리
+(반찬/국&찌개/후식/일품/밥/기타)를 예측하는 스크립트다. 위 조합 추천 배치와는
+**별도 venv**를 쓴다 (아래 요구사항 참고).
+
+> 현재는 AutoML 설계 과제 검증용 스크립트이며, 실제 서비스 기능(레시피 등록 시
+> 카테고리 자동 추천)에는 아직 연동되지 않았다.
+
+## 요구사항
+
+- **Python 3.10 또는 3.11** (PyCaret 3.3.2가 3.13을 지원하지 않아 위 조합 추천용
+  `venv`와는 별도의 `venv_pycaret`을 사용함)
+- MySQL 서버 실행 중, `recipe`/`recipe_category` 테이블에 데이터가 있어야 함
+
+## 설치
+
+```bash
+cd ml
+py -3.11 -m venv venv_pycaret
+venv_pycaret\Scripts\activate
+pip install pycaret pandas mysql-connector-python
+```
+
+## 실행 방법
+
+```bash
+python classify_recipe_category.py
+```
+
+`recipe_category_model.pkl`, `recipe_category_vectorizer.pkl`이 `ml/` 아래에
+생성된다. 새 재료 원문으로 카테고리를 예측하려면 같은 파일의 `predict_category()`
+함수를 사용.
+
+## 언제 실행해야 하나
+
+**수동 실행.** 학습 데이터(recipe + recipe_category)가 식약처 API 최초 수집 시
+한 번만 채워지는 구조라, 레시피 데이터가 실제로 늘어나기 전까지는 다시 돌려도
+결과가 거의 동일함. 아래 "스케줄러 미연동 사유" 참고.

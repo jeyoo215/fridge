@@ -301,3 +301,28 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.challenge-hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.challenge-suggestion-banner {
+  background: var(--color-tomato-bg, #fdecea);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.challenge-suggestion-banner button {
+  margin-top: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.challenge-type-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

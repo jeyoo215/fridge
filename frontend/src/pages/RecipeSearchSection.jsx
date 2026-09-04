@@ -6,7 +6,7 @@ import "./RecipeSearchSection.css";
 
 const PAGE_SIZE = 20;
 
-export default function RecipeSearchSection() {
+export default function RecipeSearchSection({ notice }) {
   const navigate = useNavigate();
 
   const [keywordInput, setKeywordInput] = useState("");
@@ -68,6 +68,8 @@ export default function RecipeSearchSection() {
 
   return (
     <div className="recipe-search-section">
+      {notice && <p className="recipe-search-notice">{notice}</p>}
+
       <form className="recipe-list-search-form" onSubmit={handleSearchSubmit}>
         <input
           type="text"

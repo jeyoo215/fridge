@@ -127,3 +127,13 @@
   padding: 40px 0;
   font-size: 14px;
 }
+
+.recipe-search-notice {
+  background: var(--color-basil-bg);
+  color: var(--color-basil-dark);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}

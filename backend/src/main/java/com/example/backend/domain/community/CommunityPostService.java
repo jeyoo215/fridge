@@ -46,6 +46,8 @@ public class CommunityPostService {
     private final ChallengeRepository challengeRepository;
     private final UserRepository userRepository;
     private final CommunityReportRepository communityReportRepository;
+    private final CommunityCommentLikeRepository communityCommentLikeRepository;
+    private final CommunityNotificationRepository communityNotificationRepository;
 
     // 탈퇴 등으로 작성자 계정이 이미 없는 경우의 표시용 대체 닉네임
     private static final String UNKNOWN_NICKNAME = "알 수 없는 사용자";
@@ -273,8 +275,10 @@ public class CommunityPostService {
                 .toList();
         if (!commentIds.isEmpty()) {
             communityReportRepository.deleteByTargetTypeAndTargetIdIn(CommunityReport.TargetType.COMMENT, commentIds);
+            communityCommentLikeRepository.deleteByComment_CommentIdIn(commentIds);
         }
         communityReportRepository.deleteByTargetTypeAndTargetId(CommunityReport.TargetType.POST, postId);
+        communityNotificationRepository.deleteByPostId(postId);
         communityPostLikeRepository.deleteByPost_PostId(postId);
         communityPostCommentRepository.deleteByPost_PostId(postId);
         communityPostScrapRepository.deleteByPost_PostId(postId);

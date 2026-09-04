@@ -233,43 +233,50 @@ public class AuthService {
             throw new IllegalArgumentException("리프레시 토큰이 아닙니다.");
         }
 
-        Long userId = Long.valueOf(claims.getSubject());
-
-        RefreshToken saved = refreshTokenRepository.findByUserId(userId)
+        // user_id가 아니라 token 자체로 세션을 찾는다 — 이게 핵심.
+        // 다른 탭/기기가 자기 세션을 갱신해도 이 세션의 row는 전혀 영향받지 않는다.
+        RefreshToken saved = refreshTokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new IllegalArgumentException("로그아웃되었거나 존재하지 않는 세션입니다."));
 
-        if (!saved.getToken().equals(refreshToken) || saved.isExpired()) {
-            throw new IllegalArgumentException("리프레시 토큰이 만료되었거나 일치하지 않습니다. 다시 로그인해주세요.");
+        if (saved.isExpired()) {
+            refreshTokenRepository.delete(saved);
+            throw new IllegalArgumentException("리프레시 토큰이 만료되었습니다. 다시 로그인해주세요.");
         }
 
+        Long userId = Long.valueOf(claims.getSubject());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
-        return issueTokens(user);
+        String newAccessToken = jwtTokenProvider.generateAccessToken(user.getUserId(), user.getEmail(), user.getRole());
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId());
+        LocalDateTime newExpiresAt = LocalDateTime.now()
+                .plusSeconds(jwtTokenProvider.getRefreshTokenExpirationMs() / 1000);
+
+        saved.rotate(newRefreshToken, newExpiresAt); // 이 세션의 row만 회전
+
+        return new TokenResponse(newAccessToken, newRefreshToken);
     }
 
+    // 특정 세션(이 브라우저/탭)만 로그아웃 — 다른 탭/기기 로그인은 그대로 유지됨
     @Transactional
-    public void logout(Long userId) {
-        refreshTokenRepository.findByUserId(userId).ifPresent(refreshTokenRepository::delete);
+    public void logout(String refreshToken) {
+        if (refreshToken != null) {
+            refreshTokenRepository.deleteByToken(refreshToken);
+        }
     }
 
     private TokenResponse issueTokens(User user) {
         String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId(), user.getEmail(), user.getRole());
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId());
-        LocalDateTime expiresAt = LocalDateTime.now()
-                .plusSeconds(jwtTokenProvider.getRefreshTokenExpirationMs() / 1000);
 
-        refreshTokenRepository.findByUserId(user.getUserId())
-                .ifPresentOrElse(
-                        existing -> existing.update(refreshToken, expiresAt),
-                        () -> refreshTokenRepository.save(
-                                RefreshToken.builder()
-                                        .userId(user.getUserId())
-                                        .token(refreshToken)
-                                        .expiresAt(expiresAt)
-                                        .build()
-                        )
-                );
+        // 로그인은 항상 "새 세션 추가" — 기존 세션들과 무관
+        refreshTokenRepository.save(
+                RefreshToken.builder()
+                        .userId(user.getUserId())
+                        .token(refreshToken)
+                        .expiresAt(LocalDateTime.now().plusSeconds(jwtTokenProvider.getRefreshTokenExpirationMs() / 1000))
+                        .build()
+        );
 
         return new TokenResponse(accessToken, refreshToken);
     }
