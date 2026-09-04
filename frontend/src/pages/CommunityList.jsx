@@ -162,6 +162,7 @@ export default function CommunityList({ boardType = "RECIPE" }) {
                 <p className="community-post-card-preview">{post.previewText}</p>
                 <div className="community-post-card-meta">
                   <span>{post.createdAt?.slice(0, 10)}</span>
+                  <span>조회 {post.viewCount}</span>
                   <span>공감 {post.likeCount}</span>
                 </div>
               </div>

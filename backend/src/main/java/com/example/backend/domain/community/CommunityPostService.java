@@ -209,6 +209,10 @@ public class CommunityPostService {
         }
         assertChallengeBoardAccess(userId, post.getEffectiveBoardType());
         repairDanglingPromotion(post);
+        // 작성자 본인이 자기 글을 볼 때는 조회수를 올리지 않는다 (자기 글 새로고침으로 부풀리는 것 방지).
+        if (!post.getUserId().equals(userId)) {
+            post.increaseViewCount();
+        }
         String nickname = userRepository.findById(post.getUserId())
                 .map(User::getNickname)
                 .orElse(UNKNOWN_NICKNAME);
