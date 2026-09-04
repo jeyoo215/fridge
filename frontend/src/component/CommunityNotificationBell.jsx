@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { isLoggedIn } from "../api/authApi";
+import { isLoggedIn, isSessionExpired } from "../api/authApi";
 import {
   fetchCommunityNotifications,
   fetchCommunityNotificationUnreadCount,
@@ -29,7 +29,13 @@ export default function CommunityNotificationBell() {
 
   useEffect(() => {
     if (!isLoggedIn()) return undefined;
-    const refreshUnreadCount = () => fetchCommunityNotificationUnreadCount().then(setUnreadCount).catch(() => {});
+    // 커뮤니티 목록/상세는 로그인 없이도 볼 수 있어서 RequireAuth가 없고, 그래서 오래 머물러
+    // 있으면 accessToken이 슬라이딩 연장 안 되고 조용히 만료된다. isLoggedIn()은 토큰이
+    // "있는지"만 보고 만료 여부는 안 보므로, 만료된 채로 계속 폴링해서 400만 찍히는 걸 막는다.
+    const refreshUnreadCount = () => {
+      if (isSessionExpired()) return;
+      fetchCommunityNotificationUnreadCount().then(setUnreadCount).catch(() => {});
+    };
     refreshUnreadCount();
     const timer = setInterval(refreshUnreadCount, POLL_INTERVAL_MS);
     return () => clearInterval(timer);

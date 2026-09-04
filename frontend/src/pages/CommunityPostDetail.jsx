@@ -208,7 +208,9 @@ export default function CommunityPostDetail() {
         {post.prefix && <span className="community-detail-prefix">{post.prefix}</span>}
         {post.title}
       </h2>
-      <div className="community-detail-date">{post.createdAt?.slice(0, 10)}</div>
+      <div className="community-detail-date">
+        {post.createdAt?.slice(0, 10)} · 조회 {post.viewCount}
+      </div>
 
       {post.promotedRecipeId && (
         <button

@@ -72,6 +72,11 @@ public class CommunityPost {
     @Column(name = "like_count", nullable = false, columnDefinition = "INT NOT NULL DEFAULT 0")
     private int likeCount;
 
+    // 조회수. 작성자 본인이 볼 때는 안 올라가고, 그 외엔(비로그인 포함) 상세를 열어볼 때마다 올라간다
+    // (CommunityPostService.getDetail). 중복 방지(같은 사람 새로고침 등)는 하지 않는 단순 카운트.
+    @Column(name = "view_count", nullable = false, columnDefinition = "INT NOT NULL DEFAULT 0")
+    private int viewCount;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -159,6 +164,11 @@ public class CommunityPost {
 
     public void decreaseLikeCount() {
         this.likeCount = Math.max(0, this.likeCount - 1);
+    }
+
+    // 상세 조회 시 CommunityPostService 전용
+    public void increaseViewCount() {
+        this.viewCount++;
     }
 
     // 좋아요 임계치를 넘었을 때 호출 (CommunityPostPromotionService 전용)
