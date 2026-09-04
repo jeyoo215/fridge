@@ -1,0 +1,328 @@
+.challenge-container {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+  text-align: center;
+}
+
+.challenge-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: var(--color-text);
+}
+
+.challenge-status-loading {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 40px 0;
+  font-size: 14px;
+}
+
+.challenge-start,
+.challenge-status {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 24px 20px;
+}
+
+.challenge-start label {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.challenge-start input {
+  width: 60px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  text-align: center;
+}
+
+.challenge-container button {
+  padding: 11px 20px;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-basil);
+  color: white;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.challenge-container button:hover {
+  background: var(--color-basil-dark);
+  transform: translateY(-1px);
+}
+
+.challenge-badge {
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--color-bg);
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.status-성공 { color: var(--color-basil-dark); font-weight: 700; }
+.status-실패 { color: var(--color-tomato); font-weight: 700; }
+.status-진행중 { color: var(--color-text-muted); }
+
+.challenge-error {
+  color: var(--color-danger-text);
+  background: var(--color-tomato-bg);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.challenge-last-checked {
+  font-size: 12px;
+  color: #999;
+  margin-top: -4px;
+}
+
+.challenge-type-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.challenge-type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+
+.challenge-type-card:not(:disabled):hover {
+  border-color: var(--color-basil);
+  transform: translateY(-1px);
+}
+
+.challenge-type-label {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.challenge-type-desc {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.challenge-type-back {
+  align-self: flex-start;
+  background: none !important;
+  border: none;
+  color: var(--color-text-muted) !important;
+  font-size: 13px;
+  padding: 0 !important;
+  cursor: pointer;
+}
+
+.challenge-ingredient-picker {
+  position: relative;
+  text-align: left;
+}
+
+.challenge-ingredient-picker input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 14px;
+  font-family: var(--font-body);
+}
+
+.challenge-ingredient-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 10;
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-menu);
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.challenge-ingredient-results li {
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.challenge-ingredient-results li:hover {
+  background: var(--color-basil-bg);
+  color: var(--color-basil-dark);
+}
+
+.challenge-ingredient-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.challenge-ingredient-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--color-basil-bg);
+  color: var(--color-basil-dark);
+  font-size: 13px;
+}
+
+.challenge-ingredient-chip button {
+  border: none;
+  background: none;
+  color: var(--color-basil-dark);
+  cursor: pointer;
+  padding: 0 !important;
+  font-size: 12px;
+}
+
+.challenge-target-names {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.status-중단 { color: var(--color-text-muted); font-style: italic; }
+
+.challenge-abort-btn {
+  background: var(--color-tomato) !important;
+}
+
+.challenge-abort-btn:hover {
+  background: var(--color-danger-text) !important;
+}
+
+.challenge-history {
+  margin-top: 24px;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+  text-align: left;
+}
+
+.challenge-history-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--color-text);
+}
+
+.challenge-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.challenge-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--color-bg);
+  font-size: 13px;
+  gap: 8px;
+}
+
+.challenge-history-type {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.challenge-history-period {
+  color: var(--color-text-muted);
+}
+
+.challenge-history-status {
+  font-weight: 700;
+}
+
+.challenge-history-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.challenge-history-pagination button {
+  padding: 6px 12px;
+  font-size: 13px;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.challenge-history-pagination button.active {
+  background: var(--color-basil);
+  color: white;
+}
+
+.challenge-history-pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.challenge-hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.challenge-suggestion-banner {
+  background: var(--color-tomato-bg, #fdecea);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.challenge-suggestion-banner button {
+  margin-top: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.challenge-type-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
