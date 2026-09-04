@@ -1,0 +1,489 @@
+.community-detail-container {
+  max-width: 640px;
+  margin: 24px auto 60px;
+  padding: 24px 20px;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  /* #root의 전역 text-align:center를 물려받으면 제목/본문(특히 Quill 기본 정렬 문단은 class가
+     안 붙어서 이 상속값을 그대로 따름)까지 가운데 정렬돼 보인다. 게시글 영역 전체를 왼쪽 정렬로 고정. */
+  text-align: left;
+}
+
+.community-detail-status {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 40px 0;
+  font-size: 14px;
+}
+
+.community-detail-status.error {
+  color: var(--color-danger-text);
+}
+
+.community-detail-back {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 0;
+  margin-bottom: 14px;
+  cursor: pointer;
+}
+
+.community-detail-back:hover {
+  color: var(--color-basil-dark);
+}
+
+.community-detail-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.community-detail-author {
+  font-size: 13px;
+  color: var(--color-basil);
+  font-weight: 600;
+}
+
+.community-detail-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.community-detail-actions button {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.community-detail-actions button.danger {
+  border-color: var(--color-tomato);
+  color: var(--color-tomato);
+}
+
+.community-detail-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 6px;
+}
+
+.community-detail-prefix {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--color-basil-bg);
+  color: var(--color-basil-dark, var(--color-basil));
+  font-size: 13px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.community-detail-date {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 24px;
+}
+
+.community-detail-promoted-banner {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-amber-bg);
+  color: var(--color-amber);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.community-detail-recipe-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-bottom: 20px;
+}
+
+.community-detail-recipe-block {
+  margin-bottom: 24px;
+}
+
+.community-detail-block-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-basil-dark);
+  margin: 0 0 10px;
+}
+
+.community-detail-ingredient-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.community-detail-ingredient-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--color-bg);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.community-detail-ingredient-amount {
+  color: var(--color-text-muted);
+}
+
+.community-detail-section {
+  margin-bottom: 28px;
+}
+
+.community-detail-step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  margin-bottom: 10px;
+  border-radius: 999px;
+  background: var(--color-basil);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.community-detail-image {
+  width: 100%;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.community-detail-content {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--color-text);
+  /* 사이트 전역 font-synthesis: none 때문에 이탤릭 글꼴이 없는 폰트에서 기울임이 합성 안 되는 문제 해결 */
+  font-synthesis: style;
+}
+
+.community-detail-content p {
+  margin: 0 0 10px;
+}
+
+/* 내용이 아예 없는 빈 문단(<p></p>)은 기본적으로 높이가 0으로 접혀서, 사용자가 엔터로 띄운
+   줄바꿈이 안 보이는 것처럼 보인다. 빈 칸을 채워서 한 줄 높이를 갖게 한다
+   (글쓰기 폼은 useSemanticHTML={false}로 이미 <br>을 그대로 저장하지만, 예전에 저장된 글은
+   <br> 없는 <p></p>일 수 있어서 방어적으로 처리). */
+.community-detail-content p:empty::before {
+  content: "\00a0";
+}
+
+/* Quill 에디터가 정렬 서식을 이 클래스들로 저장하는데, 에디터 밖(상세 화면)에선 직접 스타일을 줘야 함 */
+.community-detail-content .ql-align-center {
+  text-align: center;
+}
+
+.community-detail-content .ql-align-right {
+  text-align: right;
+}
+
+.community-detail-content .ql-align-justify {
+  text-align: justify;
+}
+
+.community-detail-social {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.community-detail-like-button,
+.community-detail-scrap-button {
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+}
+
+.community-detail-like-button.active {
+  border-color: var(--color-tomato);
+  color: var(--color-tomato);
+  background: var(--color-tomato-bg);
+}
+
+.community-detail-scrap-button.active {
+  border-color: var(--color-amber);
+  color: var(--color-amber);
+  background: var(--color-amber-bg);
+}
+
+.community-detail-report-button {
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.community-detail-report-button:hover {
+  border-color: var(--color-tomato);
+  color: var(--color-tomato);
+}
+
+.community-detail-report-notice {
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-basil-dark);
+  font-weight: 600;
+  margin: 10px 0 0;
+}
+
+.community-detail-report-form {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+
+.community-detail-report-form--centered {
+  justify-content: center;
+}
+
+.community-detail-report-form select {
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+
+.community-detail-report-form button {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-tomato);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.community-detail-comments {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.community-detail-comments-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 14px;
+}
+
+.community-detail-comments-empty {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0 0 16px;
+}
+
+.community-detail-comment-login-link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--color-basil);
+  font-weight: 700;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.community-detail-comment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.community-detail-comment {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background: var(--color-bg);
+  border-radius: 10px;
+}
+
+.community-detail-comment-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.community-detail-comment-like-toggle,
+.community-detail-comment-reply-toggle,
+.community-detail-comment-report-toggle {
+  align-self: flex-start;
+  margin-top: 6px;
+  margin-right: 10px;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.community-detail-comment-like-toggle.active {
+  color: var(--color-tomato);
+}
+
+.community-detail-comment-report-toggle:hover {
+  color: var(--color-tomato);
+}
+
+.community-detail-reply-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.community-detail-reply-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+
+.community-detail-reply-form button {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-basil);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.community-detail-reply-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0 0 0 20px;
+  border-left: 2px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.community-detail-reply {
+  padding: 10px 12px;
+  background: var(--color-surface);
+}
+
+.community-detail-comment-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.community-detail-comment-meta {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.community-detail-comment-author {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-basil);
+}
+
+.community-detail-comment-date {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.community-detail-comment-content {
+  font-size: 14px;
+  color: var(--color-text);
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.community-detail-comment-delete {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.community-detail-comment-form {
+  display: flex;
+  gap: 8px;
+}
+
+.community-detail-comment-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+}
+
+.community-detail-comment-form button {
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-basil);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
