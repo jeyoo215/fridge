@@ -246,17 +246,18 @@ export async function reissue() {
 }
 
 export async function logout() {
-  const accessToken = getAccessToken();
+  const refreshToken = getRefreshToken();
   clearTokens();
-  if (!accessToken) return;
+  if (!refreshToken) return;
 
   try {
     await fetch(`${BASE_URL}/auth/logout`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
     });
   } catch {
-    // ignore logout failure on server, local tokens already cleared
+    // 서버 로그아웃 실패해도 로컬 토큰은 이미 지웠으니 무시
   }
 }
 

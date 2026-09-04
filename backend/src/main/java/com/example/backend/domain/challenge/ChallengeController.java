@@ -3,6 +3,8 @@ package com.example.backend.domain.challenge;
 import com.example.backend.domain.challenge.dto.ChallengeHistoryPageResponse;
 import com.example.backend.domain.challenge.dto.ChallengeResponse;
 import com.example.backend.domain.challenge.dto.ChallengeStartRequest;
+import com.example.backend.domain.challenge.dto.TargetIngredientSuggestionResponse;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -44,5 +46,11 @@ public class ChallengeController {
     @PatchMapping("/{challengeId}/abort")
     public ChallengeResponse abortChallenge(@PathVariable("challengeId") Long challengeId) {
         return challengeService.abortChallenge(challengeId);
+    }
+    
+    // 진행중인 챌린지가 없어도, 보유 재료가 없으면 null 반환 (200 + empty body)
+    @GetMapping("/suggest-target")
+    public TargetIngredientSuggestionResponse suggestTarget(@AuthenticationPrincipal Long userId) {
+        return challengeService.suggestTargetIngredient(userId);
     }
 }

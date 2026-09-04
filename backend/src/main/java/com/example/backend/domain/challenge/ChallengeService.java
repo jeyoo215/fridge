@@ -4,6 +4,7 @@ import com.example.backend.domain.badge.BadgeService;
 import com.example.backend.domain.challenge.dto.ChallengeResponse;
 import com.example.backend.domain.challenge.dto.ChallengeStartRequest;
 import com.example.backend.domain.challenge.dto.ChallengeHistoryPageResponse;
+import com.example.backend.domain.challenge.dto.TargetIngredientSuggestionResponse;
 import com.example.backend.domain.ingredient.Ingredient;
 import com.example.backend.domain.ingredient.IngredientRepository;
 import com.example.backend.domain.ingredient.UserIngredient;
@@ -20,6 +21,8 @@ import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 
 @Service
 @RequiredArgsConstructor
@@ -59,9 +62,15 @@ public class ChallengeService {
                 if (!ingredientRepository.existsById(ingredientId)) {
                     throw new IllegalArgumentException("존재하지 않는 재료입니다. ingredientId=" + ingredientId);
                 }
+                boolean owned = !userIngredientRepository
+                        .findByUserIdAndIngredient_IngredientIdAndStatus(userId, ingredientId, UserIngredient.Status.보유중)
+                        .isEmpty();
+                if (!owned) {
+                    throw new IllegalArgumentException("현재 보유 중인 재료만 소진 챌린지 대상으로 선택할 수 있습니다.");
+                }
                 challenge.addTargetIngredient(ingredientId);
             }
-        }
+}
 
         return challengeRepository.save(challenge).getChallengeId();
     }
@@ -80,20 +89,7 @@ public class ChallengeService {
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 챌린지입니다. id=" + challengeId));
 
-        if (challenge.getStatus() == Challenge.Status.진행중 && challenge.isFinishedPeriod(LocalDate.now())) {
-            boolean success = switch (challenge.getType()) {
-                case FRIDGE_CLEAN -> judgeFridgeClean(challenge);
-                case TARGET_INGREDIENT -> judgeTargetIngredientConsumed(challenge);
-            };
-
-            if (success) {
-                challenge.markSuccess();
-                badgeService.onChallengeSuccess(challenge.getUserId());
-            } else {
-                challenge.markFailed();
-                badgeService.onChallengeFailed(challenge.getUserId());
-            }
-        }
+        finalizeIfFinished(challenge);
 
         return buildResponse(challenge);
     }
@@ -167,9 +163,21 @@ public class ChallengeService {
         return new ChallengeHistoryPageResponse(content, page, challengePage.getTotalPages(), challengePage.getTotalElements());
     }
 
-    // 기간이 끝난 진행중 챌린지를 성공/실패로 판정 (getStatus, getActiveChallenge 공통 사용)
+    // 기간이 끝난 진행중 챌린지를 성공/실패로 판정.
+    // TARGET_INGREDIENT는 기간이 남아있어도 대상 재료를 다 쓰면 즉시 성공 처리한다.
     private void finalizeIfFinished(Challenge challenge) {
-        if (challenge.getStatus() == Challenge.Status.진행중 && challenge.isFinishedPeriod(LocalDate.now())) {
+        if (challenge.getStatus() != Challenge.Status.진행중) {
+            return;
+        }
+
+        if (challenge.getType() == Challenge.ChallengeType.TARGET_INGREDIENT
+                && judgeTargetIngredientConsumed(challenge)) {
+            challenge.markSuccess();
+            badgeService.onChallengeSuccess(challenge.getUserId());
+            return;
+        }
+
+        if (challenge.isFinishedPeriod(LocalDate.now())) {
             boolean success = switch (challenge.getType()) {
                 case FRIDGE_CLEAN -> judgeFridgeClean(challenge);
                 case TARGET_INGREDIENT -> judgeTargetIngredientConsumed(challenge);
@@ -183,5 +191,34 @@ public class ChallengeService {
                 badgeService.onChallengeFailed(challenge.getUserId());
             }
         }
+    }
+
+    // 특정 재료 소진 챌린지 시작 전, 유통기한이 가장 임박한(그 중 양이 가장 많은) 재료를 추천
+    public TargetIngredientSuggestionResponse suggestTargetIngredient(Long userId) {
+        List<UserIngredient> owned = userIngredientRepository
+                .findByUserIdAndStatusOrderByExpirationDateAsc(userId, UserIngredient.Status.보유중);
+
+        if (owned.isEmpty()) {
+            return null;
+        }
+
+        LocalDate nearestExpiration = owned.get(0).getExpirationDate();
+
+        UserIngredient best = owned.stream()
+                .filter(ui -> ui.getExpirationDate().isEqual(nearestExpiration))
+                .max(Comparator.comparing(UserIngredient::getQuantity))
+                .orElse(owned.get(0));
+
+        long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), best.getExpirationDate());
+        int suggestedDays = (int) Math.max(1, daysLeft + 1);
+
+        return new TargetIngredientSuggestionResponse(
+                best.getIngredient().getIngredientId(),
+                best.getIngredient().getIngredientName(),
+                best.getQuantity(),
+                best.getUnit(),
+                best.getExpirationDate(),
+                suggestedDays
+        );
     }
 }

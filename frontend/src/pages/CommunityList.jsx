@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchCommunityPosts, toMediaSrc } from "../api/communityApi";
 import CommunitySidebar from "../component/CommunitySidebar";
+import CommunityNotificationBell from "../component/CommunityNotificationBell";
 import { getBoardConfig, FREE_TALK_PREFIXES } from "./communityBoards";
 import { isLoggedIn } from "../api/authApi";
 import "./CommunityList.css";
@@ -77,6 +78,7 @@ export default function CommunityList({ boardType = "RECIPE" }) {
             </button>
           </div>
         </div>
+        <div className="community-list-ghost-spacer" aria-hidden="true" />
       </div>
     );
   }
@@ -87,50 +89,53 @@ export default function CommunityList({ boardType = "RECIPE" }) {
       <div className="community-list-container">
         <div className="community-list-header">
           <h2 className="community-list-title">{board.label}</h2>
+          <CommunityNotificationBell />
         </div>
 
-        <form className="community-search-form" onSubmit={handleSearchSubmit}>
-          <input
-            type="text"
-            className="community-search-input"
-            placeholder="제목으로 검색"
-            value={keywordInput}
-            onChange={(e) => setKeywordInput(e.target.value)}
-          />
-          <button type="submit" className="community-search-button">
-            🔍 검색
-          </button>
-        </form>
+        <div className="community-list-toolbar">
+          <form className="community-search-form" onSubmit={handleSearchSubmit}>
+            <input
+              type="text"
+              className="community-search-input"
+              placeholder="제목으로 검색"
+              value={keywordInput}
+              onChange={(e) => setKeywordInput(e.target.value)}
+            />
+            <button type="submit" className="community-search-button">
+              🔍 검색
+            </button>
+          </form>
 
-        <div className="community-sort-toggle">
-          <button
-            type="button"
-            className={sortBy === "latest" ? "active" : ""}
-            onClick={() => changeSortBy("latest")}
-          >
-            최신순
-          </button>
-          <button
-            type="button"
-            className={sortBy === "popular" ? "active" : ""}
-            onClick={() => changeSortBy("popular")}
-          >
-            🔥 인기순
-          </button>
-        </div>
-
-        {boardType === "FREE_TALK" && (
-          <div className="community-prefix-filter">
-            <select value={prefix} onChange={(e) => { setPrefix(e.target.value); setPage(0); }}>
-              <option value="">전체</option>
-              {FREE_TALK_PREFIXES.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+          <div className="community-sort-toggle">
+            <button
+              type="button"
+              className={sortBy === "latest" ? "active" : ""}
+              onClick={() => changeSortBy("latest")}
+            >
+              최신순
+            </button>
+            <button
+              type="button"
+              className={sortBy === "popular" ? "active" : ""}
+              onClick={() => changeSortBy("popular")}
+            >
+              🔥 인기순
+            </button>
           </div>
-        )}
+
+          {boardType === "FREE_TALK" && (
+            <div className="community-prefix-filter">
+              <select value={prefix} onChange={(e) => { setPrefix(e.target.value); setPage(0); }}>
+                <option value="">전체</option>
+                {FREE_TALK_PREFIXES.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
 
         {loading && <p className="community-list-status">불러오는 중...</p>}
         {error && <p className="community-list-status error">{error}</p>}
@@ -200,6 +205,7 @@ export default function CommunityList({ boardType = "RECIPE" }) {
           </div>
         )}
       </div>
+      <div className="community-list-ghost-spacer" aria-hidden="true" />
 
       <button
         type="button"

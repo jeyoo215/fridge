@@ -5,7 +5,7 @@ import "./RecipeCardGrid.css";
 
 const PAGE_SIZE = 10;
 
-export default function RecipeMyIngredientsSection() {
+export default function RecipeMyIngredientsSection({ onEmptyRecommend }) {
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [data, setData] = useState({ content: [], totalPages: 0, totalElements: 0 });
@@ -15,7 +15,13 @@ export default function RecipeMyIngredientsSection() {
   useEffect(() => {
     setLoading(true);
     fetchRecommendedRecipes(page, PAGE_SIZE)
-      .then(setData)
+      .then((result) => {
+        setData(result);
+        // 첫 페이지 기준으로 추천 결과가 아예 없으면(재료 부족 등) 검색 탭으로 넘겨달라고 알림
+        if (page === 0 && result.totalElements === 0 && onEmptyRecommend) {
+          onEmptyRecommend();
+        }
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [page]);

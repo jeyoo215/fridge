@@ -2,14 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import MyPage from "../pages/MyPage";
 import { isLoggedIn, isAdmin, logout } from "../api/authApi";
-import NotificationBell from "./NotificationBell";
+import { fetchCommunityNotificationUnreadCount } from "../api/communityNotificationApi";
 import "./Nav.css";
 
 const linkClassName = ({ isActive }) => `app-nav-link${isActive ? " active" : ""}`;
+const COMMUNITY_UNREAD_POLL_MS = 60 * 1000;
 
 export default function Nav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
+  const [hasUnreadCommunity, setHasUnreadCommunity] = useState(false);
   const pushedHistoryRef = useRef(false);
   const navigate = useNavigate();
   const admin = isAdmin();
@@ -36,6 +38,26 @@ export default function Nav() {
     };
   }, []);
 
+  // 상단 "📝 커뮤니티" 링크에 안 읽은 알림이 있으면 빨간 점을 띄운다
+  // (관리자는 이 링크 자체가 없어서 건너뜀).
+  useEffect(() => {
+    if (!loggedIn || admin) {
+      setHasUnreadCommunity(false);
+      return undefined;
+    }
+    const refresh = () =>
+      fetchCommunityNotificationUnreadCount()
+        .then((count) => setHasUnreadCommunity(count > 0))
+        .catch(() => {});
+    refresh();
+    const timer = setInterval(refresh, COMMUNITY_UNREAD_POLL_MS);
+    window.addEventListener("focus", refresh);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [loggedIn, admin]);
+
   const closeSheet = () => {
     if (pushedHistoryRef.current) {
       window.history.back();
@@ -55,16 +77,14 @@ export default function Nav() {
       <div className="app-nav-links">
         {admin ? (
           <>
-            {/* TODO: 아래 3개 관리자 메뉴 문구는 인코딩 깨진 걸 임시로 복구한 추측 텍스트입니다.
-                관리자 기능 만든 팀원한테 정확한 문구 확인 후 수정해주세요. */}
             <NavLink to="/admin" end className={linkClassName}>
-              🛠️ 관리자 대시보드
+              ⚙️ 조합 배치
             </NavLink>
             <NavLink to="/admin/recipes/new" className={linkClassName}>
-              📝 레시피 추가
+              📖 레시피 추가
             </NavLink>
             <NavLink to="/admin/reports" className={linkClassName}>
-              🚩 신고 관리
+              🚨 신고 관리
             </NavLink>
           </>
         ) : (
@@ -83,12 +103,11 @@ export default function Nav() {
             </NavLink>
             <NavLink to="/community" className={linkClassName}>
               📝 커뮤니티
+              {hasUnreadCommunity && <span className="app-nav-badge-dot" aria-label="읽지 않은 알림 있음" />}
             </NavLink>
           </>
         )}
       </div>
-
-      {loggedIn && <NotificationBell />}
 
       {loggedIn && (
         <button type="button" className="app-nav-auth-button" onClick={handleLogout}>

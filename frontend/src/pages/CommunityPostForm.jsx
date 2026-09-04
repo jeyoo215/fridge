@@ -38,8 +38,18 @@ const QUILL_MODULES = {
   ],
 };
 
+// crypto.randomUUID()는 https 또는 localhost 같은 "보안 컨텍스트"에서만 존재해서,
+// 사내망 IP 등 http로 접속하면 undefined라 여기서 바로 TypeError가 나며 폼 전체가 하얗게 죽는다.
+// 여기선 React key로만 쓰이는 값이라 진짜 UUID일 필요 없이 충돌만 안 나면 충분하므로, 폴백을 둔다.
+function generateKey() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `key-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 function emptyStep() {
-  return { key: crypto.randomUUID(), description: "", mediaUrl: "", mediaType: null, uploading: false };
+  return { key: generateKey(), description: "", mediaUrl: "", mediaType: null, uploading: false };
 }
 
 // props의 boardType은 "새 글쓰기" 진입 경로(라우트)로 결정된다. 수정 모드에서는 대신 서버에서 불러온
@@ -125,7 +135,7 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
           setDifficulty(post.difficulty || DIFFICULTY_OPTIONS[0]);
           setIngredients(
             post.ingredients.map((item) => ({
-              key: crypto.randomUUID(),
+              key: generateKey(),
               ingredientId: item.ingredientId,
               ingredientName: item.ingredientName,
               quantity: item.quantity ?? "",
@@ -138,7 +148,7 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
         setSteps(
           post.steps.length > 0
             ? post.steps.map((step) => ({
-                key: crypto.randomUUID(),
+                key: generateKey(),
                 description: step.description,
                 mediaUrl: step.mediaUrl || "",
                 mediaType: step.mediaType,
@@ -175,7 +185,7 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
   const addIngredientRow = (ingredient) => {
     setIngredients((prev) => [
       ...prev,
-      { key: crypto.randomUUID(), ingredientId: ingredient.ingredientId, ingredientName: ingredient.ingredientName, quantity: "", unit: "" },
+      { key: generateKey(), ingredientId: ingredient.ingredientId, ingredientName: ingredient.ingredientName, quantity: "", unit: "" },
     ]);
     setIngredientKeyword("");
     setIngredientResults([]);
@@ -541,6 +551,12 @@ export default function CommunityPostForm({ boardType: boardTypeProp = "RECIPE" 
               value={step.description}
               onChange={(value) => updateStep(step.key, { description: value })}
               modules={QUILL_MODULES}
+              // react-quill-new는 기본적으로 quill의 getSemanticHTML()로 값을 만드는데, 이게
+              // 빈 문단(엔터만 여러 번 친 줄)의 <br>을 지워버려서 <p></p>가 되고, 상세 화면(읽기
+              // 전용 dangerouslySetInnerHTML)에서는 내용 없는 <p>가 높이 0으로 접혀 문단 줄바꿈이
+              // 안 보이게 된다 — 편집 중엔 contenteditable이라 안 보이던 문제. root.innerHTML을
+              // 그대로 쓰면 편집기에 실제로 있는 <br>이 그대로 저장돼 그 문제가 없다.
+              useSemanticHTML={false}
             />
           </div>
         </div>

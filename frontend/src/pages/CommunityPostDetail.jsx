@@ -10,6 +10,7 @@ import {
   fetchCommunityPostComments,
   createCommunityPostComment,
   deleteCommunityPostComment,
+  toggleCommunityCommentLike,
   toMediaSrc,
 } from "../api/communityApi";
 import { getBoardConfig } from "./communityBoards";
@@ -154,9 +155,23 @@ export default function CommunityPostDetail() {
     if (!window.confirm("이 댓글을 삭제하시겠습니까? 되돌릴 수 없습니다.")) return;
     try {
       await deleteCommunityPostComment(commentId);
-      // 원댓글을 지우면 백엔드가 대댓글도 같이 지우므로, 화면에서도 같이 걷어냄
+      // 삭제한 댓글 밑에 대댓글, 대댓글의 댓글까지 여러 단계로 같이 지워질 수 있어서
+      // 화면에서 직접 걷어내는 대신 목록을 통째로 다시 받아온다.
+      setComments(await fetchCommunityPostComments(postId));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleToggleCommentLike = async (commentId) => {
+    if (!isLoggedIn()) {
+      navigate("/login");
+      return;
+    }
+    try {
+      const { active, count } = await toggleCommunityCommentLike(commentId);
       setComments((prev) =>
-        prev.filter((comment) => comment.commentId !== commentId && comment.parentCommentId !== commentId)
+        prev.map((c) => (c.commentId === commentId ? { ...c, liked: active, likeCount: count } : c))
       );
     } catch (err) {
       setError(err.message);
@@ -303,155 +318,28 @@ export default function CommunityPostDetail() {
           <ul className="community-detail-comment-list">
             {comments
               .filter((comment) => !comment.parentCommentId)
-              .map((comment) => {
-                const replies = comments.filter((reply) => reply.parentCommentId === comment.commentId);
-                return (
-                  <li key={comment.commentId} className="community-detail-comment">
-                    <div className="community-detail-comment-row">
-                      <div className="community-detail-comment-body">
-                        <div className="community-detail-comment-meta">
-                          <span className="community-detail-comment-author">{comment.nickname}</span>
-                          <span className="community-detail-comment-date">{comment.createdAt?.slice(0, 10)}</span>
-                        </div>
-                        <p className="community-detail-comment-content">{comment.content}</p>
-                      </div>
-                      {comment.userId === currentUserId && (
-                        <button
-                          type="button"
-                          className="community-detail-comment-delete"
-                          onClick={() => handleDeleteComment(comment.commentId)}
-                          aria-label="댓글 삭제"
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      className="community-detail-comment-reply-toggle"
-                      onClick={() => {
-                        if (!isLoggedIn()) {
-                          navigate("/login");
-                          return;
-                        }
-                        setReplyingTo(replyingTo === comment.commentId ? null : comment.commentId);
-                        setReplyText("");
-                      }}
-                    >
-                      답글
-                    </button>
-                    {comment.userId !== currentUserId && (
-                      <button
-                        type="button"
-                        className="community-detail-comment-report-toggle"
-                        onClick={() => {
-                          if (!isLoggedIn()) {
-                            navigate("/login");
-                            return;
-                          }
-                          setReportingCommentId(reportingCommentId === comment.commentId ? null : comment.commentId);
-                        }}
-                      >
-                        신고
-                      </button>
-                    )}
-
-                    {replyingTo === comment.commentId && (
-                      <form
-                        className="community-detail-reply-form"
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          handleAddReply(comment.commentId);
-                        }}
-                      >
-                        <input
-                          type="text"
-                          placeholder={`${comment.nickname}님에게 답글 남기기`}
-                          value={replyText}
-                          onChange={(e) => setReplyText(e.target.value)}
-                          maxLength={500}
-                          autoFocus
-                        />
-                        <button type="submit">등록</button>
-                      </form>
-                    )}
-
-                    {reportingCommentId === comment.commentId && (
-                      <form
-                        className="community-detail-report-form"
-                        onSubmit={(e) => handleReportComment(e, comment.commentId)}
-                      >
-                        <select value={commentReportReason} onChange={(e) => setCommentReportReason(e.target.value)}>
-                          {REPORT_REASONS.map((reason) => (
-                            <option key={reason} value={reason}>
-                              {reason}
-                            </option>
-                          ))}
-                        </select>
-                        <button type="submit">신고하기</button>
-                      </form>
-                    )}
-
-                    {replies.length > 0 && (
-                      <ul className="community-detail-reply-list">
-                        {replies.map((reply) => (
-                          <li key={reply.commentId} className="community-detail-comment community-detail-reply">
-                            <div className="community-detail-comment-row">
-                              <div className="community-detail-comment-body">
-                                <div className="community-detail-comment-meta">
-                                  <span className="community-detail-comment-author">{reply.nickname}</span>
-                                  <span className="community-detail-comment-date">{reply.createdAt?.slice(0, 10)}</span>
-                                </div>
-                                <p className="community-detail-comment-content">{reply.content}</p>
-                              </div>
-                              {reply.userId === currentUserId && (
-                                <button
-                                  type="button"
-                                  className="community-detail-comment-delete"
-                                  onClick={() => handleDeleteComment(reply.commentId)}
-                                  aria-label="답글 삭제"
-                                >
-                                  ×
-                                </button>
-                              )}
-                            </div>
-                            {reply.userId !== currentUserId && (
-                              <button
-                                type="button"
-                                className="community-detail-comment-report-toggle"
-                                onClick={() => {
-                                  if (!isLoggedIn()) {
-                                    navigate("/login");
-                                    return;
-                                  }
-                                  setReportingCommentId(reportingCommentId === reply.commentId ? null : reply.commentId);
-                                }}
-                              >
-                                신고
-                              </button>
-                            )}
-                            {reportingCommentId === reply.commentId && (
-                              <form
-                                className="community-detail-report-form"
-                                onSubmit={(e) => handleReportComment(e, reply.commentId)}
-                              >
-                                <select value={commentReportReason} onChange={(e) => setCommentReportReason(e.target.value)}>
-                                  {REPORT_REASONS.map((reason) => (
-                                    <option key={reason} value={reason}>
-                                      {reason}
-                                    </option>
-                                  ))}
-                                </select>
-                                <button type="submit">신고하기</button>
-                              </form>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                );
-              })}
+              .map((comment) => (
+                <CommentNode
+                  key={comment.commentId}
+                  comment={comment}
+                  depth={0}
+                  allComments={comments}
+                  currentUserId={currentUserId}
+                  navigate={navigate}
+                  replyingTo={replyingTo}
+                  setReplyingTo={setReplyingTo}
+                  replyText={replyText}
+                  setReplyText={setReplyText}
+                  handleAddReply={handleAddReply}
+                  handleDeleteComment={handleDeleteComment}
+                  handleToggleCommentLike={handleToggleCommentLike}
+                  reportingCommentId={reportingCommentId}
+                  setReportingCommentId={setReportingCommentId}
+                  commentReportReason={commentReportReason}
+                  setCommentReportReason={setCommentReportReason}
+                  handleReportComment={handleReportComment}
+                />
+              ))}
           </ul>
         )}
         {isLoggedIn() ? (
@@ -476,5 +364,155 @@ export default function CommunityPostDetail() {
         )}
       </section>
     </article>
+  );
+}
+
+// 댓글 한 개 + 그 밑에 달린 답글들을 그린다. depth: 0=원댓글, 1=대댓글, 2=대댓글의 댓글.
+// "답글" 버튼은 depth 2에서는 숨겨서 그 이상 중첩되지 않게 한다 (백엔드도 동일하게 막음).
+function CommentNode({
+  comment,
+  depth,
+  allComments,
+  currentUserId,
+  navigate,
+  replyingTo,
+  setReplyingTo,
+  replyText,
+  setReplyText,
+  handleAddReply,
+  handleDeleteComment,
+  handleToggleCommentLike,
+  reportingCommentId,
+  setReportingCommentId,
+  commentReportReason,
+  setCommentReportReason,
+  handleReportComment,
+}) {
+  const children = allComments.filter((c) => c.parentCommentId === comment.commentId);
+  const isOwner = comment.userId === currentUserId;
+  const requireLogin = (fn) => () => {
+    if (!isLoggedIn()) {
+      navigate("/login");
+      return;
+    }
+    fn();
+  };
+
+  return (
+    <li className={`community-detail-comment${depth > 0 ? " community-detail-reply" : ""}`}>
+      <div className="community-detail-comment-row">
+        <div className="community-detail-comment-body">
+          <div className="community-detail-comment-meta">
+            <span className="community-detail-comment-author">{comment.nickname}</span>
+            <span className="community-detail-comment-date">{comment.createdAt?.slice(0, 10)}</span>
+          </div>
+          <p className="community-detail-comment-content">{comment.content}</p>
+        </div>
+        {isOwner && (
+          <button
+            type="button"
+            className="community-detail-comment-delete"
+            onClick={() => handleDeleteComment(comment.commentId)}
+            aria-label="댓글 삭제"
+          >
+            ×
+          </button>
+        )}
+      </div>
+
+      <button
+        type="button"
+        className={`community-detail-comment-like-toggle${comment.liked ? " active" : ""}`}
+        onClick={requireLogin(() => handleToggleCommentLike(comment.commentId))}
+      >
+        {comment.liked ? "❤️" : "🤍"} {comment.likeCount ?? 0}
+      </button>
+      {depth < 2 && (
+        <button
+          type="button"
+          className="community-detail-comment-reply-toggle"
+          onClick={requireLogin(() => {
+            setReplyingTo(replyingTo === comment.commentId ? null : comment.commentId);
+            setReplyText("");
+          })}
+        >
+          답글
+        </button>
+      )}
+      {!isOwner && (
+        <button
+          type="button"
+          className="community-detail-comment-report-toggle"
+          onClick={requireLogin(() => {
+            setReportingCommentId(reportingCommentId === comment.commentId ? null : comment.commentId);
+          })}
+        >
+          신고
+        </button>
+      )}
+
+      {replyingTo === comment.commentId && (
+        <form
+          className="community-detail-reply-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleAddReply(comment.commentId);
+          }}
+        >
+          <input
+            type="text"
+            placeholder={`${comment.nickname}님에게 답글 남기기`}
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            maxLength={500}
+            autoFocus
+          />
+          <button type="submit">등록</button>
+        </form>
+      )}
+
+      {reportingCommentId === comment.commentId && (
+        <form
+          className="community-detail-report-form"
+          onSubmit={(e) => handleReportComment(e, comment.commentId)}
+        >
+          <select value={commentReportReason} onChange={(e) => setCommentReportReason(e.target.value)}>
+            {REPORT_REASONS.map((reason) => (
+              <option key={reason} value={reason}>
+                {reason}
+              </option>
+            ))}
+          </select>
+          <button type="submit">신고하기</button>
+        </form>
+      )}
+
+      {children.length > 0 && (
+        <ul className="community-detail-reply-list">
+          {children.map((child) => (
+            <CommentNode
+              key={child.commentId}
+              comment={child}
+              depth={depth + 1}
+              allComments={allComments}
+              currentUserId={currentUserId}
+              navigate={navigate}
+              replyingTo={replyingTo}
+              setReplyingTo={setReplyingTo}
+              replyText={replyText}
+              setReplyText={setReplyText}
+              handleAddReply={handleAddReply}
+              handleDeleteComment={handleDeleteComment}
+              handleToggleCommentLike={handleToggleCommentLike}
+              reportingCommentId={reportingCommentId}
+              setReportingCommentId={setReportingCommentId}
+              commentReportReason={commentReportReason}
+              setCommentReportReason={setCommentReportReason}
+              handleReportComment={handleReportComment}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
   );
 }

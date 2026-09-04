@@ -4,6 +4,8 @@ import com.example.backend.domain.ingredient.Ingredient;
 import com.example.backend.domain.ingredient.IngredientRepository;
 import com.example.backend.domain.ingredient.UserIngredient;
 import com.example.backend.domain.ingredient.UserIngredientRepository;
+import com.example.backend.domain.ingredient.UserIngredientService;
+import com.example.backend.domain.ingredient.dto.UserIngredientRegisterRequest;
 import com.example.backend.domain.recipe.Recipe;
 import com.example.backend.domain.recipe.RecipeIngredient;
 import com.example.backend.domain.recipe.RecipeRepository;
@@ -18,8 +20,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,6 +36,7 @@ public class ShoppingListService {
 
     private final RecipeRepository recipeRepository;
     private final UserIngredientRepository userIngredientRepository;
+    private final UserIngredientService userIngredientService;
     private final ShoppingListRepository shoppingListRepository;
     private final IngredientRepository ingredientRepository;
 
@@ -187,5 +194,69 @@ public class ShoppingListService {
         @Transactional
         public void updateQuantity(Long userId, Long itemId, BigDecimal quantity) {
         findOwnedItem(userId, itemId).updateQuantity(quantity);
+        }
+
+        // 체크된 항목 전체선택/해제
+        @Transactional
+        public void setAllChecked(Long userId, boolean checked) {
+        ShoppingList shoppingList = shoppingListRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("장보기 리스트가 없습니다."));
+        shoppingList.getItems().forEach(item -> {
+                if (checked) item.check(); else item.uncheck();
+        });
+        }
+
+        // 체크된 항목들을 보유재료로 등록하고 장보기 리스트에서 제거 ("구매" 버튼)
+        @Transactional
+        public List<Long> purchaseCheckedItems(Long userId) {
+        ShoppingList shoppingList = shoppingListRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("장보기 리스트가 없습니다."));
+
+        List<ShoppingListItem> checkedItems = shoppingList.getItems().stream()
+                .filter(ShoppingListItem::isChecked)
+                .toList();
+
+        if (checkedItems.isEmpty()) {
+                throw new IllegalArgumentException("구매 처리할 항목이 없습니다. 먼저 항목을 체크해주세요.");
+        }
+
+        LocalDate today = LocalDate.now();
+        List<Long> resultIds = new ArrayList<>();
+
+        // 이미 보유 중인 재료 목록 (같은 재료+단위면 새로 만들지 않고 합치기 위해 미리 조회)
+        List<UserIngredient> ownedIngredients = userIngredientRepository
+                .findByUserIdAndStatusOrderByExpirationDateAsc(userId, UserIngredient.Status.보유중);
+
+        for (ShoppingListItem item : checkedItems) {
+                Ingredient ingredient = item.getIngredient();
+                BigDecimal quantity = item.getQuantity() != null ? item.getQuantity() : BigDecimal.ONE;
+                String unit = item.getUnit();
+                int shelfLifeDays = ingredient.getDefaultShelfLifeDays() != null ? ingredient.getDefaultShelfLifeDays() : 7;
+                LocalDate newExpirationDate = today.plusDays(shelfLifeDays);
+
+                Optional<UserIngredient> existing = ownedIngredients.stream()
+                        .filter(ui -> ui.getIngredient().getIngredientId().equals(ingredient.getIngredientId()))
+                        .filter(ui -> Objects.equals(ui.getUnit(), unit))
+                        .findFirst();
+
+                if (existing.isPresent()) {
+                // 같은 재료+단위 보유 중 -> 수량 합치고, 구매일/유통기한은 이번 구매 기준으로 갱신
+                UserIngredient merged = existing.get();
+                BigDecimal mergedQuantity = merged.getQuantity().add(quantity);
+                LocalDate mergedExpiration = newExpirationDate.isAfter(merged.getExpirationDate())
+                        ? newExpirationDate
+                        : merged.getExpirationDate();
+                merged.updateQuantityAndExpiration(mergedQuantity, today, mergedExpiration);
+                resultIds.add(merged.getUserIngredientId());
+                } else {
+                UserIngredientRegisterRequest registerRequest = new UserIngredientRegisterRequest(
+                        ingredient.getIngredientId(), quantity, unit, today, newExpirationDate
+                );
+                resultIds.add(userIngredientService.register(userId, registerRequest));
+                }
+        }
+
+        shoppingList.getItems().removeAll(checkedItems);
+        return resultIds;
         }
 }

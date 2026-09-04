@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { startChallenge, fetchActiveChallenge, abortChallenge, fetchChallengeHistory } from "../api/challengeApi";
-import { searchIngredients } from "../api/ingredientApi";
+import { startChallenge, fetchActiveChallenge, abortChallenge, fetchChallengeHistory, fetchSuggestedTarget } from "../api/challengeApi";
+import { fetchMyIngredients } from "../api/ingredientApi";
 import BadgeSection from "../component/BadgeSection";
 import "./Challenge.css";
 
@@ -17,6 +17,7 @@ const TYPE_LABELS = {
 };
 
 export default function Challenge() {
+  // ── state 선언은 전부 여기 위쪽에 몰아둔다 ──────────────────
   const [loading, setLoading] = useState(true);
   const [challengeId, setChallengeId] = useState(null);
   const [status, setStatus] = useState(null);
@@ -33,6 +34,15 @@ export default function Challenge() {
   const [searchResults, setSearchResults] = useState([]);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [starting, setStarting] = useState(false);
+
+  // 유통기한 임박 추천 배너
+  const [suggestion, setSuggestion] = useState(null);
+
+  // 내 보유 재료 (검색 필터링 + "특정 재료 소진" 챌린지 가능 여부 판단용)
+  const [myIngredients, setMyIngredients] = useState([]);
+  const [hasOwnedIngredients, setHasOwnedIngredients] = useState(true); // 로딩 전 기본값 true(깜빡임 방지)
+
+  // ── effect / 함수들은 그 다음부터 ──────────────────────────
 
   const loadHistory = (page = 0) => {
     fetchChallengeHistory(page, HISTORY_PAGE_SIZE)
@@ -60,16 +70,33 @@ export default function Challenge() {
     loadHistory(0);
   }, []);
 
+  // 챌린지 시작 화면 진입 시, "특정 재료 소진"을 고를 수 있는지 미리 확인
+  useEffect(() => {
+    fetchMyIngredients()
+      .then((list) => setHasOwnedIngredients(list.length > 0))
+      .catch(() => setHasOwnedIngredients(true)); // 조회 실패 시엔 막지 않음(안전한 쪽으로)
+  }, []);
+
+  // "특정 재료 소진" 타입을 고르면 내 보유 재료 목록 + 추천 재료를 불러온다
+  useEffect(() => {
+    if (selectedType === "TARGET_INGREDIENT") {
+      fetchMyIngredients().then(setMyIngredients).catch(() => setMyIngredients([]));
+      fetchSuggestedTarget().then(setSuggestion).catch(() => setSuggestion(null));
+    } else {
+      setMyIngredients([]);
+      setSuggestion(null);
+    }
+  }, [selectedType]);
+
+  // 검색창 입력 -> 내 보유 재료 안에서만 필터링 (서버 호출 없음)
   useEffect(() => {
     if (!keyword) {
       setSearchResults([]);
       return;
     }
-    const timer = setTimeout(() => {
-      searchIngredients(keyword).then(setSearchResults).catch(() => {});
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [keyword]);
+    const filtered = myIngredients.filter((i) => i.ingredientName.includes(keyword));
+    setSearchResults(filtered);
+  }, [keyword, myIngredients]);
 
   const toggleIngredient = (ingredient) => {
     setSelectedIngredients((prev) =>
@@ -77,6 +104,12 @@ export default function Challenge() {
         ? prev.filter((i) => i.ingredientId !== ingredient.ingredientId)
         : [...prev, ingredient]
     );
+  };
+
+  const applySuggestion = () => {
+    if (!suggestion) return;
+    setSelectedIngredients([{ ingredientId: suggestion.ingredientId, ingredientName: suggestion.ingredientName }]);
+    setDaysInput(String(suggestion.suggestedDays));
   };
 
   const handleDaysChange = (e) => setDaysInput(e.target.value.replace(/[^0-9]/g, ""));
@@ -136,16 +169,22 @@ export default function Challenge() {
         <div className="challenge-start">
           {!selectedType ? (
             <div className="challenge-type-list">
-              {CHALLENGE_TYPES.map((c) => (
-                <button
-                  key={c.type}
-                  className="challenge-type-card"
-                  onClick={() => setSelectedType(c.type)}
-                >
-                  <span className="challenge-type-label">{c.label}</span>
-                  <span className="challenge-type-desc">{c.desc}</span>
-                </button>
-              ))}
+              {CHALLENGE_TYPES.map((c) => {
+                const disabled = c.type === "TARGET_INGREDIENT" && !hasOwnedIngredients;
+                return (
+                  <button
+                    key={c.type}
+                    className="challenge-type-card"
+                    disabled={disabled}
+                    onClick={() => setSelectedType(c.type)}
+                  >
+                    <span className="challenge-type-label">{c.label}</span>
+                    <span className="challenge-type-desc">
+                      {disabled ? "냉장고에 재료를 먼저 등록해주세요" : c.desc}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <>
@@ -155,9 +194,23 @@ export default function Challenge() {
 
               {selectedType === "TARGET_INGREDIENT" && (
                 <div className="challenge-ingredient-picker">
+                  <p className="challenge-hint">
+                    💡 선택한 재료를 다 쓰면 기간이 남아있어도 자동으로 성공 처리돼요!
+                  </p>
+
+                  {suggestion && (
+                    <div className="challenge-suggestion-banner">
+                      <p>
+                        🔥 <strong>{suggestion.ingredientName}</strong>의 유통기한이 {suggestion.expirationDate}까지예요
+                        ({suggestion.quantity}{suggestion.unit} 보유중). 이 재료를 소진하는 걸 추천해요!
+                      </p>
+                      <button type="button" onClick={applySuggestion}>추천 재료로 설정</button>
+                    </div>
+                  )}
+
                   <input
                     type="text"
-                    placeholder="소진할 재료 검색"
+                    placeholder="소진할 재료 검색 (내 보유 재료 중에서)"
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
                   />

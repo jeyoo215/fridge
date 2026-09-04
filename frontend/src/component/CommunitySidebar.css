@@ -65,6 +65,10 @@
   .community-sidebar-sticky {
     position: static;
     height: auto;
+    /* flex-shrink:0(기본 규칙)가 살아있는 채로 안쪽 .community-sidebar의 width:100%와 만나면,
+       줄바꿈을 무시한 "한 줄로 쭉 편" 너비를 기준으로 커져버려 화면 밖으로 넘친다.
+       너비를 명시해서 그 계산 고리를 끊는다. */
+    width: 100%;
   }
 
   .community-sidebar {

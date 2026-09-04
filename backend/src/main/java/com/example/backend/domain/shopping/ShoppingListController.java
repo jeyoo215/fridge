@@ -1,5 +1,6 @@
 package com.example.backend.domain.shopping;
 
+import com.example.backend.domain.shopping.dto.CheckAllRequest;
 import com.example.backend.domain.shopping.dto.ManualShoppingItemRequest;
 import com.example.backend.domain.shopping.dto.MyShoppingListResponse;
 import com.example.backend.domain.shopping.dto.QuantityUpdateRequest;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -87,5 +89,16 @@ public class ShoppingListController {
     public void updateQuantity(@AuthenticationPrincipal Long userId, @PathVariable("itemId") Long itemId,
                                 @RequestBody QuantityUpdateRequest request) {
         shoppingListService.updateQuantity(userId, itemId, request.quantity());
+    }
+
+    @PatchMapping("/items/check-all")
+    public void setAllChecked(@AuthenticationPrincipal Long userId, @RequestBody CheckAllRequest request) {
+        shoppingListService.setAllChecked(userId, request.checked());
+    }
+
+    @PostMapping("/items/purchase")
+    public Map<String, List<Long>> purchaseCheckedItems(@AuthenticationPrincipal Long userId) {
+        List<Long> createdIds = shoppingListService.purchaseCheckedItems(userId);
+        return Map.of("createdUserIngredientIds", createdIds);
     }
 }
