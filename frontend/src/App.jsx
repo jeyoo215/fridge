@@ -1,122 +1,91 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Nav from "./component/Nav";
+import RequireAuth from "./component/RequireAuth";
+import IngredientList from "./pages/IngredientList";
+import IngredientRegisterForm from "./pages/IngredientRegisterForm";
+import RecipeRecommend from "./pages/RecipeRecommend";
+import RecipeDetail from "./pages/RecipeDetail";
+import ShoppingList from "./pages/ShoppingList";
+import MyShoppingList from "./pages/MyShoppingList";
+import Challenge from "./pages/Challenge";
+import CommunityList from "./pages/CommunityList";
+import CommunityPostForm from "./pages/CommunityPostForm";
+import CommunityPostDetail from "./pages/CommunityPostDetail";
+import MyPage from "./pages/MyPage";
+import Login from "./pages/Login";
+import OAuthRedirect from "./pages/OAuthRedirect";
+import FridgeDecorate from "./pages/FridgeDecorate";
+import Admin from "./pages/Admin";
+import AdminRecipeForm from "./pages/AdminRecipeForm";
+import AdminReports from "./pages/AdminReports";
+import {
+  isLoggedIn,
+  isAdmin,
+  isSessionExpired,
+  clearTokens,
+  extendSessionIfActive,
+} from "./api/authApi";
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+// "/" 경로는 RequireAuth로 안 감싸는 특수 라우트라(로그인 여부에 따라 다른 화면을 보여줘야 하니까)
+function HomeRoute() {
+  const [checked, setChecked] = useState(false);
+  const [expired, setExpired] = useState(false);
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+  useEffect(() => {
+    if (isLoggedIn() && isSessionExpired()) {
+      clearTokens();
+      setExpired(true);
+    } else if (isLoggedIn()) {
+      extendSessionIfActive();
+    }
+    setChecked(true);
+  }, []);
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+  if (!checked) return null;
+  if (expired) return <Navigate to="/login" replace state={{ expired: true }} />;
+  if (!isLoggedIn()) return <Login />;
+  if (isAdmin()) return <Admin />;
+  return <IngredientList />;
 }
 
-export default App
+function App() {
+  return (
+    <BrowserRouter>
+      {isLoggedIn() && <Nav />}
+      <Routes>
+        <Route path="/" element={<HomeRoute />} />
+        <Route path="/ingredients/new" element={<RequireAuth><IngredientRegisterForm /></RequireAuth>} />
+        <Route path="/recipes" element={<RequireAuth><RecipeRecommend /></RequireAuth>} />
+        <Route path="/recipes/:recipeId" element={<RequireAuth><RecipeDetail /></RequireAuth>} />
+        <Route path="/recipes/:recipeId/shopping-list" element={<RequireAuth><ShoppingList /></RequireAuth>} />
+        <Route path="/shopping-list" element={<RequireAuth><MyShoppingList /></RequireAuth>} />
+        <Route path="/challenge" element={<RequireAuth><Challenge /></RequireAuth>} />
+        {/* 커뮤니티 열람(레시피/잡담 게시판 목록, 게시글 상세)은 로그인 없이도 가능.
+            글쓰기/수정/댓글/좋아요/스크랩 등 실제 활동은 각 화면에서 로그인 여부를 확인해서 막는다.
+            챌린지 게시판은 "진행 중인 챌린지가 있어야" 들어갈 수 있어서 개념상 로그인이 필요하므로 그대로 막아둔다. */}
+        <Route path="/community" element={<CommunityList key="RECIPE" boardType="RECIPE" />} />
+        <Route path="/community/new" element={<RequireAuth><CommunityPostForm boardType="RECIPE" /></RequireAuth>} />
+        <Route path="/community/challenge/fridge-clean" element={<RequireAuth><CommunityList key="CHALLENGE_FRIDGE_CLEAN" boardType="CHALLENGE_FRIDGE_CLEAN" /></RequireAuth>} />
+        <Route path="/community/challenge/fridge-clean/new" element={<RequireAuth><CommunityPostForm boardType="CHALLENGE_FRIDGE_CLEAN" /></RequireAuth>} />
+        <Route path="/community/challenge/target-ingredient" element={<RequireAuth><CommunityList key="CHALLENGE_TARGET_INGREDIENT" boardType="CHALLENGE_TARGET_INGREDIENT" /></RequireAuth>} />
+        <Route path="/community/challenge/target-ingredient/new" element={<RequireAuth><CommunityPostForm boardType="CHALLENGE_TARGET_INGREDIENT" /></RequireAuth>} />
+        <Route path="/community/free-talk" element={<CommunityList key="FREE_TALK" boardType="FREE_TALK" />} />
+        <Route path="/community/free-talk/new" element={<RequireAuth><CommunityPostForm boardType="FREE_TALK" /></RequireAuth>} />
+        <Route path="/community/:postId/edit" element={<RequireAuth><CommunityPostForm /></RequireAuth>} />
+        <Route path="/community/:postId" element={<CommunityPostDetail />} />
+        <Route path="/mypage" element={<RequireAuth><MyPage /></RequireAuth>} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/oauth/redirect" element={<OAuthRedirect />} />
+        <Route path="/fridge" element={<FridgeDecorate />} />
+        <Route path="/admin" element={isAdmin() ? <Admin /> : <Navigate to="/" replace />} />
+        <Route path="/admin/recipes/new" element={isAdmin() ? <AdminRecipeForm /> : <Navigate to="/" replace />} />
+        <Route path="/admin/reports" element={isAdmin() ? <AdminReports /> : <Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;

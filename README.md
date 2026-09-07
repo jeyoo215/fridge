@@ -45,7 +45,7 @@ git push -u origin main
 
 ### 브랜치 이동 및 작성
 
-VS Code에서 브랜치 만들고 작업하는 순서
+VS Code에서 브랜치 만들고 작업하는 순서 
 
 1단계: 작업 시작 전! 최신 코드 받아오기 (develop 기준)
 ```bash

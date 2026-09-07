@@ -1,0 +1,139 @@
+/* 냉장고 목록의 alert-bell(IngredientList.css)과 동일한 디자인 언어를 그대로 사용한다. */
+
+.community-alert-bell-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.community-alert-bell-button {
+  position: relative;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  width: 34px;
+  height: 34px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.community-alert-bell-button:hover {
+  background: var(--color-basil-bg);
+}
+
+.community-alert-bell-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--color-tomato);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  line-height: 1;
+}
+
+.community-alert-panel {
+  position: absolute;
+  top: 42px;
+  right: 0;
+  width: 280px;
+  max-height: 360px;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow-menu);
+  padding: 12px;
+  z-index: 30;
+}
+
+.community-alert-panel-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.community-alert-panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.community-alert-mark-all {
+  background: none;
+  border: none;
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.community-alert-mark-all:hover {
+  color: var(--color-basil-dark);
+}
+
+.community-alert-panel-empty {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  padding: 8px 2px;
+  margin: 0;
+}
+
+.community-alert-panel-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 6px;
+  font-size: 13px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.community-alert-panel-item:hover {
+  background: var(--color-bg);
+}
+
+.community-alert-panel-item.unread {
+  background: var(--color-basil-bg);
+}
+
+.community-alert-panel-item.unread:hover {
+  background: var(--color-basil-bg);
+  filter: brightness(0.97);
+}
+
+.community-alert-panel-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.community-alert-panel-dot.unread {
+  background: var(--color-tomato);
+}
+
+.community-alert-panel-dot.read {
+  background: var(--color-border);
+}
+
+.community-alert-panel-text {
+  color: var(--color-text);
+  line-height: 1.4;
+}

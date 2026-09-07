@@ -1,0 +1,138 @@
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  font-family: var(--font-body);
+}
+
+.app-nav-links {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-nav-menu-button {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font-size: 18px;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.app-nav-menu-button:hover {
+  background: var(--color-bg);
+}
+
+.app-nav-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  animation: app-nav-sheet-in 0.22s ease;
+}
+
+@keyframes app-nav-sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.app-nav-sheet-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-nav-sheet-back {
+  border: none;
+  background: none;
+  font-size: 20px;
+  color: var(--color-text);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.app-nav-sheet-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.app-nav-sheet-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.app-nav-link {
+  position: relative;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.app-nav-badge-dot {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-tomato);
+  border: 1.5px solid var(--color-surface);
+}
+
+.app-nav-link:hover {
+  background: var(--color-bg);
+}
+
+.app-nav-link.active {
+  background: var(--color-basil);
+  color: white;
+}
+
+.app-nav-auth-button {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.app-nav-auth-button:hover {
+  background: var(--color-bg);
+}

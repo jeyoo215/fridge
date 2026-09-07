@@ -1,0 +1,86 @@
+/* 화면(뷰포트) 높이만큼 sticky 영역을 잡고 그 안에서 세로 중앙 정렬해서,
+   x축은 원래 flex 레이아웃 자리 그대로 두고 y축만 화면 중간에 오도록 함 */
+.community-sidebar-sticky {
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+.community-sidebar {
+  width: 200px;
+  padding: 18px 14px;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+
+.community-sidebar-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 12px;
+  padding: 0 8px;
+}
+
+.community-sidebar-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+}
+
+.community-sidebar-item {
+  width: 100%;
+  text-align: left;
+  padding: 9px 8px;
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.community-sidebar-item:hover {
+  background: var(--color-basil-bg);
+}
+
+.community-sidebar-item.active {
+  background: var(--color-basil);
+  color: white;
+}
+
+.community-sidebar-lock {
+  margin-right: 4px;
+}
+
+@media (max-width: 720px) {
+  .community-sidebar-sticky {
+    position: static;
+    height: auto;
+    /* flex-shrink:0(기본 규칙)가 살아있는 채로 안쪽 .community-sidebar의 width:100%와 만나면,
+       줄바꿈을 무시한 "한 줄로 쭉 편" 너비를 기준으로 커져버려 화면 밖으로 넘친다.
+       너비를 명시해서 그 계산 고리를 끊는다. */
+    width: 100%;
+  }
+
+  .community-sidebar {
+    width: 100%;
+  }
+
+  .community-sidebar-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .community-sidebar-item {
+    width: auto;
+  }
+}
