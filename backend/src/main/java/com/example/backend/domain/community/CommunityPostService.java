@@ -188,11 +188,21 @@ public class CommunityPostService {
                 postsById.values().stream().map(CommunityPost::getUserId).collect(Collectors.toSet())
         );
 
+        // 게시글 카드에 댓글 수를 같이 보여주기 위한 배치 조회 (댓글이 하나도 없는 글은 결과에 아예
+        // 안 나오므로 getOrDefault로 0 처리).
+        Map<Long, Long> commentCountsByPostId = communityPostCommentRepository.countByPostIdInGroupByPostId(postIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        CommunityPostCommentRepository.PostCommentCount::getPostId,
+                        CommunityPostCommentRepository.PostCommentCount::getCommentCount));
+
         // id 목록의 정렬(최신순 또는 인기순)을 그대로 유지하기 위해 IN 조회 결과를 postIds 순서에 맞춰 다시 매핑한다.
         List<CommunityPostListResponse> content = postIds.stream()
                 .map(postsById::get)
                 .map(post -> new CommunityPostListResponse(
-                        post, nicknamesByUserId.getOrDefault(post.getUserId(), UNKNOWN_NICKNAME)))
+                        post,
+                        nicknamesByUserId.getOrDefault(post.getUserId(), UNKNOWN_NICKNAME),
+                        commentCountsByPostId.getOrDefault(post.getPostId(), 0L)))
                 .toList();
 
         return new CommunityPostPageResponse(content, page, idPage.getTotalPages(), idPage.getTotalElements());

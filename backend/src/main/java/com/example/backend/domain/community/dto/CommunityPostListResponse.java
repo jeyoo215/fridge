@@ -20,11 +20,12 @@ public class CommunityPostListResponse {
     private final LocalDateTime createdAt;
     private final long likeCount;
     private final long viewCount;
+    private final long commentCount;
     private final Long promotedRecipeId;
     private final String boardType;
     private final String prefix;
 
-    public CommunityPostListResponse(CommunityPost entity, String nickname) {
+    public CommunityPostListResponse(CommunityPost entity, String nickname, long commentCount) {
         this.postId = entity.getPostId();
         this.userId = entity.getUserId();
         this.nickname = nickname;
@@ -32,6 +33,7 @@ public class CommunityPostListResponse {
         this.createdAt = entity.getCreatedAt();
         this.likeCount = entity.getLikeCount();
         this.viewCount = entity.getViewCount();
+        this.commentCount = commentCount;
         this.promotedRecipeId = entity.isPromoted() ? entity.getPromotedRecipe().getRecipeId() : null;
         this.boardType = entity.getEffectiveBoardType().name();
         this.prefix = entity.getPrefix();

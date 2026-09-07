@@ -164,6 +164,7 @@ export default function CommunityList({ boardType = "RECIPE" }) {
                   <span>{post.createdAt?.slice(0, 10)}</span>
                   <span>조회 {post.viewCount}</span>
                   <span>공감 {post.likeCount}</span>
+                  <span>댓글 {post.commentCount}</span>
                 </div>
               </div>
               {post.thumbnailUrl && (
