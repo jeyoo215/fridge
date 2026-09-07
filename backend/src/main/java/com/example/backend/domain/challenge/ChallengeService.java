@@ -29,6 +29,8 @@ import java.util.Comparator;
 @Transactional(readOnly = true)
 public class ChallengeService {
 
+    private static final String CHALLENGE_NOT_FOUND = "존재하지 않는 챌린지입니다. id=";
+
     private final ChallengeRepository challengeRepository;
     private final UserIngredientRepository userIngredientRepository;
     private final IngredientRepository ingredientRepository;
@@ -40,6 +42,12 @@ public class ChallengeService {
         challengeRepository.findByUserIdAndStatus(userId, Challenge.Status.진행중)
                 .ifPresent(existing -> {
                     throw new IllegalStateException("이미 진행중인 챌린지가 있습니다.");
+                });
+        // 직전 챌린지가 성공했는데 아직 "챌린지 완수!" 화면을 확인 안 했으면, 그것부터 확인해야
+        // 다음 챌린지를 시작할 수 있다 (완수 화면을 건너뛰고 바로 다음 챌린지로 넘어가는 것 방지).
+        challengeRepository.findFirstByUserIdAndStatusAndAcknowledgedFalseOrderByCreatedAtDesc(userId, Challenge.Status.성공)
+                .ifPresent(existing -> {
+                    throw new IllegalStateException("완수한 챌린지를 먼저 확인해주세요.");
                 });
 
         Challenge.ChallengeType type = parseType(request.type());
@@ -87,23 +95,42 @@ public class ChallengeService {
     @Transactional
     public ChallengeResponse getStatus(Long challengeId) {
         Challenge challenge = challengeRepository.findById(challengeId)
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 챌린지입니다. id=" + challengeId));
+                .orElseThrow(() -> new EntityNotFoundException(CHALLENGE_NOT_FOUND + challengeId));
 
         finalizeIfFinished(challenge);
 
         return buildResponse(challenge);
     }
 
-    // 현재 진행중인 챌린지 조회 (새로고침/재접속 시 상태 복원용)
+    // 현재 진행중인 챌린지 조회 (새로고침/재접속 시 상태 복원용).
+    // 진행중인 게 없어도, 성공했는데 아직 확인(acknowledge) 안 한 챌린지가 있으면 그것도 "활성"으로
+    // 계속 돌려준다 — 그래야 프론트가 "챌린지 완수!" 화면을 확인시키기 전까지 다음 챌린지로 자동으로
+    // 넘어가지 않고 계속 붙잡아둘 수 있다.
     // 💡 수정됨: 없으면 예외 대신 null 반환 (204/404 대신 200 + 빈 body)
     @Transactional
     public ChallengeResponse getActiveChallenge(Long userId) {
-        return challengeRepository.findByUserIdAndStatus(userId, Challenge.Status.진행중)
-                .map(challenge -> {
-                    finalizeIfFinished(challenge);
-                    return buildResponse(challenge);
-                })
+        var inProgress = challengeRepository.findByUserIdAndStatus(userId, Challenge.Status.진행중);
+        if (inProgress.isPresent()) {
+            Challenge challenge = inProgress.get();
+            finalizeIfFinished(challenge);
+            return buildResponse(challenge);
+        }
+
+        return challengeRepository.findFirstByUserIdAndStatusAndAcknowledgedFalseOrderByCreatedAtDesc(userId, Challenge.Status.성공)
+                .map(this::buildResponse)
                 .orElse(null);
+    }
+
+    // "챌린지 완수!" 화면을 확인했음을 기록 (이후 getActiveChallenge가 더 이상 이 챌린지를
+    // 활성으로 돌려주지 않게 되고, startChallenge로 다음 챌린지를 시작할 수 있게 된다).
+    @Transactional
+    public void acknowledge(Long challengeId) {
+        Challenge challenge = challengeRepository.findById(challengeId)
+                .orElseThrow(() -> new EntityNotFoundException(CHALLENGE_NOT_FOUND + challengeId));
+        if (challenge.getStatus() != Challenge.Status.성공) {
+            throw new IllegalStateException("성공한 챌린지만 확인 처리할 수 있습니다.");
+        }
+        challenge.markAcknowledged();
     }
 
     // 냉장고 파먹기: 기간 중 새로 구매한 재료가 없어야 성공
@@ -139,7 +166,7 @@ public class ChallengeService {
     @Transactional
     public ChallengeResponse abortChallenge(Long challengeId) {
         Challenge challenge = challengeRepository.findById(challengeId)
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 챌린지입니다. id=" + challengeId));
+                .orElseThrow(() -> new EntityNotFoundException(CHALLENGE_NOT_FOUND + challengeId));
 
         if (challenge.getStatus() != Challenge.Status.진행중) {
             throw new IllegalStateException("진행중인 챌린지만 중단할 수 있습니다.");

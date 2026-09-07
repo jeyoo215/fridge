@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { startChallenge, fetchActiveChallenge, abortChallenge, fetchChallengeHistory, fetchSuggestedTarget } from "../api/challengeApi";
+import { startChallenge, fetchActiveChallenge, abortChallenge, acknowledgeChallenge, fetchChallengeHistory, fetchSuggestedTarget } from "../api/challengeApi";
 import { fetchMyIngredients } from "../api/ingredientApi";
 import BadgeSection from "../component/BadgeSection";
 import "./Challenge.css";
@@ -25,6 +25,7 @@ export default function Challenge() {
   const [historyPage, setHistoryPage] = useState(0);
   const [historyTotalPages, setHistoryTotalPages] = useState(0);
   const [aborting, setAborting] = useState(false);
+  const [acknowledging, setAcknowledging] = useState(false);
   const [error, setError] = useState(null);
 
   // 시작 폼 상태
@@ -58,12 +59,12 @@ export default function Challenge() {
   };
 
   useEffect(() => {
+    // fetchActiveChallenge는 "진행중"뿐 아니라, 성공했는데 아직 확인(acknowledge) 안 한 챌린지도
+    // 계속 돌려준다(백엔드 ChallengeService.getActiveChallenge) — 그래야 뱃지를 딱 얻은 순간 시작
+    // 화면으로 조용히 넘어가버리는 대신, "챌린지 완수!" 화면을 사용자가 직접 확인할 때까지 붙잡아둘 수 있다.
     fetchActiveChallenge()
       .then((active) => {
-        // "진행중"이었다가 이 조회 안에서(finalizeIfFinished) 방금 막 "성공"으로 판정된 경우도
-        // 포함한다 — 그래야 뱃지를 딱 얻은 그 순간 시작 화면으로 조용히 돌아가는 대신
-        // "챌린지 완수!" 화면을 한 번은 보여줄 수 있다.
-        if (active && (active.status === "진행중" || active.status === "성공")) {
+        if (active) {
           setChallengeId(active.challengeId);
           setStatus(active);
         }
@@ -142,11 +143,21 @@ export default function Challenge() {
     }
   };
 
-  // 이미 성공 판정이 끝난 챌린지를 확인만 하고 새 챌린지를 시작할 수 있는 화면으로 돌아간다
-  // (서버에는 이미 성공으로 기록돼있어서 별도 API 호출은 필요 없음).
-  const handleAcknowledgeComplete = () => {
-    setChallengeId(null);
-    setStatus(null);
+  // "챌린지 완수!" 확인 처리. 서버에 확인 기록을 남겨야(acknowledge) 다음 챌린지를 시작할 수
+  // 있게 풀리므로(안 그러면 startChallenge가 막음), 로컬 상태만 지우지 않고 API를 호출한다.
+  const handleAcknowledgeComplete = async () => {
+    setAcknowledging(true);
+    setError(null);
+    try {
+      await acknowledgeChallenge(challengeId);
+      setChallengeId(null);
+      setStatus(null);
+      loadHistory(0);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setAcknowledging(false);
+    }
   };
 
   const handleAbort = async () => {
@@ -272,8 +283,8 @@ export default function Challenge() {
             </>
           )}
           {status?.status === "성공" ? (
-            <button className="challenge-complete-btn" onClick={handleAcknowledgeComplete}>
-              🎉 챌린지 완수!
+            <button className="challenge-complete-btn" onClick={handleAcknowledgeComplete} disabled={acknowledging}>
+              {acknowledging ? "확인하는 중..." : "🎉 챌린지 완수!"}
             </button>
           ) : (
             <button className="challenge-abort-btn" onClick={handleAbort} disabled={aborting}>

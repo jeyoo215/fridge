@@ -39,6 +39,12 @@ public class Challenge {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    // 성공(뱃지 획득) 후 사용자가 "챌린지 완수!" 화면을 확인했는지. false인 동안은
+    // getActiveChallenge가 이 챌린지를 계속 "활성"으로 돌려줘서, 확인하기 전까지는
+    // 다음 챌린지를 시작할 수 없게 막는다 (ChallengeService.acknowledge).
+    @Column(nullable = false, columnDefinition = "TINYINT(1) NOT NULL DEFAULT 0")
+    private boolean acknowledged;
+
     @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChallengeTargetIngredient> targetIngredients = new ArrayList<>();
 
@@ -68,6 +74,10 @@ public class Challenge {
 
     public void markAborted() {
         this.status = Status.중단;
+    }
+
+    public void markAcknowledged() {
+        this.acknowledged = true;
     }
 
     public boolean isFinishedPeriod(LocalDate today) {

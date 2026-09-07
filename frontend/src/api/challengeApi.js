@@ -50,6 +50,18 @@ export async function abortChallenge(challengeId) {
   return response.json();
 }
 
+// "챌린지 완수!" 화면을 확인했음을 서버에 기록. 그전까진 fetchActiveChallenge가 이 챌린지를
+// 계속 활성으로 돌려주고, startChallenge도 막혀서 다음 챌린지를 시작할 수 없다.
+export async function acknowledgeChallenge(challengeId) {
+  const response = await fetch(`${BASE_URL}/challenges/${challengeId}/acknowledge`, {
+    method: "PATCH",
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.message || "챌린지 완수 확인에 실패했습니다.");
+  }
+}
+
 export async function fetchChallengeHistory(page = 0, size = 5) {
   const response = await fetch(`${BASE_URL}/challenges/me/history?page=${page}&size=${size}`, {
     headers: authHeaders(),

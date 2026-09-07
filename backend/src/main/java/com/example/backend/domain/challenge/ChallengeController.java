@@ -47,7 +47,14 @@ public class ChallengeController {
     public ChallengeResponse abortChallenge(@PathVariable("challengeId") Long challengeId) {
         return challengeService.abortChallenge(challengeId);
     }
-    
+
+    // "챌린지 완수!" 화면을 확인했음을 서버에 기록 (그전까진 다음 챌린지를 시작할 수 없음)
+    @PatchMapping("/{challengeId}/acknowledge")
+    public void acknowledge(@PathVariable("challengeId") Long challengeId) {
+        challengeService.acknowledge(challengeId);
+    }
+
+
     // 진행중인 챌린지가 없어도, 보유 재료가 없으면 null 반환 (200 + empty body)
     @GetMapping("/suggest-target")
     public TargetIngredientSuggestionResponse suggestTarget(@AuthenticationPrincipal Long userId) {
