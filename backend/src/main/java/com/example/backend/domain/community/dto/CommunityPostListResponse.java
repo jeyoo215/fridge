@@ -20,11 +20,17 @@ public class CommunityPostListResponse {
     private final LocalDateTime createdAt;
     private final long likeCount;
     private final long viewCount;
+    private final long commentCount;
+    private final boolean hottest; // 이 게시판에서 좋아요가 가장 많은 글인지 ("🔖 가장 핫한 게시물" 뱃지)
     private final Long promotedRecipeId;
     private final String boardType;
     private final String prefix;
 
-    public CommunityPostListResponse(CommunityPost entity, String nickname) {
+    public CommunityPostListResponse(CommunityPost entity, String nickname, long commentCount) {
+        this(entity, nickname, commentCount, false);
+    }
+
+    public CommunityPostListResponse(CommunityPost entity, String nickname, long commentCount, boolean hottest) {
         this.postId = entity.getPostId();
         this.userId = entity.getUserId();
         this.nickname = nickname;
@@ -32,6 +38,8 @@ public class CommunityPostListResponse {
         this.createdAt = entity.getCreatedAt();
         this.likeCount = entity.getLikeCount();
         this.viewCount = entity.getViewCount();
+        this.commentCount = commentCount;
+        this.hottest = hottest;
         this.promotedRecipeId = entity.isPromoted() ? entity.getPromotedRecipe().getRecipeId() : null;
         this.boardType = entity.getEffectiveBoardType().name();
         this.prefix = entity.getPrefix();

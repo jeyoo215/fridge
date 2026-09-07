@@ -152,6 +152,11 @@ export default function CommunityList({ boardType = "RECIPE" }) {
               className="community-post-card"
               onClick={() => navigate(`/community/${post.postId}`)}
             >
+              {post.hottest && (
+                <span className="community-post-card-hottest-ribbon" title="가장 핫한 게시물">
+                  지금 인기글
+                </span>
+              )}
               <div className="community-post-card-author">{post.nickname}</div>
               <div className="community-post-card-body">
                 <div className="community-post-card-title">
@@ -164,6 +169,7 @@ export default function CommunityList({ boardType = "RECIPE" }) {
                   <span>{post.createdAt?.slice(0, 10)}</span>
                   <span>조회 {post.viewCount}</span>
                   <span>공감 {post.likeCount}</span>
+                  <span>댓글 {post.commentCount}</span>
                 </div>
               </div>
               {post.thumbnailUrl && (

@@ -44,4 +44,10 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
     // 위에서 뽑은 id들에 대해서만 조리순서까지 함께 조회 (목록 카드 썸네일/미리보기용, N+1 방지)
     @Query("SELECT DISTINCT p FROM CommunityPost p LEFT JOIN FETCH p.steps WHERE p.postId IN :postIds")
     List<CommunityPost> findAllWithStepsByPostIdIn(@Param("postIds") List<Long> postIds);
+
+    // 게시판 안에서 가장 좋아요가 많은 글 하나(= "가장 핫한 게시물" 뱃지 대상)의 id.
+    // 정렬/검색/말머리 필터와 무관하게 게시판 전체 기준으로 딱 하나만 뽑는다. 좋아요가 하나도 없는
+    // 게시판이면(전부 0개) 아무도 뱃지를 못 받도록 likeCount > 0 조건을 둔다.
+    @Query("SELECT p.postId FROM CommunityPost p WHERE p.boardType = :boardType AND p.hidden = false AND p.likeCount > 0 ORDER BY p.likeCount DESC, p.createdAt DESC")
+    List<Long> findHottestPostId(@Param("boardType") CommunityPost.BoardType boardType, Pageable pageable);
 }
