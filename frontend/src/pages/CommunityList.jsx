@@ -154,7 +154,7 @@ export default function CommunityList({ boardType = "RECIPE" }) {
             >
               {post.hottest && (
                 <span className="community-post-card-hottest-ribbon" title="가장 핫한 게시물">
-                  🔖
+                  🔥
                 </span>
               )}
               <div className="community-post-card-author">{post.nickname}</div>

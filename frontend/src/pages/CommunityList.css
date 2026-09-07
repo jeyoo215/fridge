@@ -249,21 +249,21 @@
   vertical-align: middle;
 }
 
-/* 게시판에서 좋아요가 가장 많은 글에 붙는 "책갈피" 리본. 카드 왼쪽 위 모서리에 진짜 책갈피처럼
-   위쪽에서부터 걸려 있는 모양을 내려고, 아래쪽만 삼각형으로 파낸다(clip-path). */
+/* 게시판에서 좋아요가 가장 많은 글에 붙는 "책갈피" 리본. 카드 왼쪽 옆구리에 가로로 꽂힌 것처럼
+   보이도록, 오른쪽 끝만 화살촉 모양으로 파낸다(clip-path). */
 .community-post-card-hottest-ribbon {
   position: absolute;
-  top: 0;
-  left: 18px;
-  width: 26px;
-  height: 34px;
+  top: 14px;
+  left: 0;
+  width: 40px;
+  height: 24px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding-top: 3px;
-  font-size: 15px;
+  padding-right: 6px;
+  font-size: 14px;
   background: var(--color-tomato);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
+  clip-path: polygon(0 0, 75% 0, 100% 50%, 75% 100%, 0 100%);
   filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.15));
 }
 
