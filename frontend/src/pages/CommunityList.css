@@ -255,13 +255,13 @@
   position: absolute;
   top: 14px;
   left: 0;
-  width: 84px;
+  width: 76px;
   height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-right: 8px;
-  font-size: 11px;
+  padding-right: 6px;
+  font-size: 10px;
   font-weight: 700;
   color: white;
   white-space: nowrap;
