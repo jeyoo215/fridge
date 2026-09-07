@@ -196,13 +196,19 @@ public class CommunityPostService {
                         CommunityPostCommentRepository.PostCommentCount::getPostId,
                         CommunityPostCommentRepository.PostCommentCount::getCommentCount));
 
+        // "가장 핫한 게시물" 뱃지 대상 — 지금 보고 있는 정렬/검색/말머리 필터와 무관하게
+        // 이 게시판 전체에서 좋아요가 가장 많은 글 하나로 고정한다.
+        List<Long> hottestResult = communityPostRepository.findHottestPostId(boardType, PageRequest.of(0, 1));
+        Long hottestPostId = hottestResult.isEmpty() ? null : hottestResult.get(0);
+
         // id 목록의 정렬(최신순 또는 인기순)을 그대로 유지하기 위해 IN 조회 결과를 postIds 순서에 맞춰 다시 매핑한다.
         List<CommunityPostListResponse> content = postIds.stream()
                 .map(postsById::get)
                 .map(post -> new CommunityPostListResponse(
                         post,
                         nicknamesByUserId.getOrDefault(post.getUserId(), UNKNOWN_NICKNAME),
-                        commentCountsByPostId.getOrDefault(post.getPostId(), 0L)))
+                        commentCountsByPostId.getOrDefault(post.getPostId(), 0L),
+                        post.getPostId().equals(hottestPostId)))
                 .toList();
 
         return new CommunityPostPageResponse(content, page, idPage.getTotalPages(), idPage.getTotalElements());
