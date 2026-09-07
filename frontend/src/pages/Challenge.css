@@ -226,6 +226,14 @@
   background: var(--color-danger-text) !important;
 }
 
+.challenge-complete-btn {
+  background: var(--color-sky) !important;
+}
+
+.challenge-complete-btn:hover {
+  background: var(--color-sky-dark) !important;
+}
+
 .challenge-history {
   margin-top: 24px;
   background: var(--color-surface);

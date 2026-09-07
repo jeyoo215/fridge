@@ -60,7 +60,10 @@ export default function Challenge() {
   useEffect(() => {
     fetchActiveChallenge()
       .then((active) => {
-        if (active && active.status === "진행중") {
+        // "진행중"이었다가 이 조회 안에서(finalizeIfFinished) 방금 막 "성공"으로 판정된 경우도
+        // 포함한다 — 그래야 뱃지를 딱 얻은 그 순간 시작 화면으로 조용히 돌아가는 대신
+        // "챌린지 완수!" 화면을 한 번은 보여줄 수 있다.
+        if (active && (active.status === "진행중" || active.status === "성공")) {
           setChallengeId(active.challengeId);
           setStatus(active);
         }
@@ -137,6 +140,13 @@ export default function Challenge() {
     } finally {
       setStarting(false);
     }
+  };
+
+  // 이미 성공 판정이 끝난 챌린지를 확인만 하고 새 챌린지를 시작할 수 있는 화면으로 돌아간다
+  // (서버에는 이미 성공으로 기록돼있어서 별도 API 호출은 필요 없음).
+  const handleAcknowledgeComplete = () => {
+    setChallengeId(null);
+    setStatus(null);
   };
 
   const handleAbort = async () => {
@@ -248,7 +258,7 @@ export default function Challenge() {
         </div>
       ) : (
         <div className="challenge-status">
-          <p>챌린지 진행 중! (id: {challengeId})</p>
+          <p>{status?.status === "성공" ? "챌린지 완수! 🎉" : `챌린지 진행 중! (id: ${challengeId})`}</p>
           {status && (
             <>
               <p className={`challenge-badge status-${status.status}`}>
@@ -261,9 +271,15 @@ export default function Challenge() {
               )}
             </>
           )}
-          <button className="challenge-abort-btn" onClick={handleAbort} disabled={aborting}>
-            {aborting ? "중단하는 중..." : "챌린지 중단"}
-          </button>
+          {status?.status === "성공" ? (
+            <button className="challenge-complete-btn" onClick={handleAcknowledgeComplete}>
+              🎉 챌린지 완수!
+            </button>
+          ) : (
+            <button className="challenge-abort-btn" onClick={handleAbort} disabled={aborting}>
+              {aborting ? "중단하는 중..." : "챌린지 중단"}
+            </button>
+          )}
         </div>
       )}
 
