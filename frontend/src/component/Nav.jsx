@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import MyPage from "../pages/MyPage";
-import { isLoggedIn, isAdmin, logout } from "../api/authApi";
+import { isLoggedIn, isSessionExpired, isAdmin, logout } from "../api/authApi";
 import { fetchCommunityNotificationUnreadCount } from "../api/communityNotificationApi";
 import "./Nav.css";
 
@@ -45,10 +45,19 @@ export default function Nav() {
       setHasUnreadCommunity(false);
       return undefined;
     }
-    const refresh = () =>
+    const refresh = () => {
+      // 커뮤니티 목록/상세처럼 로그인 없이도 볼 수 있는 화면에 오래 머물러 있으면
+      // (RequireAuth가 없어서 accessToken이 슬라이딩 연장 안 됨) 토큰이 만료된 채로도
+      // isLoggedIn()은 계속 true라서, 만료된 토큰으로 API를 불러 매번 400이 나고 있었다.
+      // 진짜 로그인 상태인지(만료 안 됐는지)까지 같이 확인해서 그 경우엔 조용히 건너뛴다.
+      if (isSessionExpired()) {
+        setHasUnreadCommunity(false);
+        return;
+      }
       fetchCommunityNotificationUnreadCount()
         .then((count) => setHasUnreadCommunity(count > 0))
         .catch(() => {});
+    };
     refresh();
     const timer = setInterval(refresh, COMMUNITY_UNREAD_POLL_MS);
     window.addEventListener("focus", refresh);

@@ -1,5 +1,6 @@
 package com.example.backend.domain.recipe;
 
+import com.example.backend.domain.challenge.ChallengeRepository;
 import com.example.backend.domain.ingredient.Ingredient;
 import com.example.backend.domain.ingredient.IngredientRepository;
 import com.example.backend.domain.ingredient.UserIngredient;
@@ -36,6 +37,7 @@ class RecipeServiceTest {
     @Mock private UserIngredientRepository userIngredientRepository;
     @Mock private CookingToolRepository cookingToolRepository;
     @Mock private UserToolRepository userToolRepository;
+    @Mock private ChallengeRepository challengeRepository;
 
     @InjectMocks
     private RecipeService recipeService;

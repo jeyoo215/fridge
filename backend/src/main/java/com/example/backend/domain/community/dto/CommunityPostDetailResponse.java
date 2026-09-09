@@ -19,6 +19,7 @@ public class CommunityPostDetailResponse {
     private final String difficulty;
     private final LocalDateTime createdAt;
     private final long likeCount;
+    private final long viewCount;
     private final Long promotedRecipeId;
     private final String boardType;
     private final String prefix;
@@ -35,6 +36,7 @@ public class CommunityPostDetailResponse {
         this.difficulty = entity.getDifficulty();
         this.createdAt = entity.getCreatedAt();
         this.likeCount = entity.getLikeCount();
+        this.viewCount = entity.getViewCount();
         this.promotedRecipeId = entity.isPromoted() ? entity.getPromotedRecipe().getRecipeId() : null;
         this.boardType = entity.getEffectiveBoardType().name();
         this.prefix = entity.getPrefix();

@@ -192,6 +192,7 @@
 }
 
 .community-post-card {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -246,6 +247,27 @@
   font-size: 11px;
   font-weight: 700;
   vertical-align: middle;
+}
+
+/* 게시판에서 좋아요가 가장 많은 글에 붙는 "책갈피" 리본. 카드 왼쪽 옆구리에 가로로 꽂힌 것처럼
+   보이도록, 오른쪽 끝만 화살촉 모양으로 파낸다(clip-path). */
+.community-post-card-hottest-ribbon {
+  position: absolute;
+  top: 14px;
+  left: 0;
+  width: 76px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  background: var(--color-tomato);
+  clip-path: polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%);
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.15));
 }
 
 .community-post-card-preview {
