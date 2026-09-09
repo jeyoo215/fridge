@@ -1,5 +1,6 @@
 package com.example.backend.domain.ingredient;
 
+import com.example.backend.domain.fridge.FridgeItemRepository;
 import com.example.backend.domain.ingredient.dto.UserIngredientRegisterRequest;
 import com.example.backend.domain.ingredient.dto.UserIngredientResponse;
 import com.example.backend.domain.ingredient.dto.UserIngredientUpdateRequest;
@@ -8,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -16,13 +19,24 @@ public class UserIngredientService {
 
     private final UserIngredientRepository userIngredientRepository;
     private final IngredientRepository ingredientRepository;
+        private final FridgeItemRepository fridgeItemRepository;
+
 
     // 특정 유저의 보유 재료 목록 조회 (유통기한 임박한 순서)
     public List<UserIngredientResponse> getMyIngredients(Long userId) {
+        Map<Long, String> zoneMap = fridgeItemRepository.findAllByUserId(userId).stream()
+                .collect(Collectors.toMap(
+                        fi -> fi.getUserIngredient().getUserIngredientId(),
+                        fi -> fi.getZone().name()));
+
         return userIngredientRepository
                 .findByUserIdAndStatusOrderByExpirationDateAsc(userId, UserIngredient.Status.보유중)
                 .stream()
-                .map(UserIngredientResponse::new)
+                .map(ui -> {
+                    UserIngredientResponse res = new UserIngredientResponse(ui);
+                    res.setZone(zoneMap.get(ui.getUserIngredientId()));
+                    return res;
+                })
                 .toList();
     }
 
@@ -30,7 +44,8 @@ public class UserIngredientService {
     @Transactional
     public Long register(Long userId, UserIngredientRegisterRequest request) {
         Ingredient ingredient = ingredientRepository.findById(request.ingredientId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 재료입니다. ingredientId=" + request.ingredientId()));
+                .orElseThrow(
+                        () -> new IllegalArgumentException("존재하지 않는 재료입니다. ingredientId=" + request.ingredientId()));
 
         UserIngredient userIngredient = UserIngredient.builder()
                 .userId(userId)
@@ -48,7 +63,8 @@ public class UserIngredientService {
     @Transactional
     public void update(Long userId, Long userIngredientId, UserIngredientUpdateRequest request) {
         UserIngredient userIngredient = findOwnedUserIngredient(userId, userIngredientId);
-        userIngredient.updateQuantityAndExpiration(request.quantity(), request.purchaseDate(), request.expirationDate());
+        userIngredient.updateQuantityAndExpiration(request.quantity(), request.purchaseDate(),
+                request.expirationDate());
     }
 
     // 재료 목록에서 완전히 삭제 (사용완료/폐기 구분 없이 "삭제" 하나로 통합)

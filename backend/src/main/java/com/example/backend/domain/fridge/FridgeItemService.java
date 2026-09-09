@@ -1,5 +1,6 @@
 package com.example.backend.domain.fridge;
 
+import com.example.backend.domain.ingredient.dto.UserIngredientResponse;
 import com.example.backend.domain.fridge.dto.FridgeItemCreateRequest;
 import com.example.backend.domain.fridge.dto.FridgeItemPlaceRequest;
 import com.example.backend.domain.fridge.dto.FridgeItemResponse;
@@ -114,5 +115,22 @@ public class FridgeItemService {
     public void changeImage(Long userId, Long fridgeItemId, String imageUrl, FridgeItem.ImageType imageType) {
         FridgeItem item = findOwned(userId, fridgeItemId);
         item.changeImage(imageUrl, imageType);
+    }
+
+    // 보유재료를 냉장고에 배치
+    public List<UserIngredientResponse> getUnplaced(Long userId) {
+        return userIngredientRepository
+                .findByUserIdAndStatusOrderByExpirationDateAsc(userId, UserIngredient.Status.보유중)
+                .stream()
+                .filter(ui -> !fridgeItemRepository
+                        .existsByUserIngredient_UserIngredientId(ui.getUserIngredientId()))
+                .map(UserIngredientResponse::new)
+                .toList();
+    }
+
+    @Transactional
+    public void rotate(Long userId, Long fridgeItemId, Double rotation) {
+        FridgeItem item = findOwned(userId, fridgeItemId);
+        item.rotate(rotation);
     }
 }

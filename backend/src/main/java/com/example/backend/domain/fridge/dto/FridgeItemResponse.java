@@ -14,7 +14,8 @@ public record FridgeItemResponse(
         Double posX,
         Double posY,
         String zone,
-        Double scale
+        Double scale,
+        Double rotation
 ) {
     public FridgeItemResponse(FridgeItem fi) {
         this(
@@ -27,7 +28,8 @@ public record FridgeItemResponse(
             fi.getPosX(),
             fi.getPosY(),
             fi.getZone() == null ? null : fi.getZone().name(),
-            fi.getScale()
+            fi.getScale(),
+            fi.getRotation()
         );
     }
 }

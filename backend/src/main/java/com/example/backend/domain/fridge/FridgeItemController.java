@@ -1,5 +1,6 @@
 package com.example.backend.domain.fridge;
 
+import com.example.backend.domain.ingredient.dto.UserIngredientResponse;
 import com.example.backend.domain.fridge.dto.FridgeItemCreateRequest;
 import com.example.backend.domain.fridge.dto.FridgeItemPlaceRequest;
 import com.example.backend.domain.fridge.dto.FridgeItemResponse;
@@ -58,4 +59,25 @@ public class FridgeItemController {
             @RequestParam Double scale) {
         fridgeItemService.resize(userId, fridgeItemId, scale);
     }
+
+    @GetMapping("/unplaced")
+    public List<UserIngredientResponse> getUnplaced(@AuthenticationPrincipal Long userId) {
+        return fridgeItemService.getUnplaced(userId);
+    }
+
+    @PatchMapping("/items/{fridgeItemId}/image")
+    public void changeImage(@AuthenticationPrincipal Long userId,
+            @PathVariable Long fridgeItemId,
+            @RequestParam String imageUrl,
+            @RequestParam FridgeItem.ImageType imageType) {
+        fridgeItemService.changeImage(userId, fridgeItemId, imageUrl, imageType);
+    }
+
+    @PatchMapping("/items/{fridgeItemId}/rotate")
+    public void rotate(@AuthenticationPrincipal Long userId,
+            @PathVariable Long fridgeItemId,
+            @RequestParam Double rotation) {
+        fridgeItemService.rotate(userId, fridgeItemId, rotation);
+    }
+
 }
