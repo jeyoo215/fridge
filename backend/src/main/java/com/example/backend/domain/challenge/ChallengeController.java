@@ -26,8 +26,8 @@ public class ChallengeController {
     }
 
     @GetMapping("/{challengeId}")
-    public ChallengeResponse getStatus(@PathVariable("challengeId") Long challengeId) {
-        return challengeService.getStatus(challengeId);
+    public ChallengeResponse getStatus(@AuthenticationPrincipal Long userId, @PathVariable("challengeId") Long challengeId) {
+        return challengeService.getStatus(userId, challengeId);
     }
 
     // 진행중인 챌린지가 없으면 null 반환 (200 + empty body)
@@ -44,8 +44,8 @@ public class ChallengeController {
     }
 
     @PatchMapping("/{challengeId}/abort")
-    public ChallengeResponse abortChallenge(@PathVariable("challengeId") Long challengeId) {
-        return challengeService.abortChallenge(challengeId);
+    public ChallengeResponse abortChallenge(@AuthenticationPrincipal Long userId, @PathVariable("challengeId") Long challengeId) {
+        return challengeService.abortChallenge(userId, challengeId);
     }
     
     // 진행중인 챌린지가 없어도, 보유 재료가 없으면 null 반환 (200 + empty body)
