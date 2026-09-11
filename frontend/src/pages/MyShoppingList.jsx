@@ -11,6 +11,7 @@ import {
   updateShoppingItemQuantity,
   setAllShoppingItemsChecked,
   purchaseCheckedShoppingItems,
+  createShareLink,
 } from "../api/shoppingListApi";
 import { fetchActiveChallenge } from "../api/challengeApi";
 import { searchIngredients } from "../api/ingredientApi";
@@ -214,10 +215,18 @@ export default function MyShoppingList() {
   return (
     <div className="my-shopping-list-container">
       <div className="my-shopping-list-header">
-        <h2 className="my-shopping-list-title">🛒 내 장보기 리스트</h2>
-        <button onClick={handleShare} className="recipe-detail-share-button" aria-label="공유하기">
-          {/* 지난번 RecipeDetail에 쓴 SVG 그대로 */}
-        </button>
+        <div className="my-shopping-list-title-row">
+          <h2 className="my-shopping-list-title">🛒 내 장보기 리스트</h2>
+          <button onClick={handleShare} className="recipe-detail-share-button" aria-label="공유하기">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="18" cy="5" r="3" stroke="currentColor" strokeWidth="2" />
+              <circle cx="6" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+              <circle cx="18" cy="19" r="3" stroke="currentColor" strokeWidth="2" />
+              <line x1="8.6" y1="10.6" x2="15.4" y2="6.4" stroke="currentColor" strokeWidth="2" />
+              <line x1="8.6" y1="13.4" x2="15.4" y2="17.6" stroke="currentColor" strokeWidth="2" />
+            </svg>
+          </button>
+        </div>
         {items.length > 0 && (
           <div className="my-shopping-list-actions-row">
             <label className="my-shopping-list-select-all">

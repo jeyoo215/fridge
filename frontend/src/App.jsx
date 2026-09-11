@@ -8,6 +8,7 @@ import RecipeRecommend from "./pages/RecipeRecommend";
 import RecipeDetail from "./pages/RecipeDetail";
 import ShoppingList from "./pages/ShoppingList";
 import MyShoppingList from "./pages/MyShoppingList";
+import SharedShoppingList from "./pages/SharedShoppingList";
 import Challenge from "./pages/Challenge";
 import CommunityList from "./pages/CommunityList";
 import CommunityPostForm from "./pages/CommunityPostForm";
