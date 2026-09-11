@@ -159,11 +159,13 @@ public class ChallengeService {
     }
 
     // 지난 챌린지 기록 페이지네이션 조회 (성공/실패/중단 전부 포함, 최신순)
+    @Transactional
     public ChallengeHistoryPageResponse getHistory(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Challenge> challengePage = challengeRepository.findByUserId(userId, pageable);
 
         List<ChallengeResponse> content = challengePage.getContent().stream()
+                .peek(this::finalizeIfFinished)
                 .map(this::buildResponse)
                 .toList();
 
