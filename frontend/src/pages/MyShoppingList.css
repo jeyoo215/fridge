@@ -315,3 +315,23 @@
 .my-shopping-list-item-handle:active {
   cursor: grabbing;
 }
+
+.my-shopping-list-item-buy {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.my-shopping-list-item-buy:hover {
+  border-color: var(--color-basil);
+  background: var(--color-basil-bg);
+}

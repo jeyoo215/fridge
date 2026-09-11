@@ -100,6 +100,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/recipes/*/cook-records").permitAll() 
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/posts", "/api/v1/community/posts/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/posts/*/likes", "/api/v1/community/posts/*/scraps").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/shopping-list/shared/*").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/shopping-list/shared/*/items/*/toggle").permitAll()
 
                         // 나머지는 전부 로그인 필요
                         .anyRequest().authenticated()

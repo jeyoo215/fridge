@@ -63,6 +63,8 @@ function App() {
         <Route path="/shared/recipes/:recipeId" element={<RecipeDetail />} />
         <Route path="/recipes/:recipeId/shopping-list" element={<RequireAuth><ShoppingList /></RequireAuth>} />
         <Route path="/shopping-list" element={<RequireAuth><MyShoppingList /></RequireAuth>} />
+        {/* 장바구니 공유 기능 */}
+        <Route path="/shopping-list/shared/:shareToken" element={<SharedShoppingList />} />
         <Route path="/challenge" element={<RequireAuth><Challenge /></RequireAuth>} />
         {/* 커뮤니티 열람(레시피/잡담 게시판 목록, 게시글 상세)은 로그인 없이도 가능.
             글쓰기/수정/댓글/좋아요/스크랩 등 실제 활동은 각 화면에서 로그인 여부를 확인해서 막는다.

@@ -189,10 +189,35 @@ export default function MyShoppingList() {
     }
   };
 
+  const handleBuyOnCoupang = (ingredientName) => {
+    window.open(
+      `https://www.coupang.com/np/search?q=${encodeURIComponent(ingredientName)}`,
+      "_blank"
+    );
+  };
+
+  const handleShare = async () => {
+    try {
+      const { shareToken } = await createShareLink();
+      const shareUrl = `${window.location.origin}/shopping-list/shared/${shareToken}`;
+      if (navigator.share) {
+        await navigator.share({ title: "장보기 리스트", url: shareUrl }).catch(() => {});
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        alert("공유 링크가 복사됐어요!");
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   return (
     <div className="my-shopping-list-container">
       <div className="my-shopping-list-header">
         <h2 className="my-shopping-list-title">🛒 내 장보기 리스트</h2>
+        <button onClick={handleShare} className="recipe-detail-share-button" aria-label="공유하기">
+          {/* 지난번 RecipeDetail에 쓴 SVG 그대로 */}
+        </button>
         {items.length > 0 && (
           <div className="my-shopping-list-actions-row">
             <label className="my-shopping-list-select-all">
@@ -283,6 +308,9 @@ export default function MyShoppingList() {
                 </span>
               )}
 
+              <button className="my-shopping-list-item-buy" onClick={() => handleBuyOnCoupang(item.ingredientName)}>
+                🛒
+              </button>
               <button className="my-shopping-list-item-delete" onClick={() => handleDelete(item)}>
                 ✕
               </button>

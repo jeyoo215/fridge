@@ -124,3 +124,25 @@ export async function purchaseCheckedShoppingItems() {
   }
   return response.json();
 }
+
+export async function createShareLink() {
+  const response = await fetch(`${BASE_URL}/shopping-list/share`, {
+    method: "POST",
+    headers: authHeaders(),
+  });
+  if (!response.ok) throw new Error("공유 링크 생성에 실패했습니다.");
+  return response.json();
+}
+
+export async function fetchSharedShoppingList(shareToken) {
+  const response = await fetch(`${BASE_URL}/shopping-list/shared/${shareToken}`);
+  if (!response.ok) throw new Error("공유된 장보기 리스트를 불러오지 못했습니다.");
+  return response.json();
+}
+
+export async function toggleSharedShoppingItem(shareToken, itemId) {
+  const response = await fetch(`${BASE_URL}/shopping-list/shared/${shareToken}/items/${itemId}/toggle`, {
+    method: "PATCH",
+  });
+  if (!response.ok) throw new Error("체크 처리에 실패했습니다.");
+}
