@@ -1,0 +1,394 @@
+.ingredient-form {
+  --color-bg: #F6F8F4;
+  --color-surface: #FFFFFF;
+  --color-border: #E4E7DF;
+  --color-text: #1F211B;
+  --color-text-muted: #40433A;
+  --color-basil: #4C7A5E;
+  --color-basil-dark: #3A5F49;
+  --color-tomato: #E4572E;
+  --color-tomato-bg: #FCEBE5;
+  --color-danger-text: #B23A1A;
+  --font-display: 'Gowun Batang', 'Noto Sans KR', serif;
+  --font-body: 'Gowun Batang', 'Noto Sans KR', serif;
+
+  max-width: 400px;
+  margin: 24px auto;
+  padding: 24px;
+  background: var(--color-bg);
+  border-radius: 20px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.ingredient-form-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 20px;
+}
+
+.camera-button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1.5px dashed var(--color-basil);
+  background: #EEF3EC;
+  color: var(--color-basil-dark);
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.camera-button:hover:not(:disabled) {
+  background: #E4ECE1;
+}
+
+.camera-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.recognized-candidates {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recognized-candidates-label {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+}
+
+.recognized-candidate-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 14px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.recognized-candidate-item:hover {
+  border-color: var(--color-basil);
+  background: #F3F7F1;
+}
+
+.recognized-candidate-score {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-basil-dark);
+  background: #EEF3EC;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.recognized-candidate-checkbox {
+  gap: 10px;
+  cursor: pointer;
+}
+
+.recognized-candidate-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-basil);
+  cursor: pointer;
+}
+
+.recognized-candidate-name {
+  flex: 1;
+  text-align: left;
+}
+
+.recognized-bulk-date {
+  margin-top: 10px;
+}
+
+.bulk-register-button {
+  width: 100%;
+  margin-top: 8px;
+  padding: 11px;
+  border-radius: 10px;
+  border: none;
+  background: var(--color-basil);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.bulk-register-button:hover:not(:disabled) {
+  background: var(--color-basil-dark);
+}
+
+.bulk-register-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.no-search-result {
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: var(--color-bg);
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.no-search-result p {
+  margin: 0 0 6px;
+  color: var(--color-text-muted);
+}
+
+.new-ingredient-link {
+  background: none;
+  border: none;
+  color: var(--color-basil-dark);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.new-ingredient-panel {
+  margin-top: 8px;
+  padding: 12px;
+  background: var(--color-bg);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.new-ingredient-panel label {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.new-ingredient-panel select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  font-size: 13px;
+  font-family: var(--font-body);
+  background: var(--color-surface);
+}
+
+.new-ingredient-panel .new-ingredient-type-radio {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 2px;
+}
+
+.new-ingredient-panel .new-ingredient-type-radio label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--color-text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.new-ingredient-panel .new-ingredient-type-radio input[type="radio"] {
+  accent-color: var(--color-basil);
+  cursor: pointer;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.new-ingredient-confirm-button {
+  padding: 9px;
+  border-radius: 8px;
+  border: none;
+  background: var(--color-basil);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.new-ingredient-confirm-button:hover:not(:disabled) {
+  background: var(--color-basil-dark);
+}
+
+.new-ingredient-confirm-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ingredient-form-divider {
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 16px 0;
+  position: relative;
+}
+
+.ingredient-form-divider::before,
+.ingredient-form-divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 38%;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.ingredient-form-divider::before { left: 0; }
+.ingredient-form-divider::after { right: 0; }
+
+.ingredient-form-field {
+  position: relative;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ingredient-form-field label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.ingredient-form-field input,
+.ingredient-form-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.ingredient-form-field input:focus,
+.ingredient-form-field select:focus {
+  outline: none;
+  border-color: var(--color-basil);
+  box-shadow: 0 0 0 3px rgba(76, 122, 94, 0.12);
+}
+
+.ingredient-form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.ingredient-form-row .ingredient-form-field {
+  flex: 1;
+}
+
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  margin-top: 4px;
+  max-height: 170px;
+  overflow-y: auto;
+  z-index: 10;
+  list-style: none;
+  padding: 4px 0;
+  box-shadow: 0 4px 16px rgba(43, 43, 38, 0.1);
+}
+
+.autocomplete-list li {
+  padding: 9px 12px;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.autocomplete-list li:hover {
+  background: var(--color-bg);
+}
+
+.autocomplete-category {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.ingredient-form-error {
+  color: var(--color-danger-text);
+  background: var(--color-tomato-bg);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.ingredient-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.ingredient-form-actions button {
+  flex: 1;
+  padding: 11px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.ingredient-form-actions button:hover {
+  background: var(--color-bg);
+}
+
+.ingredient-form-actions button.primary {
+  background: var(--color-basil);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(76, 122, 94, 0.25);
+}
+
+.ingredient-form-actions button.primary:hover {
+  background: var(--color-basil-dark);
+  transform: translateY(-1px);
+}
+
+.ingredient-form-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--color-basil);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ingredient-form-actions button {
+    transition: none;
+  }
+}
