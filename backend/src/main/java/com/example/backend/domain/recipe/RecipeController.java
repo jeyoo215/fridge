@@ -27,7 +27,7 @@ public class RecipeController {
 
     // 레시피 상세조회 (FR-24)
     @GetMapping("/{recipeId}")
-    public RecipeDetailResponse getRecipeDetail(@PathVariable Long recipeId) {
+    public RecipeDetailResponse getRecipeDetail(@PathVariable("recipeId") Long recipeId) {
         return recipeService.getRecipeDetail(recipeId);
     }
 

@@ -26,17 +26,4 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/media/community/**")
                 .addResourceLocations("file:" + uploadDir + "/");
     }
-
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        List<String> origins = Arrays.stream(allowedOrigins.split(","))
-                .map(String::trim)
-                .toList();
-
-        registry.addMapping("/**")
-                .allowedOriginPatterns(origins.toArray(new String[0]))
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-    }
 }
