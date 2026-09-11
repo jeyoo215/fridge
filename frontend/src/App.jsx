@@ -59,6 +59,8 @@ function App() {
         <Route path="/ingredients/new" element={<RequireAuth><IngredientRegisterForm /></RequireAuth>} />
         <Route path="/recipes" element={<RequireAuth><RecipeRecommend /></RequireAuth>} />
         <Route path="/recipes/:recipeId" element={<RequireAuth><RecipeDetail /></RequireAuth>} />
+        {/*공유 링크 개념*/}
+        <Route path="/shared/recipes/:recipeId" element={<RecipeDetail />} />
         <Route path="/recipes/:recipeId/shopping-list" element={<RequireAuth><ShoppingList /></RequireAuth>} />
         <Route path="/shopping-list" element={<RequireAuth><MyShoppingList /></RequireAuth>} />
         <Route path="/challenge" element={<RequireAuth><Challenge /></RequireAuth>} />
