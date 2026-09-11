@@ -315,3 +315,56 @@
 .my-shopping-list-item-handle:active {
   cursor: grabbing;
 }
+
+.my-shopping-list-item-buy {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.my-shopping-list-item-buy:hover {
+  border-color: var(--color-basil);
+  background: var(--color-basil-bg);
+}
+
+.my-shopping-list-share-button {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.my-shopping-list-share-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.my-shopping-list-share-button:hover {
+  border-color: var(--color-basil);
+  color: var(--color-basil-dark);
+  background: var(--color-basil-bg);
+}
+
+.my-shopping-list-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

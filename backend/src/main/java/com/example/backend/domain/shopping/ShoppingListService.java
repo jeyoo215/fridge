@@ -259,4 +259,33 @@ public class ShoppingListService {
         shoppingList.getItems().removeAll(checkedItems);
         return resultIds;
         }
+
+        // 공유 링크 발급 (이미 있으면 기존 토큰 재사용)
+        @Transactional
+        public String getOrCreateShareToken(Long userId) {
+        ShoppingList shoppingList = shoppingListRepository.findByUserId(userId)
+                .orElseGet(() -> shoppingListRepository.save(ShoppingList.builder().userId(userId).build()));
+        return shoppingList.getOrCreateShareToken();
+        }
+
+        // 공유 링크로 읽기 전용 조회
+        public MyShoppingListResponse getSharedList(String shareToken) {
+        ShoppingList shoppingList = shoppingListRepository.findByShareToken(shareToken)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않거나 만료된 공유 링크입니다."));
+        return new MyShoppingListResponse(shoppingList);
+        }
+
+        // 공유받은 사람이 체크만 토글 (추가/삭제/수정 불가)
+        @Transactional
+        public void toggleCheckedByShareToken(String shareToken, Long itemId) {
+        ShoppingList shoppingList = shoppingListRepository.findByShareToken(shareToken)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않거나 만료된 공유 링크입니다."));
+
+        ShoppingListItem item = shoppingList.getItems().stream()
+                .filter(i -> i.getItemId().equals(itemId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 항목입니다. id=" + itemId));
+
+        if (item.isChecked()) item.uncheck(); else item.check();
+        }
 }
