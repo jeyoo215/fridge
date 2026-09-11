@@ -19,7 +19,9 @@ export async function startChallenge({ days, type, targetIngredientIds }) {
 }
 
 export async function fetchChallengeStatus(challengeId) {
-  const response = await fetch(`${BASE_URL}/challenges/${challengeId}`);
+  const response = await fetch(`${BASE_URL}/challenges/${challengeId}`, {
+    headers: authHeaders(),   // 추가
+  });
   if (!response.ok) {
     const data = await response.json().catch(() => null);
     throw new Error(data?.message || "챌린지 상태를 불러오지 못했습니다.");
@@ -42,6 +44,7 @@ export async function fetchActiveChallenge() {
 export async function abortChallenge(challengeId) {
   const response = await fetch(`${BASE_URL}/challenges/${challengeId}/abort`, {
     method: "PATCH",
+    headers: authHeaders(),   // 추가
   });
   if (!response.ok) {
     const data = await response.json().catch(() => null);
