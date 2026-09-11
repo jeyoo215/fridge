@@ -39,23 +39,23 @@ public class FridgeItemController {
 
     @PatchMapping("/items/{fridgeItemId}/move")
     public void move(@AuthenticationPrincipal Long userId,
-            @PathVariable Long fridgeItemId,
-            @RequestParam Double posX,
-            @RequestParam Double posY,
-            @RequestParam FridgeItem.Zone zone) {
+            @PathVariable("fridgeItemId") Long fridgeItemId,
+            @RequestParam("posX") Double posX,
+            @RequestParam("posY") Double posY,
+            @RequestParam("zone") FridgeItem.Zone zone) {
         fridgeItemService.move(userId, fridgeItemId, posX, posY, zone);
     }
 
     @DeleteMapping("/items/{fridgeItemId}")
     public void remove(@AuthenticationPrincipal Long userId,
-            @PathVariable Long fridgeItemId) {
+            @PathVariable("fridgeItemId") Long fridgeItemId) {
         fridgeItemService.remove(userId, fridgeItemId);
     }
 
     @PatchMapping("/items/{fridgeItemId}/resize")
     public void resize(@AuthenticationPrincipal Long userId,
-            @PathVariable Long fridgeItemId,
-            @RequestParam Double scale) {
+            @PathVariable("fridgeItemId") Long fridgeItemId,
+            @RequestParam("scale") Double scale) {
         fridgeItemService.resize(userId, fridgeItemId, scale);
     }
 }
