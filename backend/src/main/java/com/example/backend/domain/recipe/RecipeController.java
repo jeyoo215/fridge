@@ -44,18 +44,6 @@ public class RecipeController {
         return recipeService.getCategories();
     }
 
-    // 레시피 재료 LLM 파싱 (임시 관리용 - limit건만 파싱)
-    // 예: POST /api/v1/recipes/parse?limit=10
-    @PostMapping("/parse")
-    public int parseRecipes(@RequestParam(defaultValue = "10") int limit) {
-        return recipeParsingService.parseRecipes(limit);
-    }
-
-    @PostMapping("/import-steps")
-    public int importSteps() {
-        return recipeImportService.importCookingSteps();
-    }
-
     // 레시피 목록/검색 (페이징). 예: GET /api/v1/recipes?page=0&size=20&keyword=김치&ingredientIds=2,5
     @GetMapping
     public RecipePageResponse getList(@RequestParam(name = "page", defaultValue = "0") int page,
