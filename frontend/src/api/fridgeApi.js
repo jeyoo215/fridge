@@ -121,3 +121,21 @@ export async function changeFridgeItemImage(fridgeItemId, imageUrl, imageType) {
   });
   if (!response.ok) throw new Error("이미지 교체에 실패했습니다.");
 }
+
+
+// 보유 재료 배치
+export async function fetchUnplacedIngredients() {
+  const response = await fetch(`${BASE_URL}/fridge/unplaced`, {
+    headers: authHeaders(),
+  });
+  if (!response.ok) throw new Error("보유 재료를 불러오지 못했습니다.");
+  return response.json();
+}
+
+export async function rotateFridgeItem(fridgeItemId, rotation) {
+  const response = await fetch(
+    `${BASE_URL}/fridge/items/${fridgeItemId}/rotate?rotation=${rotation}`,
+    { method: "PATCH", headers: authHeaders() }
+  );
+  if (!response.ok) throw new Error("회전 실패");
+}
