@@ -67,6 +67,7 @@ function formatShortDate(dateStr) {
   return `${Number(month)}/${Number(day)}`;
 }
 
+
 const CATEGORY_ICONS = {
   채소: "🥬",
   육류: "🥩",
@@ -84,6 +85,11 @@ const STORAGE_METHOD_LABELS = {
   냉장: "❄️ 냉장 보관",
   냉동: "🧊 냉동 보관",
   실온: "☀️ 실온 보관",
+};
+
+const ZONE_LABELS = {
+  FROZEN: "🧊 냉동칸",
+  FRIDGE: "❄️ 냉장칸",
 };
 
 function groupByCategory(ingredients) {
@@ -116,11 +122,13 @@ export default function IngredientList() {
   const [seenAlertIds, setSeenAlertIds] = useState(loadSeenAlertIds);
   const [alertThreshold, setAlertThreshold] = useState(loadAlertThreshold);
   const [showThresholdSetting, setShowThresholdSetting] = useState(false);
-
+  const [detailItem, setDetailItem] = useState(null);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [viewMode, setViewMode] = useState("category"); // "category" | "urgent" | "purchase"
   const [collapsedCategories, setCollapsedCategories] = useState(new Set()); // 접힌 카테고리 이름 모음
   const [viewPage, setViewPage] = useState("list"); // 여기 추가
+
+
 
 
   // 일괄 선택 모드
@@ -159,6 +167,12 @@ export default function IngredientList() {
       .then(setFridgeName)
       .catch(() => { });
   }, []);
+
+  useEffect(() => {
+    if (viewPage === "list") {
+      loadIngredients();
+    }
+  }, [viewPage]);
 
   const toggleMenu = (id) => {
     setOpenMenuId((prev) => (prev === id ? null : id));
@@ -281,6 +295,7 @@ export default function IngredientList() {
     const storageLabel = item.storageMethod ? STORAGE_METHOD_LABELS[item.storageMethod] : null;
     const isSelected = selectedIds.has(item.userIngredientId);
 
+
     if (isEditing) {
       return (
         <div key={item.userIngredientId} className="ingredient-card ingredient-card-editing">
@@ -330,7 +345,11 @@ export default function IngredientList() {
       <div
         key={item.userIngredientId}
         className={`ingredient-card freshness-${freshness} ${isSelected ? "ingredient-card-selected" : ""}`}
-        onClick={selectMode ? () => toggleSelected(item.userIngredientId) : undefined}
+        onClick={
+          selectMode
+            ? () => toggleSelected(item.userIngredientId)
+            : () => setDetailItem(item)
+        }
       >
         {selectMode && (
           <input
@@ -348,6 +367,9 @@ export default function IngredientList() {
           <span className="ingredient-sub-info">
             {purchaseLabel && <span className="ingredient-purchase-date">구매 {purchaseLabel}</span>}
             {storageLabel && <span className="ingredient-storage-method">{storageLabel}</span>}
+            {item.zone
+              ? <span className="ingredient-zone">{ZONE_LABELS[item.zone]}</span>
+              : <span className="ingredient-zone ingredient-zone-none">미배치</span>}
           </span>
         </div>
 
@@ -357,7 +379,7 @@ export default function IngredientList() {
           <div className="kebab-wrapper">
             <button
               className="kebab-button"
-              onClick={() => toggleMenu(item.userIngredientId)}
+              onClick={(e) => { e.stopPropagation(); toggleMenu(item.userIngredientId); }}
               aria-label="더보기 메뉴"
             >
               ⋯
@@ -365,13 +387,13 @@ export default function IngredientList() {
 
             {openMenuId === item.userIngredientId && (
               <div className="kebab-menu">
-                <button className="kebab-menu-item" onClick={() => startEdit(item)}>
+                <button className="kebab-menu-item" onClick={(e) => { e.stopPropagation(); startEdit(item); }}>
                   수정
                 </button>
                 <div className="kebab-menu-divider" />
                 <button
                   className="kebab-menu-item kebab-menu-item-danger"
-                  onClick={() => handleDelete(item.userIngredientId)}
+                  onClick={(e) => { e.stopPropagation(); handleDelete(item.userIngredientId); }}
                 >
                   삭제
                 </button>
@@ -728,6 +750,25 @@ export default function IngredientList() {
           </div>
         )}
       </div>
+
+      {detailItem && (
+        <div className="detail-overlay" onClick={() => setDetailItem(null)}>
+          <div className="detail-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="detail-header">
+              <h3>{detailItem.ingredientName}</h3>
+              <button className="detail-close" onClick={() => setDetailItem(null)}>×</button>
+            </div>
+            <dl className="detail-list">
+              <div><dt>카테고리</dt><dd>{detailItem.categoryName}</dd></div>
+              <div><dt>소비기한</dt><dd>{detailItem.expirationDate} ({formatDDay(detailItem.dDay)})</dd></div>
+              <div><dt>구매일</dt><dd>{detailItem.purchaseDate || "-"}</dd></div>
+              <div><dt>수량</dt><dd>{detailItem.quantity} {detailItem.unit}</dd></div>
+              <div><dt>추천 보관법</dt><dd>{detailItem.storageMethod ? STORAGE_METHOD_LABELS[detailItem.storageMethod] : "-"}</dd></div>
+              <div><dt>현재 위치</dt><dd>{detailItem.zone ? ZONE_LABELS[detailItem.zone] : "미배치"}</dd></div>
+            </dl>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

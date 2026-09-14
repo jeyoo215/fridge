@@ -45,9 +45,12 @@ public class FridgeItem {
     @Column(name = "scale")
     private Double scale;
 
+    @Column(name = "rotation")
+    private Double rotation;
+
     @Builder // 둔 위치 저장
     public FridgeItem(UserIngredient userIngredient, String imageUrl, ImageType imageType,
-                      Double posX, Double posY, Zone zone) {
+            Double posX, Double posY, Zone zone) {
         this.userIngredient = userIngredient;
         this.imageUrl = imageUrl;
         this.imageType = imageType;
@@ -55,7 +58,10 @@ public class FridgeItem {
         this.posY = posY;
         this.zone = zone;
         this.scale = (scale == null) ? 1.0 : scale;
+        this.rotation = 0.0;
     }
+
+
 
     // 크기 조정
     public void resize(Double scale) {
@@ -73,6 +79,11 @@ public class FridgeItem {
         this.posX = posX;
         this.posY = posY;
         this.zone = zone;
+    }
+
+    // 회전
+    public void rotate(Double rotation) {
+        this.rotation = rotation;
     }
 
     public enum ImageType {

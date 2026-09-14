@@ -190,3 +190,152 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.fam-existing-toggle {
+  margin: 10px 0;
+}
+
+.fam-existing-btn {
+  width: 100%;
+  padding: 10px;
+  border: 1px dashed #457b5d;
+  border-radius: 8px;
+  background: #f4f9f6;
+  color: #457b5d;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fam-existing-btn.active {
+  background: #457b5d;
+  color: #fff;
+}
+
+.fam-existing-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.fam-existing-list li {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.fam-existing-list li:hover {
+  background: #f4f9f6;
+}
+
+.fam-existing-selected {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--color-text);
+}
+
+.fam-existing-back {
+  border: none;
+  background: none;
+  color: var(--color-basil);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.fam-drawing {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.fam-draw-tools {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  background: #f4f6f5;
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+
+.fam-color {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #ccc;
+  cursor: pointer;
+  padding: 0;
+}
+
+.fam-color.selected {
+  box-shadow: 0 0 0 2px #457b5d;
+}
+
+/* 컬러피커 - 다른 버튼과 같은 높이/모서리 */
+.fam-color-picker {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d8ddda;
+  border-radius: 8px;
+  padding: 2px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.fam-clear {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #e0b4b4;
+  border-radius: 8px;
+  background: #fff;
+  color: #c0392b;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fam-clear:hover {
+  background: #fdecea;
+}
+
+.fam-canvas {
+  border: 1px solid #d8ddda;
+  border-radius: 12px;
+  background: #fff;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.fam-tool {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #d8ddda;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  color: #555;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fam-tool.active {
+  background: var(--color-basil, #457b5d);
+  color: #fff;
+  border-color: var(--color-basil, #457b5d);
+}
+
+.fam-size-slider {
+  width: 90px;
+  cursor: pointer;
+  accent-color: var(--color-basil, #457b5d);
+}

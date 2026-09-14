@@ -20,4 +20,6 @@ public interface FridgeItemRepository extends JpaRepository<FridgeItem, Long> {
 
     // 중복 배치 방지용
     boolean existsByUserIngredient_UserIngredientId(Long userIngredientId);
+
+    void deleteByUserIngredient_UserIngredientId(Long userIngredientId);
 }
