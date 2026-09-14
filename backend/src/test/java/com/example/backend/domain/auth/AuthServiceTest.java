@@ -1,7 +1,6 @@
 package com.example.backend.domain.auth;
 
 import com.example.backend.domain.auth.dto.LoginRequest;
-import com.example.backend.domain.auth.dto.SignupRequest;
 import com.example.backend.domain.auth.dto.TokenResponse;
 import com.example.backend.domain.user.Role;
 import com.example.backend.domain.user.User;
