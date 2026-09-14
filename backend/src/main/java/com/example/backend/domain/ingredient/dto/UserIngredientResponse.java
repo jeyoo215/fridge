@@ -11,6 +11,7 @@ import java.time.temporal.ChronoUnit;
 public class UserIngredientResponse {
 
     private final Long userIngredientId;
+    private final Long ingredientId;
     private final String ingredientName;
     private final String categoryName; // 카테고리별 그룹핑용. 조미료는 "조미료", 그 외 카테고리 없으면 "기타"
     private final boolean isSeasoning;
@@ -25,6 +26,7 @@ public class UserIngredientResponse {
 
     public UserIngredientResponse(UserIngredient entity) {
         this.userIngredientId = entity.getUserIngredientId();
+        this.ingredientId = entity.getIngredient().getIngredientId();
         this.ingredientName = entity.getIngredient().getIngredientName();
         this.isSeasoning = entity.getIngredient().isSeasoning();
         this.categoryName = this.isSeasoning

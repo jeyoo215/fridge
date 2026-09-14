@@ -1,20 +1,15 @@
 package com.example.backend.domain.recipe;
 
 import com.example.backend.domain.recipe.dto.RecipeCategoryResponse;
-import com.example.backend.domain.recipe.dto.RecipeCreateRequest;
 import com.example.backend.domain.recipe.dto.RecipeDetailResponse;
 import com.example.backend.domain.recipe.dto.RecipePageResponse;
 import com.example.backend.domain.recipe.dto.RecipeRecommendPageResponse;
-import com.example.backend.domain.recipe.dto.RecipeRecommendResponse;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/recipes")
@@ -22,8 +17,6 @@ import java.util.Map;
 public class RecipeController {
 
     private final RecipeService recipeService;
-    private final RecipeParsingService recipeParsingService;
-    private final RecipeImportService recipeImportService;
 
     // 레시피 상세조회 (FR-24)
     @GetMapping("/{recipeId}")
