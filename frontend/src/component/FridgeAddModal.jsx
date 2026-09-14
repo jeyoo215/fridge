@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { searchIngredients } from "../api/ingredientApi";
+import { HOST } from "../api/config";
 import { createFridgeItem, uploadImage, fetchUnplacedIngredients, placeFridgeItem } from "../api/fridgeApi";
 
 import "./FridgeAddModal.css";
@@ -392,7 +393,7 @@ export default function FridgeAddModal({ onClose, onAdded, imageOnly = false, on
                             <input type="file" accept="image/*" onChange={handlePhotoSelect} />
                             {uploading && <p className="fam-todo">업로드 중...</p>}
                             {photoUrl && (
-                                <img className="fam-photo-preview" src={`http://${window.location.hostname}:8080${photoUrl}`} alt="미리보기" />
+                                <img className="fam-photo-preview" src={`${HOST}${photoUrl}`} alt="미리보기" />
                             )}
                         </div>
                     )}
