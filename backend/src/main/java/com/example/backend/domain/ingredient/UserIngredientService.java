@@ -19,8 +19,7 @@ public class UserIngredientService {
 
     private final UserIngredientRepository userIngredientRepository;
     private final IngredientRepository ingredientRepository;
-        private final FridgeItemRepository fridgeItemRepository;
-
+    private final FridgeItemRepository fridgeItemRepository;
 
     // 특정 유저의 보유 재료 목록 조회 (유통기한 임박한 순서)
     public List<UserIngredientResponse> getMyIngredients(Long userId) {
@@ -71,6 +70,7 @@ public class UserIngredientService {
     @Transactional
     public void delete(Long userId, Long userIngredientId) {
         UserIngredient userIngredient = findOwnedUserIngredient(userId, userIngredientId);
+        fridgeItemRepository.deleteByUserIngredient_UserIngredientId(userIngredientId);
         userIngredientRepository.delete(userIngredient);
     }
 
