@@ -101,4 +101,20 @@ public class ShoppingListController {
         List<Long> createdIds = shoppingListService.purchaseCheckedItems(userId);
         return Map.of("createdUserIngredientIds", createdIds);
     }
+    
+    @PostMapping("/share")
+    public Map<String, String> createShareLink(@AuthenticationPrincipal Long userId) {
+        String token = shoppingListService.getOrCreateShareToken(userId);
+        return Map.of("shareToken", token);
+    }
+
+    @GetMapping("/shared/{shareToken}")
+    public MyShoppingListResponse getSharedList(@PathVariable("shareToken") String shareToken) {
+        return shoppingListService.getSharedList(shareToken);
+    }
+
+    @PatchMapping("/shared/{shareToken}/items/{itemId}/toggle")
+    public void toggleSharedItem(@PathVariable("shareToken") String shareToken, @PathVariable("itemId") Long itemId) {
+        shoppingListService.toggleCheckedByShareToken(shareToken, itemId);
+    }
 }

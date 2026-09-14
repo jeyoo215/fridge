@@ -19,11 +19,10 @@ export async function fetchRecommendedRecipes(page = 0, size = 10) {
 // ?�시???�세 조회 (FR-24) ??공용 조회, ?�큰 불필??
 export async function fetchRecipeDetail(recipeId) {
   const response = await fetch(`${BASE_URL}/recipes/${recipeId}`);
-
   if (!response.ok) {
-    throw new Error("?�시???�세 ?�보�?불러?��? 못했?�니??");
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.message || "레시피 상세 정보를 불러오지 못했습니다.");
   }
-
   return response.json();
 }
 

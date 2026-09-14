@@ -77,6 +77,21 @@ export default function RecipeDetail() {
     }
   };
 
+  const handleShare = async () => {
+  const shareUrl = `${window.location.origin}/shared/recipes/${recipeId}`;
+  if (navigator.share) {
+    // 모바일 등 Web Share API 지원 시 네이티브 공유 시트 사용
+    try {
+      await navigator.share({ title: recipe.recipeName, url: shareUrl });
+    } catch {
+      // 사용자가 공유 취소한 경우 등 - 조용히 무시
+    }
+  } else {
+    await navigator.clipboard.writeText(shareUrl);
+    alert("공유 링크가 복사됐어요!");
+  }
+};
+
   const handleToggleMade = async () => {
     try {
       const res = await toggleMade(recipeId);
@@ -93,9 +108,20 @@ export default function RecipeDetail() {
 
   return (
     <div className="recipe-detail-container">
-      <button className="recipe-detail-back" onClick={() => navigate(-1)}>
-        ← 목록으로
-      </button>
+      <div className="recipe-detail-header-row">
+        <button className="recipe-detail-back" onClick={() => navigate(-1)}>
+          ← 목록으로
+        </button>
+        <button onClick={handleShare} className="recipe-detail-share-button" aria-label="공유하기">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="18" cy="5" r="3" stroke="currentColor" strokeWidth="2" />
+            <circle cx="6" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+            <circle cx="18" cy="19" r="3" stroke="currentColor" strokeWidth="2" />
+            <line x1="8.6" y1="10.6" x2="15.4" y2="6.4" stroke="currentColor" strokeWidth="2" />
+            <line x1="8.6" y1="13.4" x2="15.4" y2="17.6" stroke="currentColor" strokeWidth="2" />
+          </svg>
+        </button>
+      </div>
 
       <h2 className="recipe-detail-title">
         {recipe.recipeName}

@@ -85,12 +85,15 @@ public class ChallengeService {
 
     // 챌린지 상태 조회 (기간이 끝났으면 성공/실패 판정까지 함께 처리)
     @Transactional
-    public ChallengeResponse getStatus(Long challengeId) {
+    public ChallengeResponse getStatus(Long userId, Long challengeId) {
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 챌린지입니다. id=" + challengeId));
 
-        finalizeIfFinished(challenge);
+        if (!challenge.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("본인의 챌린지만 조회할 수 있습니다.");
+        }
 
+        finalizeIfFinished(challenge);
         return buildResponse(challenge);
     }
 
@@ -137,16 +140,20 @@ public class ChallengeService {
 
     // 챌린지 중단 (사용자가 직접 중단, FR-40 확장)
     @Transactional
-    public ChallengeResponse abortChallenge(Long challengeId) {
+    public ChallengeResponse abortChallenge(Long userId, Long challengeId) {
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 챌린지입니다. id=" + challengeId));
+
+        if (!challenge.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("본인의 챌린지만 중단할 수 있습니다.");
+        }
 
         if (challenge.getStatus() != Challenge.Status.진행중) {
             throw new IllegalStateException("진행중인 챌린지만 중단할 수 있습니다.");
         }
 
         challenge.markAborted();
-        badgeService.onChallengeFailed(challenge.getUserId()); // 실패와 동일하게 스트릭 초기화
+        badgeService.onChallengeFailed(challenge.getUserId());
 
         return buildResponse(challenge);
     }

@@ -11,6 +11,10 @@ export default function CommunitySidebar({ activeBoardType }) {
   const [activeChallengeType, setActiveChallengeType] = useState(undefined); // undefined=확인 중, null=없음
 
   useEffect(() => {
+    if (!isLoggedIn()) {
+      setActiveChallengeType(null); // 비로그인은 챌린지 게시판 전부 잠금 표시로 처리
+      return;
+    }
     fetchActiveChallenge()
       .then((challenge) => setActiveChallengeType(challenge?.type ?? null))
       .catch(() => setActiveChallengeType(null));
