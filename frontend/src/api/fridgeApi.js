@@ -99,9 +99,6 @@ export async function uploadImage(file) {
   return data.url;
 }
 
-
-const API_BASE = `http://${window.location.hostname}:8080`;
-
 export async function resizeFridgeItem(fridgeItemId, scale) {
   const response = await fetch(
     `${BASE_URL}/fridge/items/${fridgeItemId}/resize?scale=${scale}`,
