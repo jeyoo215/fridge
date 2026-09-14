@@ -895,3 +895,71 @@ input:focus-visible {
   justify-content: center;
   margin-bottom: 20px;
 }
+
+
+.ingredient-zone {
+  font-size: 12px;
+  color: var(--color-basil, #457b5d);
+  font-weight: 600;
+}
+.ingredient-zone-none {
+  color: #aaa;
+}
+
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(31,33,27,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 16px;
+}
+.detail-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 360px;
+  padding: 20px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.detail-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+.detail-close {
+  border: none;
+  background: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #888;
+}
+.detail-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.detail-list div {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 8px;
+}
+.detail-list dt {
+  color: #888;
+  font-size: 14px;
+}
+.detail-list dd {
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+}

@@ -21,6 +21,7 @@ public class UserIngredientResponse {
     private final String storageMethod;       // 보관법 안내 (냉장/냉동/실온)
     private final Integer defaultShelfLifeDays;
     private final long dDay;
+    private String zone;
 
     public UserIngredientResponse(UserIngredient entity) {
         this.userIngredientId = entity.getUserIngredientId();
@@ -40,5 +41,11 @@ public class UserIngredientResponse {
                 : null;
         this.defaultShelfLifeDays = entity.getIngredient().getDefaultShelfLifeDays();
         this.dDay = ChronoUnit.DAYS.between(LocalDate.now(), entity.getExpirationDate());
+        this.zone = null;
+
+        
+    }
+        public void setZone(String zone) {
+        this.zone = zone;
     }
 }
