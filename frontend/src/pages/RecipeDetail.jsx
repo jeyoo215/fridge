@@ -148,13 +148,13 @@ export default function RecipeDetail() {
           className={`recipe-social-button ${scraped ? "active" : ""}`}
           onClick={handleToggleScrap}
         >
-          {scraped ? "🔖" : "📑"} 스크랩 {scrapCount}
+          {scraped ? "🔖" : "🌟"} 즐겨찾기 {scrapCount}
         </button>
         <button
           className={`recipe-social-button ${made ? "active" : ""}`}
           onClick={handleToggleMade}
         >
-          {made ? "🍳" : "🥘"} 만들었어요 {madeCount}
+          {made ? "🥘" : "🍳"} 만들었어요 {madeCount}
         </button>
       </div>
 
