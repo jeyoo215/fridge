@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import FridgeAddModal from "../component/FridgeAddModal";
+import { HOST } from "../api/config";
 import {
   fetchFridgeItems,
   moveFridgeItem,
@@ -11,11 +12,9 @@ import "./FridgeDecorate.css";
 import { deleteIngredient } from "../api/ingredientApi";
 import { rotateFridgeItem } from "../api/fridgeApi";
 
-const MEDIA_BASE = `http://${window.location.hostname}:8080`;
-
 function toImageSrc(url) {
   if (!url) return "";
-  return url.startsWith("http") ? url : `${MEDIA_BASE}${url}`;
+  return url.startsWith("http") ? url : `${HOST}${url}`;
 }
 
 const FROZEN_MAX_Y = 0.4;
