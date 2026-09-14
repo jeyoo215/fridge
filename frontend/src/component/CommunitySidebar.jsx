@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { isLoggedIn } from "../api/authApi";
 import { fetchActiveChallenge } from "../api/challengeApi";
 import { BOARD_CONFIGS } from "../pages/communityBoards";
 import "./CommunitySidebar.css";
