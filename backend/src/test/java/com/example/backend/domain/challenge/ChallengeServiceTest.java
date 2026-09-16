@@ -71,7 +71,7 @@ class ChallengeServiceTest {
         when(userIngredientRepository.findByUserIdAndStatusOrderByExpirationDateAsc(1L, UserIngredient.Status.보유중))
                 .thenReturn(List.of());
 
-        ChallengeResponse response = challengeService.getStatus(1L);
+        ChallengeResponse response = challengeService.getStatus(1L, 1L);
 
         assertThat(response.getStatus()).isEqualTo("성공");
         }
@@ -96,7 +96,7 @@ class ChallengeServiceTest {
         when(userIngredientRepository.findByUserIdAndStatusOrderByExpirationDateAsc(1L, UserIngredient.Status.보유중))
                 .thenReturn(List.of(boughtDuringChallenge));
 
-        ChallengeResponse response = challengeService.getStatus(1L);
+        ChallengeResponse response = challengeService.getStatus(1L, 1L);
 
         assertThat(response.getStatus()).isEqualTo("실패");
         }
@@ -118,7 +118,7 @@ class ChallengeServiceTest {
                 .thenReturn(List.of());
         when(ingredientRepository.findById(5L)).thenReturn(Optional.empty());
 
-        ChallengeResponse response = challengeService.getStatus(1L);
+        ChallengeResponse response = challengeService.getStatus(1L, 1L);
 
         assertThat(response.getStatus()).isEqualTo("성공");
         }
@@ -145,8 +145,36 @@ class ChallengeServiceTest {
                 .thenReturn(List.of(remaining));
         when(ingredientRepository.findById(5L)).thenReturn(Optional.of(onion));
 
-        ChallengeResponse response = challengeService.getStatus(1L);
+        ChallengeResponse response = challengeService.getStatus(1L, 1L);
 
         assertThat(response.getStatus()).isEqualTo("실패");
+        }
+
+        @Test
+        @DisplayName("본인 소유가 아닌 챌린지를 조회하면 예외가 발생한다")
+        void getStatus_본인챌린지아니면_예외() {
+        Challenge challenge = Challenge.builder()
+                .userId(1L).startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(7))
+                .type(Challenge.ChallengeType.FRIDGE_CLEAN).build();
+        ReflectionTestUtils.setField(challenge, "challengeId", 10L);
+
+        when(challengeRepository.findById(10L)).thenReturn(Optional.of(challenge));
+
+        assertThatThrownBy(() -> challengeService.getStatus(999L, 10L))
+                .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("본인 소유가 아닌 챌린지를 중단하려 하면 예외가 발생한다")
+        void abortChallenge_본인챌린지아니면_예외() {
+        Challenge challenge = Challenge.builder()
+                .userId(1L).startDate(LocalDate.now()).endDate(LocalDate.now().plusDays(7))
+                .type(Challenge.ChallengeType.FRIDGE_CLEAN).build();
+        ReflectionTestUtils.setField(challenge, "challengeId", 10L);
+
+        when(challengeRepository.findById(10L)).thenReturn(Optional.of(challenge));
+
+        assertThatThrownBy(() -> challengeService.abortChallenge(999L, 10L))
+                .isInstanceOf(IllegalArgumentException.class);
         }
 }

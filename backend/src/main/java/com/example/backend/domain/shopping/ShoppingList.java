@@ -52,4 +52,14 @@ public class ShoppingList {
         return items.stream()
                 .anyMatch(item -> item.getIngredient().getIngredientId().equals(ingredientId));
     }
+
+    @Column(name = "share_token", unique = true, length = 36)
+    private String shareToken;
+
+    public String getOrCreateShareToken() {
+        if (this.shareToken == null) {
+            this.shareToken = java.util.UUID.randomUUID().toString();
+        }
+        return this.shareToken;
+    }
 }

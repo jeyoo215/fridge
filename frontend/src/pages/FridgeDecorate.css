@@ -97,8 +97,10 @@
 }
 
 .fridge-item img {
-  width: 48px;
-  height: 48px;
+  max-width: 90px;
+  max-height: 90px;
+  width: auto;
+  height: auto;
   object-fit: contain;
   pointer-events: none;
 }
@@ -269,4 +271,127 @@
 
 .fridge-item-edit:hover {
   background-color: #345e45;
+}
+
+.fdc-remove-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 33, 27, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 16px;
+}
+
+.fdc-remove-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fdc-remove-title {
+  font-weight: 700;
+  font-size: 17px;
+  margin: 0;
+  text-align: center;
+}
+
+.fdc-remove-desc {
+  color: #888;
+  font-size: 14px;
+  margin: 0 0 8px;
+  text-align: center;
+}
+
+.fdc-remove-btn {
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #f1f3f5;
+  color: #333;
+}
+
+.fdc-remove-btn.danger {
+  background: #e74c3c;
+  color: #fff;
+}
+
+.fdc-remove-btn.cancel {
+  background: none;
+  color: #888;
+}
+
+.fridge-item-label {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 2px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.fridge-label-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  margin-left: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.fridge-label-toggle:hover {
+  background: var(--color-basil-bg);
+}
+
+.fridge-item img.fridge-item-drawing {
+  width: 90px;
+  height: auto;
+}
+
+.fridge-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: #457b5d;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 20;
+  touch-action: none;
+}
+
+.fridge-handle-resize {
+  right: -10px;
+  bottom: -10px;
+  cursor: nwse-resize;
+}
+
+.fridge-handle-rotate {
+  left: 50%;
+  top: -28px;
+  margin-left: -10px;
+  cursor: grab;
+  background: #f39c12;
 }

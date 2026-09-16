@@ -1,20 +1,15 @@
 package com.example.backend.domain.recipe;
 
 import com.example.backend.domain.recipe.dto.RecipeCategoryResponse;
-import com.example.backend.domain.recipe.dto.RecipeCreateRequest;
 import com.example.backend.domain.recipe.dto.RecipeDetailResponse;
 import com.example.backend.domain.recipe.dto.RecipePageResponse;
 import com.example.backend.domain.recipe.dto.RecipeRecommendPageResponse;
-import com.example.backend.domain.recipe.dto.RecipeRecommendResponse;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/recipes")
@@ -22,12 +17,10 @@ import java.util.Map;
 public class RecipeController {
 
     private final RecipeService recipeService;
-    private final RecipeParsingService recipeParsingService;
-    private final RecipeImportService recipeImportService;
 
     // 레시피 상세조회 (FR-24)
     @GetMapping("/{recipeId}")
-    public RecipeDetailResponse getRecipeDetail(@PathVariable Long recipeId) {
+    public RecipeDetailResponse getRecipeDetail(@PathVariable("recipeId") Long recipeId) {
         return recipeService.getRecipeDetail(recipeId);
     }
 
@@ -42,18 +35,6 @@ public class RecipeController {
     @GetMapping("/categories")
     public List<RecipeCategoryResponse> getCategories() {
         return recipeService.getCategories();
-    }
-
-    // 레시피 재료 LLM 파싱 (임시 관리용 - limit건만 파싱)
-    // 예: POST /api/v1/recipes/parse?limit=10
-    @PostMapping("/parse")
-    public int parseRecipes(@RequestParam(defaultValue = "10") int limit) {
-        return recipeParsingService.parseRecipes(limit);
-    }
-
-    @PostMapping("/import-steps")
-    public int importSteps() {
-        return recipeImportService.importCookingSteps();
     }
 
     // 레시피 목록/검색 (페이징). 예: GET /api/v1/recipes?page=0&size=20&keyword=김치&ingredientIds=2,5

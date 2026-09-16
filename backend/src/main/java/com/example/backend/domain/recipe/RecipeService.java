@@ -35,7 +35,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -230,13 +229,6 @@ public class RecipeService {
                 return score;
             })
             .sum();
-    }
-
-    // 레시피가 요구하는 조리도구를 사용자가 전부 보유하고 있는지 확인 (필요 도구 없는 레시피는 항상 통과) (FR-22)
-    private boolean hasAllRequiredTools(Recipe recipe, Set<Long> ownedToolIds) {
-        return recipe.getRecipeTools().stream()
-                .map(recipeTool -> recipeTool.getTool().getToolId())
-                .allMatch(ownedToolIds::contains);
     }
 
     // 레시피 카테고리 전체 목록 (커뮤니티 글쓰기 화면 드롭다운용)
