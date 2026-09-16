@@ -9,9 +9,9 @@ from db import load_db_config
 
 MIN_SUPPORT = 0.05   # 데이터 적을 땐 0.02 정도로 낮춰서 테스트해도 됨
 MIN_CONFIDENCE = 0.3
-TOP_N_PER_USER = 15
-INGREDIENT_MATCH_WEIGHT = 0.5  # 보유 재료 매칭 비율에 곱하는 가중치
-EXPIRY_WEIGHT = 1.0             # 유통기한 임박 가산점 가중치 - 서비스 핵심 가치라 매칭 가중치보다 비중 높게
+TOP_N_PER_USER = 20              # 필터(있는 재료만) 켰을 때도 보여줄 게 있도록 넉넉하게
+INGREDIENT_MATCH_WEIGHT = 0.5    # 보유 재료 매칭 비율에 곱하는 가중치
+EXPIRY_WEIGHT = 1.0              # 유통기한 임박 가산점 가중치 - 서비스 핵심 가치
 MODEL_NAME = "recipe_novelty_model"
 
 
@@ -84,17 +84,25 @@ def fetch_recipe_features(conn):
 
 
 def train_novelty_model(recipe_features, novelty_labels):
-    """Apriori 궁합 지수를 라벨 삼아, 레시피 특성(영양성분/난이도/카테고리)만으로
-    그 지수를 예측하는 회귀 모델을 AutoML로 학습. Apriori 규칙이 안 걸리는
-    레시피(라벨=0)에도 일반화된 예측치를 줘서, 순수 Apriori보다 추천 커버리지가 넓어짐."""
     df = recipe_features.copy()
+    df["difficulty"] = df["difficulty"].fillna("미상")
+    df["category_name"] = df["category_name"].fillna("미상")
     df["novelty_score"] = df["recipe_id"].map(novelty_labels).fillna(0)
     train_df = df.drop(columns=["recipe_id"])
+
+    # 실제로 값이 2종류 이상 있는 컬럼만 카테고리로 취급 - 데이터가 바뀌어도
+    # "사실상 상수인 컬럼"이 categorical_features에 남아있어서 나는 크래시를 원천 차단
+    categorical_candidates = ["difficulty", "category_name"]
+    categorical_features = [
+        col for col in categorical_candidates if train_df[col].nunique() > 1
+    ]
+    print(f"[특성] 카테고리로 사용: {categorical_features} (제외됨: "
+          f"{[c for c in categorical_candidates if c not in categorical_features]})")
 
     reg_setup(
         data=train_df,
         target="novelty_score",
-        categorical_features=["difficulty", "category_name"],
+        categorical_features=categorical_features,
         session_id=42,
         train_size=0.8,
         verbose=False,
@@ -116,7 +124,7 @@ def predict_novelty_scores(model, recipe_features):
     return dict(zip(recipe_features["recipe_id"], predictions[label_col]))
 
 
-# ── 3. 사용자별 개인화: 안 먹어본 조합 + 보유 재료 매칭 + 유통기한 임박도 ──
+# ── 3. 사용자별 개인화: 매칭 가산점 + 유통기한 임박도 + 필터용 플래그 ──
 
 def fetch_all_reviews(conn):
     return fetch_df(conn, """
@@ -151,19 +159,47 @@ def fetch_user_owned_ingredients(conn, user_id):
     return set(df["ingredient_id"].tolist())
 
 
+EXPIRY_WEIGHT_D1 = 3  # Java RecipeService의 EXPIRY_WEIGHT_D1과 동일하게 유지
+EXPIRY_WEIGHT_D3 = 2  # Java RecipeService의 EXPIRY_WEIGHT_D3과 동일하게 유지
+
+
 def fetch_user_ingredient_priority(conn, user_id):
-    """유통기한 임박도 점수 (FR-21의 ingredient_priority_score 테이블을 그대로 재사용)
-    -> {ingredient_id: priority_score}. 값이 클수록 임박도가 높음 (D-1 등)."""
+    """유통기한 임박도 점수 - Java RecipeService.calculateExpiryPriorityScore()와
+    완전히 동일한 기준(D-1 이하 3점, D-3 이하 2점)으로 직접 계산.
+    별도 테이블 없이 user_ingredient.expiration_date만으로 산출.
+    -> {ingredient_id: priority_score}"""
     df = fetch_df(conn, f"""
-        SELECT ui.ingredient_id, ips.priority_score
-        FROM user_ingredient ui
-        JOIN ingredient_priority_score ips ON ips.user_ingredient_id = ui.user_ingredient_id
-        WHERE ui.user_id = {user_id} AND ui.status = '보유중'
+        SELECT ingredient_id, DATEDIFF(expiration_date, CURDATE()) AS d_day
+        FROM user_ingredient
+        WHERE user_id = {user_id} AND status = '보유중'
     """)
-    return dict(zip(df["ingredient_id"], df["priority_score"]))
+    priority = {}
+    for _, row in df.iterrows():
+        d_day = row["d_day"]
+        score = 0
+        if d_day <= 1:
+            score = EXPIRY_WEIGHT_D1
+        elif d_day <= 3:
+            score = EXPIRY_WEIGHT_D3
+        # 같은 재료를 여러 개 보유한 경우, 더 임박한 쪽 점수를 채택
+        priority[row["ingredient_id"]] = max(priority.get(row["ingredient_id"], 0), score)
+    return priority
 
 
 def fetch_recipe_ingredient_ids(conn):
+    """레시피별 전체 재료 id (조미료 제외) - 매칭 가산점/유통기한 가산점 계산용"""
+    df = fetch_df(conn, """
+        SELECT ri.recipe_id, ri.ingredient_id
+        FROM recipe_ingredient ri
+        JOIN ingredient i ON i.ingredient_id = ri.ingredient_id
+        WHERE i.is_seasoning = false
+    """)
+    return df.groupby("recipe_id")["ingredient_id"].apply(list).to_dict()
+
+
+def fetch_recipe_essential_ingredient_ids(conn):
+    """is_essential 컬럼이 아직 없어서, 임시로 '조미료 아닌 전체 재료'를 필수 재료로 간주.
+    나중에 is_essential 컬럼이 생기면 이 쿼리만 WHERE is_essential = true로 바꾸면 됨."""
     df = fetch_df(conn, """
         SELECT ri.recipe_id, ri.ingredient_id
         FROM recipe_ingredient ri
@@ -197,14 +233,23 @@ def compute_expiry_bonus(recipe_ingredient_ids, ingredient_priority):
     return sum(ingredient_priority.get(iid, 0) for iid in recipe_ingredient_ids)
 
 
+def has_all_essential_ingredients(essential_ids, owned_ingredient_ids):
+    """필수 재료(is_essential=true)를 전부 보유했는지 - 점수엔 영향 없는 필터용 플래그.
+    "있는 재료만 활용" 필터를 켰을 때 이 값이 True인 것만 보여줌."""
+    if not essential_ids:
+        return True
+    return set(essential_ids).issubset(owned_ingredient_ids)
+
+
 def save_scores(conn, user_id, scores):
     cursor = conn.cursor()
     cursor.execute("DELETE FROM combination_recommendation WHERE user_id = %s", (user_id,))
-    for recipe_id, score in scores:
+    for recipe_id, score, fully_matched in scores:
         cursor.execute(
-            "INSERT INTO combination_recommendation (user_id, recipe_id, combo_score, generated_at) "
-            "VALUES (%s, %s, %s, NOW())",
-            (user_id, recipe_id, float(score)),
+            "INSERT INTO combination_recommendation "
+            "(user_id, recipe_id, combo_score, fully_matched, generated_at) "
+            "VALUES (%s, %s, %s, %s, NOW())",
+            (user_id, recipe_id, float(score), fully_matched),
         )
     conn.commit()
     cursor.close()
@@ -226,6 +271,7 @@ def main():
     predicted_novelty = predict_novelty_scores(model, recipe_features)
 
     recipe_ingredient_ids = fetch_recipe_ingredient_ids(conn)
+    recipe_essential_ids = fetch_recipe_essential_ingredient_ids(conn)
 
     # 3. 사용자별 리뷰 기록(이미 먹어본 조합) + 보유 재료
     all_reviews = fetch_all_reviews(conn)
@@ -236,8 +282,9 @@ def main():
     else:
         user_ids = fetch_df(conn, "SELECT DISTINCT user_id FROM user")["user_id"].tolist()
 
-    # 4. 사용자별 최종 추천 점수 계산
-    #    = ML 예측치 × (1-이미 먹어본 비율) + 재료 매칭 가산점 + 유통기한 임박 가산점
+    # 4. 사용자별 최종 추천 점수 = ML 예측치 × (1-이미 먹어본 비율)
+    #    + 보유 재료 매칭 가산점 + 유통기한 임박 가산점
+    #    (필수 재료 완전 보유 여부는 점수에 영향 없이 fully_matched 플래그로만 별도 저장)
     for user_id in user_ids:
         tried_pairs = tried_pairs_by_user.get(user_id, set())
         reviewed_ids = reviewed_by_user.get(user_id, set())
@@ -249,11 +296,14 @@ def main():
             if recipe_id in reviewed_ids:
                 continue
 
+            recipe_ids = recipe_ingredient_ids.get(recipe_id, [])
+            essential_ids = recipe_essential_ids.get(recipe_id, [])
+
             base_score = predicted_novelty.get(recipe_id, 0.0)
             tried_ratio = compute_tried_ratio(ingredients, tried_pairs)
-            recipe_ids = recipe_ingredient_ids.get(recipe_id, [])
             match_ratio = compute_match_ratio(recipe_ids, owned_ingredients)
             expiry_bonus = compute_expiry_bonus(recipe_ids, ingredient_priority)
+            fully_matched = has_all_essential_ingredients(essential_ids, owned_ingredients)
 
             final_score = (
                 base_score * (1 - tried_ratio)
@@ -261,7 +311,7 @@ def main():
                 + EXPIRY_WEIGHT * expiry_bonus
             )
             if final_score > 0:
-                scores.append((recipe_id, final_score))
+                scores.append((recipe_id, final_score, fully_matched))
 
         scores.sort(key=lambda x: x[1], reverse=True)
         top_scores = scores[:TOP_N_PER_USER]

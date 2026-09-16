@@ -15,8 +15,10 @@ public class ComboRecommendationService {
     private final ComboRecommendationRepository comboRecommendationRepository;
 
     // 의외의 재료 조합 추천 조회 - Python 배치가 미리 계산해둔 값을 읽기만 함
-    public List<ComboRecommendResponse> getComboRecommendations(Long userId) {
-        return comboRecommendationRepository.findByUserIdOrderByComboScoreDesc(userId).stream()
+    public List<ComboRecommendResponse> getComboRecommendations(Long userId, boolean onlyOwnedIngredients) {
+        List<ComboRecommendation> all = comboRecommendationRepository.findByUserIdOrderByComboScoreDesc(userId);
+        return all.stream()
+                .filter(c -> !onlyOwnedIngredients || Boolean.TRUE.equals(c.getFullyMatched()))
                 .map(ComboRecommendResponse::new)
                 .toList();
     }

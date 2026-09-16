@@ -29,4 +29,7 @@ public class ComboRecommendation {
 
     @Column(name = "generated_at", nullable = false)
     private LocalDateTime generatedAt;
+
+    @Column(name = "fully_matched")
+    private Boolean fullyMatched;
 }
