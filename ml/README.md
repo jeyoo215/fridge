@@ -1,5 +1,15 @@
 # ml/ — 의외의 재료 조합 추천 배치 스크립트 / 레시피 카테고리 자동 분류
 
+## 설치
+
+```bash
+cd ml
+python -m venv venv_pycaret
+Windows: venv_pycaret\Scripts\activate
+# (macOS/Linux: source venv_pycaret/bin/activate)
+pip install -r requirements_pycaret.txt
+```
+
 
 레시피 재료 조합을 Apriori 연관 규칙으로 분석해서, 사용자가 아직 시도해보지 않은
 "의외의 재료 조합" 레시피에 추천 점수를 매겨 DB에 저장하는 Python 배치 스크립트다.

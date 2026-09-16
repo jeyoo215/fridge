@@ -26,15 +26,6 @@ export async function fetchRecipeDetail(recipeId) {
   return response.json();
 }
 
-// AutoML 추천 ?�시??
-export async function fetchComboRecommendations() {
-  const response = await fetch(`${BASE_URL}/recipes/combo-recommend`, {
-    headers: authHeaders(),
-  });
-  if (!response.ok) throw new Error("?�외??조합 추천??불러?��? 못했?�니??");
-  return response.json();
-}
-
 // ?�시??카테고리 ?�체 목록 (커�??�티 글?�기 ?�면 ?�롭?�운?? ??공용 조회, ?�큰 불필??
 export async function fetchRecipeCategories() {
   const response = await fetch(`${BASE_URL}/recipes/categories`);
@@ -50,5 +41,13 @@ export async function fetchRecipeList({ keyword = "", ingredientIds = [], page =
 
   const response = await fetch(`${BASE_URL}/recipes?${params.toString()}`);
   if (!response.ok) throw new Error("?�시??목록??불러?��? 못했?�니??");
+  return response.json();
+}
+
+export async function fetchComboRecommendations(onlyOwned = false) {
+  const response = await fetch(`${BASE_URL}/recipes/combo-recommend?onlyOwned=${onlyOwned}`, {
+    headers: authHeaders(),
+  });
+  if (!response.ok) throw new Error("추천 레시피를 불러오지 못했습니다.");
   return response.json();
 }

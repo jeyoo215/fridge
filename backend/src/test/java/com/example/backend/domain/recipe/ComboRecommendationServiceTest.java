@@ -38,7 +38,7 @@ class ComboRecommendationServiceTest {
         when(comboRecommendationRepository.findByUserIdOrderByComboScoreDesc(1L))
                 .thenReturn(List.of(combo));
 
-        List<ComboRecommendResponse> result = comboRecommendationService.getComboRecommendations(1L);
+        List<ComboRecommendResponse> result = comboRecommendationService.getComboRecommendations(1L, false);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getRecipeId()).isEqualTo(3L);
@@ -52,7 +52,7 @@ class ComboRecommendationServiceTest {
         when(comboRecommendationRepository.findByUserIdOrderByComboScoreDesc(1L))
                 .thenReturn(List.of());
 
-        List<ComboRecommendResponse> result = comboRecommendationService.getComboRecommendations(1L);
+        List<ComboRecommendResponse> result = comboRecommendationService.getComboRecommendations(1L, false);
 
         assertThat(result).isEmpty();
     }
