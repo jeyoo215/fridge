@@ -5,17 +5,6 @@ function authHeaders() {
   return { Authorization: `Bearer ${getAccessToken()}` };
 }
 
-// 보유 ?�료 기반 ?�시??추천 목록 조회
-export async function fetchRecommendedRecipes(page = 0, size = 10) {
-  const response = await fetch(`${BASE_URL}/recipes/recommend?page=${page}&size=${size}`, {
-    headers: authHeaders(),
-  });
-  if (!response.ok) {
-    throw new Error("추천 ?�시?��? 불러?��? 못했?�니??");
-  }
-  return response.json();
-}
-
 // ?�시???�세 조회 (FR-24) ??공용 조회, ?�큰 불필??
 export async function fetchRecipeDetail(recipeId) {
   const response = await fetch(`${BASE_URL}/recipes/${recipeId}`);
