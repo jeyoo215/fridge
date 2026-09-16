@@ -1,6 +1,5 @@
 package com.example.backend.domain.review;
 
-import com.example.backend.domain.recipe.ComboRecommendationScheduler;
 import com.example.backend.domain.recipe.Recipe;
 import com.example.backend.domain.recipe.RecipeRepository;
 import com.example.backend.domain.review.dto.MyRecipeReviewResponse;
@@ -27,7 +26,6 @@ public class RecipeReviewService {
 
     private final RecipeReviewRepository recipeReviewRepository;
     private final RecipeRepository recipeRepository;
-    private final ComboRecommendationScheduler comboRecommendationScheduler;
     private final UserRepository userRepository;
 
     // 후기/평점 등록 (FR-41)
@@ -44,8 +42,6 @@ public class RecipeReviewService {
                 .build();
 
         Long reviewId = recipeReviewRepository.save(review).getReviewId();
-
-        comboRecommendationScheduler.runNowAsync(userId); // 이 유저 조합 추천만 비동기로 재계산
 
         return reviewId;
     }
