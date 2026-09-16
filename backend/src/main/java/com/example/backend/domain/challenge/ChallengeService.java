@@ -21,6 +21,8 @@ import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 
@@ -130,11 +132,17 @@ public class ChallengeService {
     }
 
     private ChallengeResponse buildResponse(Challenge challenge) {
-        List<String> targetNames = challenge.getTargetIngredients().stream()
-                .map(target -> ingredientRepository.findById(target.getIngredientId())
-                        .map(Ingredient::getIngredientName)
-                        .orElse("삭제된 재료"))
+        List<Long> targetIds = challenge.getTargetIngredients().stream()
+                .map(ChallengeTargetIngredient::getIngredientId)
                 .toList();
+
+        Map<Long, String> namesById = ingredientRepository.findAllById(targetIds).stream()
+                .collect(Collectors.toMap(Ingredient::getIngredientId, Ingredient::getIngredientName));
+
+        List<String> targetNames = targetIds.stream()
+                .map(id -> namesById.getOrDefault(id, "삭제된 재료"))
+                .toList();
+
         return new ChallengeResponse(challenge, targetNames);
     }
 
