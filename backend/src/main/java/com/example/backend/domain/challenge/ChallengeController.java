@@ -50,8 +50,8 @@ public class ChallengeController {
 
     // "챌린지 완수!" 화면을 확인했음을 서버에 기록 (그전까진 다음 챌린지를 시작할 수 없음)
     @PatchMapping("/{challengeId}/acknowledge")
-    public void acknowledge(@PathVariable("challengeId") Long challengeId) {
-        challengeService.acknowledge(challengeId);
+    public void acknowledge(@AuthenticationPrincipal Long userId, @PathVariable("challengeId") Long challengeId) {
+        challengeService.acknowledge(userId, challengeId);
     }
 
 

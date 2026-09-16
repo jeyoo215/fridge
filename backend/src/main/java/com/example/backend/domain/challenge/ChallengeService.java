@@ -127,9 +127,12 @@ public class ChallengeService {
     // "챌린지 완수!" 화면을 확인했음을 기록 (이후 getActiveChallenge가 더 이상 이 챌린지를
     // 활성으로 돌려주지 않게 되고, startChallenge로 다음 챌린지를 시작할 수 있게 된다).
     @Transactional
-    public void acknowledge(Long challengeId) {
+    public void acknowledge(Long userId, Long challengeId) {
         Challenge challenge = challengeRepository.findById(challengeId)
                 .orElseThrow(() -> new EntityNotFoundException(CHALLENGE_NOT_FOUND + challengeId));
+        if (!challenge.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("본인의 챌린지만 확인 처리할 수 있습니다.");
+        }
         if (challenge.getStatus() != Challenge.Status.성공) {
             throw new IllegalStateException("성공한 챌린지만 확인 처리할 수 있습니다.");
         }

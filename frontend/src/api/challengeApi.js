@@ -58,6 +58,7 @@ export async function abortChallenge(challengeId) {
 export async function acknowledgeChallenge(challengeId) {
   const response = await fetch(`${BASE_URL}/challenges/${challengeId}/acknowledge`, {
     method: "PATCH",
+    headers: authHeaders(),
   });
   if (!response.ok) {
     const data = await response.json().catch(() => null);

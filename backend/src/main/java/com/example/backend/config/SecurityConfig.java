@@ -100,8 +100,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/recipes/*/cook-records").permitAll() 
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/posts", "/api/v1/community/posts/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/posts/*/likes", "/api/v1/community/posts/*/scraps").permitAll()
+                        // 댓글 목록은 비로그인도 볼 수 있어야 함(글쓰기/댓글쓰기 등 "쓰기"만 로그인 필요) —
+                        // 안 넣으면 anyRequest().authenticated()에 걸려서 401이 남
+                        .requestMatchers(HttpMethod.GET, "/api/v1/community/posts/*/comments").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/shopping-list/shared/*").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/shopping-list/shared/*/items/*/toggle").permitAll()
+                        // 커뮤니티 글에 첨부된 이미지/동영상 정적 파일. 비로그인으로 게시글을 볼 때도
+                        // <img>/<video> 태그가 이 경로를 그대로 요청하므로 같이 공개해야 함.
+                        .requestMatchers(HttpMethod.GET, "/media/community/**").permitAll()
 
                         // 나머지는 전부 로그인 필요
                         .anyRequest().authenticated()
