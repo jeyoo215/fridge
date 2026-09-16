@@ -50,6 +50,19 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             """)
     List<Recipe> findRecipesToParse(org.springframework.data.domain.Pageable pageable);
 
+    // "있는 재료만 활용" 필터용: 레시피별 필수(비조미료) 재료 id 목록을 실시간 조회
+    @Query("""
+        SELECT ri.recipe.recipeId AS recipeId, ri.ingredient.ingredientId AS ingredientId
+        FROM RecipeIngredient ri
+        WHERE ri.recipe.recipeId IN :recipeIds AND ri.ingredient.isSeasoning = false
+        """)
+    List<RecipeEssentialIdPair> findNonSeasoningIngredientIdsByRecipeIdIn(@Param("recipeIds") List<Long> recipeIds);
+
+    interface RecipeEssentialIdPair {
+        Long getRecipeId();
+        Long getIngredientId();
+    }
+
 
     Optional<Recipe> findBySourceAndExternalId(String source, String externalId);
 }
