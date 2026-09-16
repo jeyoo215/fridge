@@ -3,10 +3,8 @@ package com.example.backend.domain.recipe;
 import com.example.backend.domain.recipe.dto.RecipeCategoryResponse;
 import com.example.backend.domain.recipe.dto.RecipeDetailResponse;
 import com.example.backend.domain.recipe.dto.RecipePageResponse;
-import com.example.backend.domain.recipe.dto.RecipeRecommendPageResponse;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,13 +20,6 @@ public class RecipeController {
     @GetMapping("/{recipeId}")
     public RecipeDetailResponse getRecipeDetail(@PathVariable("recipeId") Long recipeId) {
         return recipeService.getRecipeDetail(recipeId);
-    }
-
-    @GetMapping("/recommend")
-    public RecipeRecommendPageResponse recommendRecipes(@AuthenticationPrincipal Long userId,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
-        return recipeService.recommendRecipes(userId, page, size);
     }
 
     // 커뮤니티 글쓰기 화면의 카테고리 선택 드롭다운용
