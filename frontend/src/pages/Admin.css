@@ -1,0 +1,53 @@
+.admin-container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+.admin-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 18px;
+  color: var(--color-text);
+}
+
+.admin-section {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.admin-section h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--color-text);
+}
+
+.admin-section-desc {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0 0 14px;
+}
+
+.admin-action-button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-basil);
+  color: white;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.admin-status {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
