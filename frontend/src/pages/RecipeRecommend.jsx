@@ -1,11 +1,10 @@
 import { useState } from "react";
-import RecipeMyIngredientsSection from "./RecipeMyIngredientsSection";
-import RecipeComboSection from "./RecipeComboSection";
+import RecipeRecommendSection from "./RecipeRecommendSection";
 import RecipeSearchSection from "./RecipeSearchSection";
 import "./RecipeRecommend.css";
 
 export default function RecipeRecommend() {
-  const [tab, setTab] = useState("recommend"); // "recommend" | "combo" | "search"
+  const [tab, setTab] = useState("recommend"); // "recommend" | "search"
   const [searchNotice, setSearchNotice] = useState(null);
 
   const handleEmptyRecommend = () => {
@@ -17,24 +16,20 @@ export default function RecipeRecommend() {
     <div className="recipe-recommend-container">
       <div className="recipe-recommend-tabs">
         <button className={tab === "recommend" ? "active" : ""} onClick={() => setTab("recommend")}>
-          내 재료로 추천
-        </button>
-        <button className={tab === "combo" ? "active" : ""} onClick={() => setTab("combo")}>
-          의외의 조합 추천
+          레시피 추천
         </button>
         <button
           className={tab === "search" ? "active" : ""}
           onClick={() => {
             setTab("search");
-            setSearchNotice(null); // 사용자가 직접 탭을 눌러서 온 거면 안내문구는 안 보여줌
+            setSearchNotice(null);
           }}
         >
           전체 레시피 검색
         </button>
       </div>
 
-      {tab === "recommend" && <RecipeMyIngredientsSection onEmptyRecommend={handleEmptyRecommend} />}
-      {tab === "combo" && <RecipeComboSection />}
+      {tab === "recommend" && <RecipeRecommendSection onEmptyRecommend={handleEmptyRecommend} />}
       {tab === "search" && <RecipeSearchSection notice={searchNotice} />}
     </div>
   );
