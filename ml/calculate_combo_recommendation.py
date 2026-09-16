@@ -11,6 +11,7 @@ MIN_SUPPORT = 0.05   # 데이터 적을 땐 0.02 정도로 낮춰서 테스트�
 MIN_CONFIDENCE = 0.3
 TOP_N_PER_USER = 15
 INGREDIENT_MATCH_WEIGHT = 0.5  # 보유 재료 매칭 비율에 곱하는 가중치
+EXPIRY_WEIGHT = 1.0             # 유통기한 임박 가산점 가중치 - 서비스 핵심 가치라 매칭 가중치보다 비중 높게
 MODEL_NAME = "recipe_novelty_model"
 
 
@@ -115,7 +116,7 @@ def predict_novelty_scores(model, recipe_features):
     return dict(zip(recipe_features["recipe_id"], predictions[label_col]))
 
 
-# ── 3. 사용자별 개인화: 안 먹어본 조합 + 보유 재료 매칭 (내부 데이터) ────
+# ── 3. 사용자별 개인화: 안 먹어본 조합 + 보유 재료 매칭 + 유통기한 임박도 ──
 
 def fetch_all_reviews(conn):
     return fetch_df(conn, """
@@ -150,6 +151,18 @@ def fetch_user_owned_ingredients(conn, user_id):
     return set(df["ingredient_id"].tolist())
 
 
+def fetch_user_ingredient_priority(conn, user_id):
+    """유통기한 임박도 점수 (FR-21의 ingredient_priority_score 테이블을 그대로 재사용)
+    -> {ingredient_id: priority_score}. 값이 클수록 임박도가 높음 (D-1 등)."""
+    df = fetch_df(conn, f"""
+        SELECT ui.ingredient_id, ips.priority_score
+        FROM user_ingredient ui
+        JOIN ingredient_priority_score ips ON ips.user_ingredient_id = ui.user_ingredient_id
+        WHERE ui.user_id = {user_id} AND ui.status = '보유중'
+    """)
+    return dict(zip(df["ingredient_id"], df["priority_score"]))
+
+
 def fetch_recipe_ingredient_ids(conn):
     df = fetch_df(conn, """
         SELECT ri.recipe_id, ri.ingredient_id
@@ -176,6 +189,12 @@ def compute_match_ratio(recipe_ingredient_ids, owned_ingredient_ids):
         return 0.0
     matched = len(set(recipe_ingredient_ids) & owned_ingredient_ids)
     return matched / len(recipe_ingredient_ids)
+
+
+def compute_expiry_bonus(recipe_ingredient_ids, ingredient_priority):
+    """이 레시피가 쓰는 재료 중, 사용자가 보유하고 임박한 재료들의 priority_score 합.
+    서비스 핵심 가치(유통기한 임박 재료 우선 소진)를 AutoML 추천에도 반영."""
+    return sum(ingredient_priority.get(iid, 0) for iid in recipe_ingredient_ids)
 
 
 def save_scores(conn, user_id, scores):
@@ -217,11 +236,13 @@ def main():
     else:
         user_ids = fetch_df(conn, "SELECT DISTINCT user_id FROM user")["user_id"].tolist()
 
-    # 4. 사용자별 최종 추천 점수 = ML 예측치 × (1-이미 먹어본 비율) + 재료 매칭 가산점
+    # 4. 사용자별 최종 추천 점수 계산
+    #    = ML 예측치 × (1-이미 먹어본 비율) + 재료 매칭 가산점 + 유통기한 임박 가산점
     for user_id in user_ids:
         tried_pairs = tried_pairs_by_user.get(user_id, set())
         reviewed_ids = reviewed_by_user.get(user_id, set())
         owned_ingredients = fetch_user_owned_ingredients(conn, user_id)
+        ingredient_priority = fetch_user_ingredient_priority(conn, user_id)
 
         scores = []
         for recipe_id, ingredients in baskets.items():
@@ -230,9 +251,15 @@ def main():
 
             base_score = predicted_novelty.get(recipe_id, 0.0)
             tried_ratio = compute_tried_ratio(ingredients, tried_pairs)
-            match_ratio = compute_match_ratio(recipe_ingredient_ids.get(recipe_id, []), owned_ingredients)
+            recipe_ids = recipe_ingredient_ids.get(recipe_id, [])
+            match_ratio = compute_match_ratio(recipe_ids, owned_ingredients)
+            expiry_bonus = compute_expiry_bonus(recipe_ids, ingredient_priority)
 
-            final_score = base_score * (1 - tried_ratio) + INGREDIENT_MATCH_WEIGHT * match_ratio
+            final_score = (
+                base_score * (1 - tried_ratio)
+                + INGREDIENT_MATCH_WEIGHT * match_ratio
+                + EXPIRY_WEIGHT * expiry_bonus
+            )
             if final_score > 0:
                 scores.append((recipe_id, final_score))
 
