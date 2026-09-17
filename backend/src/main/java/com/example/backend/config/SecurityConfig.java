@@ -102,6 +102,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/posts/*/likes", "/api/v1/community/posts/*/scraps").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/shopping-list/shared/*").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/shopping-list/shared/*/items/*/toggle").permitAll()
+                        .requestMatchers("/media/**").permitAll()
 
                         // 나머지는 전부 로그인 필요
                         .anyRequest().authenticated()

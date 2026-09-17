@@ -82,9 +82,33 @@ export default function FridgeDecorate() {
     setItems((prev) => prev.map((it) => it.fridgeItemId === selectedId ? { ...it, posX: x, posY: y } : it));
   }
 
-  function onPointerUp() {
+  async function onPointerUp() {
+    const wasDragging = dragging.current;
+    const it = interaction.current;
     dragging.current = false;
     interaction.current = null;
+
+    const targetId = it ? it.id : (wasDragging ? selectedId : null);
+    if (targetId == null) return;
+
+    const item = items.find((x) => x.fridgeItemId === targetId);
+    if (!item) return;
+
+    try {
+      if (it?.type === "resize") {
+        await resizeFridgeItem(item.fridgeItemId, item.scale || 1);
+      } else if (it?.type === "rotate") {
+        await rotateFridgeItem(item.fridgeItemId, item.rotation || 0);
+      } else {
+        const zone = zoneByY(item.posY);
+        await moveFridgeItem(item.fridgeItemId, item.posX, item.posY, zone);
+        setItems((prev) =>
+          prev.map((x) => (x.fridgeItemId === targetId ? { ...x, zone } : x))
+        );
+      }
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   // 원클릭 = 선택
@@ -251,7 +275,10 @@ export default function FridgeDecorate() {
               onClick={(e) => handleSelect(e, item)}
             >
               {item.imageType === "SYSTEM" ? (
-                <span className="fridge-item-emoji">{item.imageUrl}</span>
+                <span
+                  className="fridge-item-emoji"
+                  style={{ transform: `rotate(${item.rotation || 0}deg)`, display: "inline-block" }}
+                >{item.imageUrl}</span>
               ) : (
                 item.imageUrl && (
                   <img
