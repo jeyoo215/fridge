@@ -1,8 +1,8 @@
 .recipe-recommend-container {
-  max-width: 480px;
+  width: 100%;
+  max-width: 900px;
   margin: 0 auto;
   padding: 24px 20px 60px;
-  text-align: left;
 }
 
 .recipe-recommend-title {
@@ -128,12 +128,11 @@
 }
 
 .recipe-recommend-tabs {
-  display: flex;              /* inline-flex -> flex */
-  width: fit-content;
-  margin: 0 auto 18px;        /* 좌우 auto로 직접 가운데 정렬 (text-align 영향 안 받음) */
+  display: inline-flex;
   padding: 4px;
   background: var(--color-bg);
   border-radius: 999px;
+  margin-bottom: 18px;
 }
 
 .recipe-recommend-tabs button {
@@ -150,4 +149,12 @@
 .recipe-recommend-tabs button.active {
   background: var(--color-basil);
   color: #fff;
+}
+
+.recipe-recommend-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+  text-align: left;   /* 추가 */
 }
