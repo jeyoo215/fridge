@@ -1,14 +1,50 @@
 # ml/ — 의외의 재료 조합 추천 배치 스크립트 / 레시피 카테고리 자동 분류
 
-## 설치
+### 설치
+
+이 스크립트는 `mlxtend`와 `pycaret`을 **같이** 써서, 반드시 `venv_pycaret`
+가상환경을 쓴다 (아래 2번 항목 카테고리 분류랑 같은 venv 공유):
+
+> **먼저 Python 3.11을 시스템에 설치해야 함.** `venv_pycaret` 폴더는 패키지만
+> 담는 가상환경일 뿐, 그 안에 Python 3.11 실행 파일 자체가 들어있는 게 아니다.
+> PyCaret 3.3.2가 Python 3.13을 지원하지 않아서(numpy 빌드 실패로 설치 자체가
+> 안 됨) 별도로 3.11을 깔아야 하며, 이미 3.13 등 다른 버전을 쓰고 있어도 같이
+> 설치해두면 된다. **설치 시 "Add python.exe to PATH" 체크는 하지 않는 것을
+> 권장** — 체크하면 터미널에서 기본 `python` 명령이 3.11로 바뀌어버려 다른
+> 작업에 영향을 줄 수 있다. 체크 안 해도 아래처럼 `py -3.11`로 정확히 지정해서
+> 부르면 된다.
 
 ```bash
 cd ml
-python -m venv venv_pycaret
+py -3.11 -m venv venv_pycaret
 Windows: venv_pycaret\Scripts\activate
 # (macOS/Linux: source venv_pycaret/bin/activate)
+
+# 반드시 2단계로 나눠서 설치할 것 (아래 경고 참고)
 pip install -r requirements_pycaret.txt
+pip install mlxtend==0.25.0 --no-deps
 ```
+
+> **왜 2단계로 나누는가**: `requirements_pycaret.txt`에는 `mlxtend==0.25.0`과
+> `scipy==1.11.4`가 같이 고정돼 있는데, `mlxtend==0.25.0`이 실제로 공식
+> 요구하는 버전은 `scipy>=1.16.3`이다 (pip 메타데이터 기준 명백한 모순). 즉
+> **한 번에 `pip install -r requirements_pycaret.txt`만 실행하면 pip가 이
+> 모순을 감지해서 설치를 거부하거나, 해결책을 찾느라 오래 걸리거나, 예측 불가능한
+> 조합으로 깔릴 수 있다.**
+>
+> 실제로는 `mlxtend`의 핵심 함수(`apriori`, `association_rules`,
+> `TransactionEncoder`)가 그 최신 scipy 전용 기능을 쓰지 않아서, 훨씬 낮은
+> `scipy==1.11.4`로도 정상 동작하는 걸 확인했다. 그래서 `pycaret` 생태계
+> (scipy/numpy/scikit-learn 버전들)를 먼저 깔아서 고정시킨 다음,
+> `mlxtend`는 `--no-deps`로 **의존성 버전 체크 없이 지금 깔린 환경 위에
+> 그대로 얹는** 방식으로 설치한다.
+>
+> **이 venv에 뭔가 추가로 설치해야 할 일이 생기면, 절대 그냥 `pip install
+> <패키지>`를 바로 하지 말 것.** 먼저 위 2단계 순서대로 복원한 다음에
+> 추가 패키지를 설치할 것 — 그렇지 않으면 이번에 정리한 이 조합이 또 깨질 수 있음
+> (mlxtend를 나중에 추가 설치했다가 scipy/scikit-learn이 자동으로 최신으로
+> 올라가면서 pycaret이 통째로 로드 실패했던 사고가 이미 한 번 있었음).
+
 
 # ml/ — 조합 추천 배치 (AutoML) / 레시피 카테고리 자동 분류
 
@@ -63,25 +99,46 @@ PyCaret 회귀 모델(AutoML)로 학습시켜 모든 레시피에 예측 점수�
 이 스크립트는 `mlxtend`와 `pycaret`을 **같이** 써서, 반드시 `venv_pycaret`
 가상환경을 쓴다 (아래 2번 항목 카테고리 분류랑 같은 venv 공유):
 
+> **먼저 Python 3.11을 시스템에 설치해야 함.** `venv_pycaret` 폴더는 패키지만
+> 담는 가상환경일 뿐, 그 안에 Python 3.11 실행 파일 자체가 들어있는 게 아니다.
+> PyCaret 3.3.2가 Python 3.13을 지원하지 않아서(numpy 빌드 실패로 설치 자체가
+> 안 됨) 별도로 3.11을 깔아야 하며, 이미 3.13 등 다른 버전을 쓰고 있어도 같이
+> 설치해두면 된다. **설치 시 "Add python.exe to PATH" 체크는 하지 않는 것을
+> 권장** — 체크하면 터미널에서 기본 `python` 명령이 3.11로 바뀌어버려 다른
+> 작업에 영향을 줄 수 있다. 체크 안 해도 아래처럼 `py -3.11`로 정확히 지정해서
+> 부르면 된다.
+
 ```bash
 cd ml
 py -3.11 -m venv venv_pycaret
 Windows: venv_pycaret\Scripts\activate
 # (macOS/Linux: source venv_pycaret/bin/activate)
+
+# 반드시 2단계로 나눠서 설치할 것 (아래 경고 참고)
 pip install -r requirements_pycaret.txt
+pip install mlxtend==0.25.0 --no-deps
 ```
 
-> **주의**: `requirements_pycaret.txt`는 UTF-16(BOM) 인코딩으로 저장돼 있음
-> (Windows에서 `pip freeze > requirements_pycaret.txt`로 생성해서 그럼).
-> `pip install -r`은 정상적으로 읽지만, 터미널에서 `cat`/`grep` 등으로 열어보면
-> 글자가 깨져 보일 수 있음.
+> **왜 2단계로 나누는가**: `requirements_pycaret.txt`에는 `mlxtend==0.25.0`과
+> `scipy==1.11.4`가 같이 고정돼 있는데, `mlxtend==0.25.0`이 실제로 공식
+> 요구하는 버전은 `scipy>=1.16.3`이다 (pip 메타데이터 기준 명백한 모순). 즉
+> **한 번에 `pip install -r requirements_pycaret.txt`만 실행하면 pip가 이
+> 모순을 감지해서 설치를 거부하거나, 해결책을 찾느라 오래 걸리거나, 예측 불가능한
+> 조합으로 깔릴 수 있다.**
 >
-> **버전이 정확히 고정돼 있는 이유**: `numpy`/`scipy`/`scikit-learn`을 이 버전에서
-> 조금만 벗어나도 PyCaret 내부 import가 깨진다 (겪어본 문제: `mlxtend`를 나중에
-> 추가 설치하면서 `scikit-learn`/`scipy`가 최신으로 자동 업그레이드되어 PyCaret이
-> 통째로 로드 실패했었음). 이 venv에 뭔가 추가로 설치해야 하면, 반드시
-> `pip install -r requirements_pycaret.txt`로 먼저 복원한 다음에 추가할 것.
-> (`requirements.txt`는 pycaret 도입 전 구버전 환경이라 이제 안 씀 — 삭제 예정)
+> 실제로는 `mlxtend`의 핵심 함수(`apriori`, `association_rules`,
+> `TransactionEncoder`)가 그 최신 scipy 전용 기능을 쓰지 않아서, 훨씬 낮은
+> `scipy==1.11.4`로도 정상 동작하는 걸 확인했다. 그래서 `pycaret` 생태계
+> (scipy/numpy/scikit-learn 버전들)를 먼저 깔아서 고정시킨 다음,
+> `mlxtend`는 `--no-deps`로 **의존성 버전 체크 없이 지금 깔린 환경 위에
+> 그대로 얹는** 방식으로 설치한다.
+>
+> **이 venv에 뭔가 추가로 설치해야 할 일이 생기면, 절대 그냥 `pip install
+> <패키지>`를 바로 하지 말 것.** 먼저 위 2단계 순서대로 복원한 다음에
+> 추가 패키지를 설치할 것 — 그렇지 않으면 이번에 정리한 이 조합이 또 깨질 수 있음
+> (mlxtend를 나중에 추가 설치했다가 scipy/scikit-learn이 자동으로 최신으로
+> 올라가면서 pycaret이 통째로 로드 실패했던 사고가 이미 한 번 있었음).
+
 
 ### 실행 방법
 
