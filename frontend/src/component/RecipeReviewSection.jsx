@@ -2,12 +2,16 @@ import { useEffect, useState } from "react";
 import { fetchReviews, createReview } from "../api/recipeReviewApi";
 import "./RecipeReviewSection.css";
 
+const MIN_CONTENT_LENGTH = 3;
+
 // RecipeDetail.jsx 안에 <RecipeReviewSection recipeId={recipe.recipeId} /> 형태로 붙여서 사용
 export default function RecipeReviewSection({ recipeId }) {
   const [data, setData] = useState(null);
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const loadReviews = () => {
     fetchReviews(recipeId).then(setData).catch(console.error);
@@ -19,14 +23,25 @@ export default function RecipeReviewSection({ recipeId }) {
 
   const handleSubmit = async () => {
     if (submitting) return;
+
+    const trimmed = content.trim();
+    if (trimmed.length < MIN_CONTENT_LENGTH) {
+      setFormError(`후기는 최소 ${MIN_CONTENT_LENGTH}자 이상 입력해주세요.`);
+      return;
+    }
+
+    setFormError(null);
     setSubmitting(true);
     try {
-      await createReview(recipeId, { rating, content });
+      await createReview(recipeId, { rating, content: trimmed });
       setContent("");
       setRating(5);
       loadReviews();
+
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 2000);
     } catch (err) {
-      alert(err.message);
+      setFormError(err.message);
     } finally {
       setSubmitting(false);
     }
@@ -48,12 +63,18 @@ export default function RecipeReviewSection({ recipeId }) {
         </select>
         <input
           type="text"
-          placeholder="후기를 남겨보세요"
+          placeholder="후기를 남겨보세요 (3자 이상)"
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => {
+            setContent(e.target.value);
+            if (formError) setFormError(null);
+          }}
         />
         <button onClick={handleSubmit} disabled={submitting}>등록</button>
       </div>
+
+      {formError && <p className="review-form-error">{formError}</p>}
+      {showSuccess && <p className="review-form-success">등록 완료!</p>}
 
       <ul className="review-list">
         {data.reviews.map((review) => (

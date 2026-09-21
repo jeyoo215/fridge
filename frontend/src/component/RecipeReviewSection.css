@@ -77,3 +77,23 @@
 .review-content {
   color: var(--color-text);
 }
+
+.review-form-error {
+  color: var(--color-tomato);
+  font-size: 13px;
+  margin: -10px 0 12px;
+}
+
+.review-form-success {
+  color: var(--color-basil-dark);
+  font-size: 13px;
+  font-weight: 700;
+  margin: -10px 0 12px;
+  animation: review-success-fade 2s ease forwards;
+}
+
+@keyframes review-success-fade {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}

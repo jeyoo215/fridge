@@ -1,5 +1,6 @@
 .my-shopping-list-container {
-  max-width: 480px;
+  width: 100%;
+  max-width: 900px;
   margin: 0 auto;
   padding: 24px 20px 60px;
 }
@@ -249,9 +250,8 @@
 .my-shopping-list-actions-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 18px;
   flex-wrap: wrap;
-  gap: 8px;
 }
 
 .my-shopping-list-select-all {
@@ -366,5 +366,5 @@
 .my-shopping-list-title-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
 }
